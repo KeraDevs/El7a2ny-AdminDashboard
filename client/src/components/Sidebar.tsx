@@ -32,6 +32,7 @@ import {
   HomeRepairService as HomeRepairServiceIcon,
   History as HistoryIcon,
   NotificationsActive as NotificationsActiveIcon,
+  AttachMoney as AttachMoneyIcon,
 } from "@mui/icons-material";
 
 interface NavItem {
@@ -60,7 +61,9 @@ const navItems: NavItem[] = [
   { text: "History", icon: <HistoryIcon /> },
 
   { text: "Financials", icon: null },
-  { text: "Wallets & Revenue", icon: <AccountBalanceWalletIcon /> },
+  { text: "Wallets", icon: <AccountBalanceWalletIcon /> },
+  { text: "Revenue", icon: <AttachMoneyIcon /> },
+
   { text: "Vouchers", icon: <DiscountIcon /> },
   { text: "Analytics", icon: <AnalyticsIcon /> },
 ];
