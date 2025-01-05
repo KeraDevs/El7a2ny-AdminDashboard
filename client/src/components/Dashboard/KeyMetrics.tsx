@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Card,
@@ -9,7 +9,6 @@ import {
   IconButton,
 } from "@mui/material";
 import {
-  ChevronRightOutlined,
   Group as GroupIcon,
   RequestPage as RequestPageIcon,
   Storefront as StorefrontIcon,
@@ -17,6 +16,9 @@ import {
   History as HistoryIcon,
   AttachMoney as AttachMoneyIcon,
 } from "@mui/icons-material";
+
+const API_BASE_URL = "http://localhost:5000/api/v1/users/total-users";
+const API_KEY = "el7a2ny-test-key-123";
 
 interface DashboardMetrics {
   totalUsers: number;
@@ -29,22 +31,43 @@ interface DashboardMetrics {
 
 const KeyMetrics: React.FC = () => {
   const [isMetricsLoading, setIsMetricsLoading] = useState(true);
-  React.useEffect(() => {
-    const loadData = async () => {
-      setTimeout(() => setIsMetricsLoading(false), 1500);
-    };
-    loadData();
-  }, []);
-
-  // Sample metrics data
-  const metrics: DashboardMetrics = {
-    totalUsers: 2456,
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
+    totalUsers: 0,
     activeWorkshops: 124,
     pendingRequests: 18,
     totalRevenue: "$45,289",
     completedServices: 1893,
     activeChats: 27,
-  };
+  });
+
+  useEffect(() => {
+    const fetchTotalUsers = async () => {
+      try {
+        const response = await fetch(API_BASE_URL, {
+          headers: {
+            "x-api-key": API_KEY,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch total users");
+        }
+
+        const data = await response.json();
+        setMetrics((prevMetrics) => ({
+          ...prevMetrics,
+          totalUsers: data.total_users,
+        }));
+      } catch (error) {
+        console.error("Error fetching total users:", error);
+      } finally {
+        setIsMetricsLoading(false);
+      }
+    };
+
+    fetchTotalUsers();
+  }, []);
 
   return (
     <>
