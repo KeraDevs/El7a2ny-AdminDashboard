@@ -53,17 +53,14 @@ const navItems: NavItem[] = [
   { text: "Users", icon: <GroupIcon /> },
   { text: "Workshops", icon: <HomeRepairServiceIcon /> },
   { text: "Marketplace", icon: <StorefrontIcon /> },
-
   { text: "Live Support", icon: null },
   { text: "Notifications", icon: <NotificationsActiveIcon /> },
   { text: "Chats", icon: <ChatIcon /> },
   { text: "Requests", icon: <RequestPageIcon /> },
   { text: "History", icon: <HistoryIcon /> },
-
   { text: "Financials", icon: null },
   { text: "Wallets", icon: <AccountBalanceWalletIcon /> },
   { text: "Revenue", icon: <AttachMoneyIcon /> },
-
   { text: "Vouchers", icon: <DiscountIcon /> },
   { text: "Analytics", icon: <AnalyticsIcon /> },
 ];
@@ -98,24 +95,49 @@ const Sidebar: React.FC<SidebarProps> = ({
               boxSizing: "border-box",
               borderWidth: isNonMobile ? 0 : "2px",
               width: drawerWidth,
+              display: "flex",
+              flexDirection: "column",
+              height: "100%",
+              overflow: "hidden",
             },
           }}
         >
-          <Box width="100%">
-            <Box m="1.5rem 2rem 2rem 3rem">
+          {/* Header Section */}
+          <Box>
+            <Box m="1.5rem 1rem 1rem 3rem">
               <FlexBetween>
                 <Box display="flex" alignItems="center" gap="0.5rem">
                   <Typography variant="h4" fontWeight="bold">
                     El7a2ny
                   </Typography>
                 </Box>
-                {!isNonMobile && (
-                  <IconButton onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
-                    <ChevronLeft />
-                  </IconButton>
-                )}
+                <IconButton onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+                  <ChevronLeft />
+                </IconButton>
               </FlexBetween>
             </Box>
+          </Box>
+
+          {/* Scrollable Navigation Section */}
+          <Box
+            flex="1"
+            overflow="auto"
+            sx={{
+              "&::-webkit-scrollbar": {
+                width: "8px",
+              },
+              "&::-webkit-scrollbar-track": {
+                background: "#f1f1f1",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                background: "#888",
+                borderRadius: "4px",
+              },
+              "&::-webkit-scrollbar-thumb:hover": {
+                background: "#555",
+              },
+            }}
+          >
             <List>
               {navItems.map(({ text, icon }) => {
                 if (!icon) {
@@ -154,9 +176,14 @@ const Sidebar: React.FC<SidebarProps> = ({
             </List>
           </Box>
 
-          <Box position="absolute" bottom="2rem">
+          {/* Fixed Profile Section */}
+          <Box>
             <Divider />
-            <FlexBetween textTransform="none" gap="1rem" m="1.5rem 2rem 0 3rem">
+            <FlexBetween
+              textTransform="none"
+              gap="1rem"
+              m="1.5rem 2rem 1.5rem 3rem"
+            >
               <Box
                 component="img"
                 alt="profile"

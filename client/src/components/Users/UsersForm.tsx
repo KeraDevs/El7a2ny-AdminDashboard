@@ -8,13 +8,7 @@ import {
   Select,
   TextField,
 } from "@mui/material";
-import { User } from "../../types/types";
-
-interface UserFormProps {
-  user?: User;
-  onSubmit: (data: Partial<User>) => void;
-  onClose: () => void;
-}
+import { User, UserFormProps } from "../../types/types";
 
 const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onClose }) => {
   const [formData, setFormData] = useState<Partial<User>>(
@@ -30,15 +24,24 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onClose }) => {
     <Box className="space-y-4">
       <TextField
         fullWidth
+        label="Full Name"
+        value={formData.fullName || ""}
+        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+        sx={{ margin: ".3rem 0 .3rem 0" }}
+      />
+      <TextField
+        fullWidth
         label="Email"
         value={formData.email || ""}
         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+        sx={{ margin: ".3rem 0 .3rem 0" }}
       />
       <TextField
         fullWidth
         label="Phone"
         value={formData.phone || ""}
         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+        sx={{ margin: ".3rem 0 .3rem 0" }}
       />
       <TextField
         fullWidth
@@ -47,9 +50,10 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onClose }) => {
         onChange={(e) =>
           setFormData({ ...formData, nationalNumber: e.target.value })
         }
+        sx={{ margin: ".3rem 0 .3rem 0" }}
       />
+      <InputLabel>Gender</InputLabel>
       <FormControl fullWidth>
-        <InputLabel>Gender</InputLabel>
         <Select
           value={formData.gender || "Male"}
           onChange={(e) =>
@@ -63,20 +67,25 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onClose }) => {
           <MenuItem value="Female">Female</MenuItem>
         </Select>
       </FormControl>
+      <InputLabel>User Type</InputLabel>
       <FormControl fullWidth>
-        <InputLabel>User Type</InputLabel>
         <Select
           value={formData.userType || "Customer"}
           onChange={(e) =>
             setFormData({
               ...formData,
-              userType: e.target.value as "Customer" | "Admin" | "Staff",
+              userType: e.target.value as
+                | "Customer"
+                | "Admin"
+                | "Staff"
+                | "SuperAdmin",
             })
           }
         >
           <MenuItem value="Customer">Customer</MenuItem>
           <MenuItem value="Admin">Admin</MenuItem>
           <MenuItem value="Staff">Staff</MenuItem>
+          <MenuItem value="SuperAdmin">Super Admin</MenuItem>
         </Select>
       </FormControl>
       <TextField
@@ -87,6 +96,17 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onClose }) => {
           const labels = e.target.value.split(",").map((label) => label.trim());
           setFormData({ ...formData, labels });
         }}
+        sx={{ margin: ".3rem 0 .3rem 0" }}
+      />
+      <TextField
+        fullWidth
+        label="Cars VIN List"
+        value={formData.labels?.join(", ") || ""}
+        onChange={(e) => {
+          const labels = e.target.value.split(",").map((label) => label.trim());
+          setFormData({ ...formData, labels });
+        }}
+        sx={{ margin: ".3rem 0 .3rem 0" }}
       />
       <Box className="flex justify-end space-x-2">
         <Button onClick={onClose}>Cancel</Button>

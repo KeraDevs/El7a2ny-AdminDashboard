@@ -13,6 +13,11 @@ import Wallets from "./scenes/pages/Wallets";
 import Revenue from "./scenes/pages/Revenue";
 import Vouchers from "./scenes/pages/Vouchers";
 import Analytics from "./scenes/pages/Analytics";
+import Cars from "./scenes/pages/Users/Cars";
+import Labels from "./scenes/pages/Users/labels";
+import UsersList from "./scenes/pages/Users/UsersList";
+import WorkshopsList from "./scenes/pages/Workshops/workshopsList";
+import Workers from "./scenes/pages/Workshops/workers";
 
 const App: React.FC = () => {
   return (
@@ -22,10 +27,22 @@ const App: React.FC = () => {
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/users" element={<Users />} />
-            <Route path="/workshops" element={<Workshops />} />
-            <Route path="/marketplace" element={<Marketplace />} />
+            <Route path="dashboard" element={<Dashboard />} />
+
+            <Route path="users" element={<Users />}>
+              <Route index element={<UsersList />} />
+              <Route path="cars" element={<Cars />} />
+              <Route path="labels" element={<Labels />} />
+            </Route>
+
+            <Route path="workshops" element={<Workshops />}>
+              <Route index element={<WorkshopsList />} />
+              <Route path="cars" element={<Cars />} />
+              <Route path="worker" element={<Workers />} />
+              <Route path="labels" element={<Labels />} />
+            </Route>
+
+            <Route path="/marketplace" element={<Marketplace />}></Route>
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/chats" element={<Chats />} />
             <Route path="/requests" element={<Requests />} />

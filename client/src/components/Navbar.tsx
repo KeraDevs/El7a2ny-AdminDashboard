@@ -4,6 +4,8 @@ import {
   Menu as MenuIcon,
   Search,
   Notifications as NotificationsIcon,
+  MenuOpen as MenuOpenIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 import FlexBetween from "./FlexBetween";
 import profileImage from "../assets/profile.jpg";
@@ -16,6 +18,8 @@ import {
   Toolbar,
   Menu,
   MenuItem,
+  useMediaQuery,
+  Stack,
 } from "@mui/material";
 
 interface NavbarProps {
@@ -25,10 +29,23 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [searchValue, setSearchValue] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const isOpen = Boolean(anchorEl);
+  const isMobile = useMediaQuery("(max-width:600px)");
+
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) =>
     setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Searching for:", searchValue);
+  };
 
   return (
     <AppBar
@@ -38,19 +55,48 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen }) => {
         boxShadow: "none",
       }}
     >
-      <Toolbar sx={{ justifyContent: "space-between" }}>
-        {/* LEFT SIDE */}
-        <FlexBetween sx={{ width: "100%" }}>
-          <IconButton onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
-            <MenuIcon />
+      <Toolbar
+        sx={{
+          justifyContent: "space-between",
+          flexDirection: isMobile && isSearchOpen ? "column" : "row",
+          gap: isMobile && isSearchOpen ? 2 : 0,
+          padding: isMobile ? "0.5rem" : "0.5rem 1rem",
+          position: "relative",
+        }}
+      >
+        {/* LEFT SIDE - Menu Button */}
+        <Box
+          sx={{
+            display: isMobile && isSearchOpen ? "none" : "flex",
+            position: isMobile ? "static" : "absolute",
+            left: "1rem",
+          }}
+        >
+          <IconButton
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            sx={{ color: "#000" }}
+          >
+            {isSidebarOpen ? <MenuOpenIcon /> : <MenuIcon />}
           </IconButton>
+        </Box>
+
+        {/* SEARCH BAR */}
+        <Box
+          component="form"
+          onSubmit={handleSearchSubmit}
+          sx={{
+            width: isMobile ? "100%" : "40%",
+            maxWidth: "600px",
+            display: isMobile && !isSearchOpen ? "none" : "block",
+            margin: isMobile ? "0" : "0 auto",
+            position: isMobile ? "static" : "relative",
+            left: isMobile ? 0 : "1rem", // Offset for the menu button
+          }}
+        >
           <FlexBetween
             borderRadius="9px"
-            gap="3rem"
-            p="0.1rem 1.5rem"
-            ml="1rem"
-            mr="1rem"
-            flexGrow={1}
+            gap="1rem"
+            p="0.1rem 1rem"
             sx={{
               backgroundColor: "#f0f0f0",
               color: "#000",
@@ -58,23 +104,53 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen }) => {
           >
             <InputBase
               placeholder="Start Searching..."
-              sx={{ flex: 1, color: "#000" }}
+              value={searchValue}
+              onChange={handleSearch}
+              sx={{
+                flex: 1,
+                color: "#000",
+                width: "100%",
+              }}
             />
-            <IconButton>
+            <IconButton type="submit">
               <Search />
             </IconButton>
+            {isMobile && isSearchOpen && (
+              <IconButton
+                onClick={() => setIsSearchOpen(false)}
+                sx={{ padding: "4px" }}
+              >
+                <CloseIcon />
+              </IconButton>
+            )}
           </FlexBetween>
-        </FlexBetween>
+        </Box>
 
         {/* RIGHT SIDE */}
-        <FlexBetween gap="1.5rem">
-          <IconButton>
-            <LightModeOutlined sx={{ fontSize: "25px", color: "#000" }} />
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          sx={{
+            display: isMobile && isSearchOpen ? "none" : "flex",
+            position: isMobile ? "static" : "absolute",
+            right: "1rem",
+          }}
+        >
+          {isMobile && (
+            <IconButton
+              onClick={() => setIsSearchOpen(true)}
+              sx={{ color: "#000" }}
+            >
+              <Search />
+            </IconButton>
+          )}
+          <IconButton sx={{ color: "#000" }}>
+            <LightModeOutlined />
           </IconButton>
-          <IconButton>
-            <NotificationsIcon sx={{ fontSize: "25px", color: "#000" }} />
+          <IconButton sx={{ color: "#000" }}>
+            <NotificationsIcon />
           </IconButton>
-
           <FlexBetween>
             <Button
               onClick={handleClick}
@@ -84,6 +160,8 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen }) => {
                 alignItems: "center",
                 textTransform: "none",
                 gap: "1rem",
+                padding: "4px",
+                minWidth: "unset",
               }}
             >
               <Box
@@ -105,7 +183,7 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen }) => {
               <MenuItem onClick={handleClose}>Log Out</MenuItem>
             </Menu>
           </FlexBetween>
-        </FlexBetween>
+        </Stack>
       </Toolbar>
     </AppBar>
   );
