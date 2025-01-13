@@ -22,6 +22,13 @@ interface RecentActivity {
   status: string;
   time: string;
 }
+const cardStyles = {
+  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+  border: "1px solid rgba(0, 0, 0, 0.12)",
+  borderRadius: "8px",
+  width: "100%",
+  height: "100%",
+};
 
 const RequetsHistory: React.FC = () => {
   const [isActivitiesLoading, setIsActivitiesLoading] = useState(true);
@@ -61,8 +68,17 @@ const RequetsHistory: React.FC = () => {
   ];
   return (
     <>
-      <Grid item xs={12} md={6}>
-        <Card className="border border-gray-200">
+      <Grid>
+        <Card
+          className="border border-gray-200"
+          sx={{
+            boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+            border: "1px solid rgba(0, 0, 0, 0.12)",
+            borderRadius: "8px",
+            width: "100%",
+            cardStyles,
+          }}
+        >
           <CardContent>
             <Typography variant="h6" className="mb-6">
               Recent Activities
@@ -120,7 +136,6 @@ const RequetsHistory: React.FC = () => {
           </CardContent>
         </Card>
       </Grid>
-      ;
     </>
   );
 };

@@ -199,7 +199,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </Typography>
                 <Typography fontSize="0.8rem">Occupation</Typography>
               </Box>
-              <SettingsOutlined sx={{ fontSize: "25px" }} />
+              {/* <SettingsOutlined sx={{ fontSize: "25px" }} /> */}
             </FlexBetween>
           </Box>
         </Drawer>

@@ -145,9 +145,7 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen }) => {
               <Search />
             </IconButton>
           )}
-          <IconButton sx={{ color: "#000" }}>
-            <LightModeOutlined />
-          </IconButton>
+
           <IconButton sx={{ color: "#000" }}>
             <NotificationsIcon />
           </IconButton>

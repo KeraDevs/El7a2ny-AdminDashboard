@@ -18,6 +18,7 @@ import Labels from "./scenes/pages/Users/labels";
 import UsersList from "./scenes/pages/Users/UsersList";
 import WorkshopsList from "./scenes/pages/Workshops/workshopsList";
 import Workers from "./scenes/pages/Workshops/workers";
+import "./index.css";
 
 const App: React.FC = () => {
   return (

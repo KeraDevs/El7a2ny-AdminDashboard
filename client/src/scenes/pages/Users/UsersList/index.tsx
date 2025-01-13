@@ -26,8 +26,9 @@ import { Refresh, Edit, Delete, Add } from "@mui/icons-material";
 import UserForm from "../../../../components/Users/UsersForm";
 import { User, ApiUser, ApiResponse } from "../../../../types/types";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const API_KEY = import.meta.env.VITE_API_KEY;
+const API_BASE_URL = import.meta.env.VITE_API_RAIL_WAY;
+const API_KEY = import.meta.env.VITE_API_RAIL_WAY;
+const token = import.meta.env.VITE_TOKEN;
 
 const mapApiUserToFrontend = (apiUser: ApiUser): User => ({
   id: apiUser.id,
@@ -69,11 +70,14 @@ const UsersList: React.FC = () => {
       const response = await fetch(`${API_BASE_URL}/users`, {
         headers: {
           "x-api-key": API_KEY,
+          Authorization: `Bearer ${token}`,
         },
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(
+          `Unauthorized, HTTP error! status: ${response.status} kindly login to access this data`
+        );
       }
 
       const result: ApiResponse = await response.json();
@@ -115,8 +119,8 @@ const UsersList: React.FC = () => {
 
       await fetchUsers();
       setOpenUserDialog(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add user");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to add user");
     } finally {
       setLoading(false);
     }
@@ -147,13 +151,17 @@ const UsersList: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(
+          `HTTP Response error! share status code: ${response.status} with your technical team`
+        );
       }
 
       await fetchUsers();
       setEditingUser(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update user");
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Failed to update user"
+      );
     } finally {
       setLoading(false);
     }
@@ -250,7 +258,7 @@ const UsersList: React.FC = () => {
                     />
                   </TableCell>
                   <TableCell>
-                    <Avatar src={user.profilePic} alt={user.email} />
+                    <Avatar src={user.profilePic || ""} alt={user.fullName} />
                   </TableCell>
                   <TableCell>{user.fullName}</TableCell>
                   <TableCell>{user.email}</TableCell>

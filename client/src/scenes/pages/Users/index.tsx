@@ -48,7 +48,6 @@ const Users: React.FC = () => {
           />
         </Tabs>
       </Box>
-
       <Outlet />
     </Box>
   );

@@ -5,32 +5,34 @@ import RequetsHistory from "../../../components/Dashboard/RequestsHistory";
 import ServiceHistory from "../../../components/Dashboard/ServiceHistory";
 import UserDistribution from "../../../components/Dashboard/UserDistribution";
 import KeyMetrics from "../../../components/Dashboard/KeyMetrics";
+import SalesChart from "../../../components/Dashboard/SalesCharts";
 
 const Dashboard: React.FC = () => {
   return (
     <Container maxWidth="xl">
-      <Box className="p-6 min-h-screen bg-gray-100 container">
+      <Box className="p-6 min-h-screen bg-gray-100">
         <Typography variant="h5" className="mb-8 font-medium">
           Dashboard Overview 📈
         </Typography>
 
-        {/* Key Metrics */}
         <KeyMetrics />
 
-        {/* Charts and Tables */}
-        <Grid container spacing={4} mt={4}>
+        <Grid container spacing={4} mt={1}>
           <Grid item xs={12} md={6}>
             <WorkshopsPerformance />
           </Grid>
-          <Grid item xs={12} md={6}>
-            <UserDistribution />
-          </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} lg={6}>
             <ServiceHistory />
           </Grid>
           <Grid item xs={12} md={6}>
+            <SalesChart />
+          </Grid>
+          <Grid item xs={12} lg={6}>
             <RequetsHistory />
           </Grid>
+          {/* <Grid item xs={12} md={6}>
+            <UserDistribution />
+          </Grid> */}
         </Grid>
       </Box>
     </Container>

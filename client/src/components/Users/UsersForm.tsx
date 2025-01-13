@@ -14,7 +14,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onClose }) => {
   const [formData, setFormData] = useState<Partial<User>>(
     user || {
       gender: "Male",
-      userType: "Customer",
+      userType: "customer",
       isActive: true,
       labels: [],
     }
@@ -26,7 +26,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onClose }) => {
         fullWidth
         label="Full Name"
         value={formData.fullName || ""}
-        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
         sx={{ margin: ".3rem 0 .3rem 0" }}
       />
       <TextField
@@ -75,17 +75,17 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onClose }) => {
             setFormData({
               ...formData,
               userType: e.target.value as
-                | "Customer"
-                | "Admin"
-                | "Staff"
-                | "SuperAdmin",
+                | "customer"
+                | "workshopAdmin"
+                | "worker"
+                | "superadmin",
             })
           }
         >
-          <MenuItem value="Customer">Customer</MenuItem>
-          <MenuItem value="Admin">Admin</MenuItem>
-          <MenuItem value="Staff">Staff</MenuItem>
-          <MenuItem value="SuperAdmin">Super Admin</MenuItem>
+          <MenuItem value="customer">Customer</MenuItem>
+          <MenuItem value="workshop_admin">Workshop Admin</MenuItem>
+          <MenuItem value="worker">worker</MenuItem>
+          <MenuItem value="superadmin">Super Admin</MenuItem>
         </Select>
       </FormControl>
       <TextField

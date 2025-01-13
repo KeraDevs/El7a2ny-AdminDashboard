@@ -22,13 +22,22 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import { Refresh, Edit, Delete, Add, LocationOn } from "@mui/icons-material";
+import {
+  Refresh,
+  Edit,
+  Delete,
+  Add,
+  LocationOn,
+  RemoveRedEye as RemoveRedEyeIcon,
+  Close as CloseIcon,
+} from "@mui/icons-material";
 import {
   Workshop,
   ApiWorkshopsList,
   ApiResponse,
   PhoneNumber,
 } from "../../../../types/types";
+import WorkShopForm from "../../../../components/Workshops/WorkShopForm";
 
 const API_BASE_URL = import.meta.env.VITE_API_RAIL_WAY;
 const API_KEY = import.meta.env.VITE_API_KEY;
@@ -42,6 +51,7 @@ const mapApiWorkshopToFrontend = (apiWorkshop: ApiWorkshopsList): Workshop => ({
   id: apiWorkshop.id,
   parentId: apiWorkshop.parent_id,
   ownerId: apiWorkshop.owner_id,
+  email: apiWorkshop.email,
   name: apiWorkshop.name,
   address: apiWorkshop.address,
   latitude: Number(apiWorkshop.latitude),
@@ -51,8 +61,7 @@ const mapApiWorkshopToFrontend = (apiWorkshop: ApiWorkshopsList): Workshop => ({
   status: apiWorkshop.status,
   createdAt: apiWorkshop.created_at,
   updatedAt: apiWorkshop.updated_at,
-  parent: apiWorkshop.parent,
-  users: [apiWorkshop.users],
+  users: apiWorkshop.users || [],
   phoneNumbers: apiWorkshop.phone_numbers.map((phone) => ({
     ...phone,
     type: phone.type.toUpperCase() as PhoneNumber["type"],
@@ -60,10 +69,23 @@ const mapApiWorkshopToFrontend = (apiWorkshop: ApiWorkshopsList): Workshop => ({
   services: [],
   ratings: 0,
   totalReviews: 0,
-  pricingInfo: {
-    currency: "EGP",
-    rate: 0,
-  },
+  labels: [],
+});
+
+const mapFrontendToApiWorkshop = (workshop: Partial<Workshop>) => ({
+  email: workshop.email,
+  name: workshop.name,
+  address: workshop.address,
+  latitude: workshop.latitude,
+  longitude: workshop.longitude,
+  profile_pic: workshop.profilePic,
+  is_active: workshop.isActive,
+  phone_numbers:
+    workshop.phoneNumbers?.map((phone) => ({
+      phone_number: phone.phone_number,
+      type: phone.type,
+      is_primary: phone.is_primary,
+    })) || [],
 });
 
 const WorkshopsList: React.FC = () => {
@@ -88,12 +110,12 @@ const WorkshopsList: React.FC = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(
+          `Unauthorized, HTTP error! status: ${response.status} kindly login to access this data`
+        );
       }
 
       const result: ApiResponse = await response.json();
-      console.log(response.status, result);
-
       const mappedWorkshops = (result.workshops || []).map(
         mapApiWorkshopToFrontend
       );
@@ -108,10 +130,6 @@ const WorkshopsList: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    fetchWorkshops();
-  }, []);
-
   const handleSelectAll = (checked: boolean) => {
     setSelectedWorkshops(
       checked ? workshops.map((workshop) => workshop.id) : []
@@ -125,6 +143,132 @@ const WorkshopsList: React.FC = () => {
         : [...prev, workshopId]
     );
   };
+  // Adding Workshop
+  const handleAddWorkShop = async (workshopData: Partial<Workshop>) => {
+    try {
+      setLoading(true);
+      const apiData = mapFrontendToApiWorkshop(workshopData);
+
+      const response = await fetch(`${API_BASE_URL}/workshops`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": API_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(apiData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message ||
+            `Failed to add Workshop! Status Code: ${response.status}`
+        );
+      }
+
+      await fetchWorkshops();
+      setOpenWorkshopDialog(false);
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Failed to add Workshop"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+  // handle Edit Workshop
+  const handleEditWorkshop = async (workshopData: Partial<Workshop>) => {
+    if (!editingWorkshop?.id) {
+      setError("No workshop selected for editing");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const apiData = mapFrontendToApiWorkshop(workshopData);
+      console.log(
+        "Sending update request for workshop:",
+        editingWorkshop.id,
+        apiData
+      );
+
+      const response = await fetch(
+        `${API_BASE_URL}/workshops/${editingWorkshop.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": API_KEY,
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(apiData),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message ||
+            `Failed to update Workshop! Status Code: ${response.status}`
+        );
+      }
+
+      const updatedWorkshop = await response.json();
+      console.log("Workshop updated successfully:", updatedWorkshop);
+
+      await fetchWorkshops();
+      setEditingWorkshop(null);
+      setOpenWorkshopDialog(false);
+    } catch (error) {
+      console.error("Error updating workshop:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to update Workshop"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+  // deleting workshop
+  const handleDeleteWorkshops = async () => {
+    try {
+      setLoading(true);
+
+      await Promise.all(
+        selectedWorkshops.map(async (workshopId) => {
+          const response = await fetch(
+            `${API_BASE_URL}/workshops/${workshopId}`,
+            {
+              method: "DELETE",
+              headers: {
+                "x-api-key": API_KEY,
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(`Failed to delete workshop ${workshopId}`);
+          }
+        })
+      );
+
+      await fetchWorkshops();
+      setSelectedWorkshops([]);
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Failed to delete workshops"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWorkshops();
+  }, []);
 
   return (
     <Card className="p-4">
@@ -139,6 +283,7 @@ const WorkshopsList: React.FC = () => {
             startIcon={<Add />}
             onClick={() => setOpenWorkshopDialog(true)}
             disabled={loading}
+            sx={{ marginRight: "1rem" }}
           >
             Add Workshop
           </Button>
@@ -146,6 +291,7 @@ const WorkshopsList: React.FC = () => {
             variant="contained"
             color="error"
             startIcon={<Delete />}
+            onClick={handleDeleteWorkshops}
             disabled={selectedWorkshops.length === 0 || loading}
           >
             Delete Selected
@@ -178,7 +324,7 @@ const WorkshopsList: React.FC = () => {
                     onChange={(e) => handleSelectAll(e.target.checked)}
                   />
                 </TableCell>
-                <TableCell>Profile</TableCell>
+                <TableCell>Picture</TableCell>
                 <TableCell>Name</TableCell>
                 <TableCell>Address</TableCell>
                 <TableCell>Phone Numbers</TableCell>
@@ -187,6 +333,7 @@ const WorkshopsList: React.FC = () => {
                 <TableCell>Services</TableCell>
                 <TableCell>Ratings</TableCell>
                 <TableCell>Actions</TableCell>
+                <TableCell>View</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -277,6 +424,11 @@ const WorkshopsList: React.FC = () => {
                       <Edit />
                     </IconButton>
                   </TableCell>
+                  <TableCell>
+                    <IconButton size="small" disabled={loading}>
+                      <RemoveRedEyeIcon />
+                    </IconButton>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -290,16 +442,40 @@ const WorkshopsList: React.FC = () => {
         onClose={() => {
           setOpenWorkshopDialog(false);
           setEditingWorkshop(null);
+          setError(null);
         }}
         maxWidth="sm"
         fullWidth
       >
         <DialogTitle>
-          {editingWorkshop ? "Edit Workshop" : "Add New Workshop"}
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Typography>
+              {editingWorkshop ? "Edit Workshop" : "Add New Workshop"}
+            </Typography>
+            <IconButton
+              onClick={() => {
+                setOpenWorkshopDialog(false);
+                setEditingWorkshop(null);
+              }}
+              size="small"
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </DialogTitle>
         <DialogContent>
-          {/* Workshop form component would go here */}
-          <Typography>Workshop Form Placeholder</Typography>
+          <WorkShopForm
+            workshop={editingWorkshop || undefined}
+            onSubmit={editingWorkshop ? handleEditWorkshop : handleAddWorkShop}
+            onClose={() => {
+              setOpenWorkshopDialog(false);
+              setEditingWorkshop(null);
+            }}
+          />
         </DialogContent>
       </Dialog>
     </Card>
