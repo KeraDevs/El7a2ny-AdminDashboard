@@ -147,7 +147,7 @@ const WorkshopsList: React.FC = () => {
                 <TableCell>Address</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Join Date</TableCell>
-                <TableCell align="center">Actions</TableCell>
+                <TableCell align="center">Edit</TableCell>
                 <TableCell align="center">View</TableCell>
               </TableRow>
             </TableHead>

@@ -55,7 +55,19 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onClose }) => {
   };
 
   return (
-    <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2 }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 3,
+        p: 3,
+        maxWidth: 600,
+        mx: "auto",
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        borderRadius: "8px",
+        boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
+      }}
+    >
       <TextField
         fullWidth
         name="firstName"
@@ -72,19 +84,36 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onClose }) => {
         onChange={handleChange}
       />
 
-      <FormControl fullWidth>
-        <InputLabel>Gender</InputLabel>
-        <Select value={formData.gender} onChange={handleSelectChange("gender")}>
+      <FormControl fullWidth variant="outlined">
+        <InputLabel id="gender-label" shrink={true}>
+          Gender
+        </InputLabel>
+        <Select
+          labelId="gender-label"
+          id="gender"
+          label="Gender"
+          value={formData.gender}
+          onChange={handleSelectChange("gender")}
+          displayEmpty
+          sx={{ borderRadius: 2 }}
+        >
           <MenuItem value="Male">Male</MenuItem>
           <MenuItem value="Female">Female</MenuItem>
         </Select>
       </FormControl>
 
-      <FormControl fullWidth>
-        <InputLabel>User Type</InputLabel>
+      <FormControl fullWidth variant="outlined">
+        <InputLabel id="userType-label" shrink={true}>
+          User Type
+        </InputLabel>
         <Select
+          labelId="userType-label"
+          id="userType"
+          label="User Type"
           value={formData.userType}
           onChange={handleSelectChange("userType")}
+          displayEmpty
+          sx={{ borderRadius: 2 }}
         >
           <MenuItem value="customer">Customer</MenuItem>
           <MenuItem value="workshopAdmin">Workshop Admin</MenuItem>
@@ -100,23 +129,38 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onClose }) => {
         onChange={(e) => setLabelInput(e.target.value)}
         onKeyDown={handleLabelAdd}
         helperText="Press Enter to add labels"
+        sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
       />
 
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
         {formData.labels?.map((label, index) => (
           <Chip
             key={index}
             label={label}
             onDelete={() => handleDeleteLabel(index)}
+            sx={{ borderRadius: 1 }}
           />
         ))}
       </Box>
 
-      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
-        <Button variant="outlined" onClick={onClose}>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 2 }}>
+        <Button
+          onClick={onClose}
+          variant="outlined"
+          sx={{ borderRadius: 2, textTransform: "none" }}
+        >
           Cancel
         </Button>
-        <Button variant="contained" onClick={handleSubmit}>
+        <Button
+          variant="contained"
+          onClick={handleSubmit}
+          sx={{
+            borderRadius: 2,
+            textTransform: "none",
+            boxShadow: "none",
+            "&:hover": { boxShadow: "none" },
+          }}
+        >
           {user ? "Update" : "Add"} User
         </Button>
       </Box>

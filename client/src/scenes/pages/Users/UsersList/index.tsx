@@ -82,7 +82,11 @@ const UsersList: React.FC = () => {
               startIcon={<Add />}
               onClick={() => setOpenUserDialog(true)}
               disabled={loading}
-              sx={{ borderRadius: 2, textTransform: "none" }}
+              sx={{
+                borderRadius: 2,
+                textTransform: "none",
+                boxShadow: "none",
+              }}
             >
               Add User
             </Button>
@@ -114,7 +118,7 @@ const UsersList: React.FC = () => {
       )}
       {/* Table Content */}
       {loading ? (
-        <Box className="flex justify-center p-4">
+        <Box display="flex" justifyContent="center" p={4}>
           <CircularProgress />
         </Box>
       ) : (
@@ -122,7 +126,10 @@ const UsersList: React.FC = () => {
           <Table sx={{ minWidth: 800 }}>
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox">
+                <TableCell
+                  padding="checkbox"
+                  sx={{ borderBottom: "2px solid #eee" }}
+                >
                   <Checkbox
                     checked={selectedUsers.length === users.length}
                     indeterminate={
@@ -142,12 +149,16 @@ const UsersList: React.FC = () => {
                 <TableCell>Labels</TableCell>
                 <TableCell>Cars</TableCell>
                 <TableCell>Status</TableCell>
-                <TableCell>Actions</TableCell>
+                <TableCell align="center">Edit</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {users.map((user) => (
-                <TableRow key={user.id}>
+                <TableRow
+                  key={user.id}
+                  hover
+                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                >
                   <TableCell padding="checkbox">
                     <Checkbox
                       checked={selectedUsers.includes(user.id)}
@@ -155,7 +166,11 @@ const UsersList: React.FC = () => {
                     />
                   </TableCell>
                   <TableCell>
-                    <Avatar src={user.profilePic || ""} alt={user.fullName} />
+                    <Avatar
+                      src={user.profilePic || ""}
+                      alt={user.fullName}
+                      sx={{ width: 40, height: 40, border: "2px solid #eee" }}
+                    />
                   </TableCell>
                   <TableCell>{user.fullName}</TableCell>
                   <TableCell>{user.email}</TableCell>
