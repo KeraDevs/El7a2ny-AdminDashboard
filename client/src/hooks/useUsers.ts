@@ -1,0 +1,178 @@
+import { useState } from "react";
+import { mapApiUserToFrontend } from "@utils/usersApi";
+import { API_BASE_URL, API_KEY, token } from "@config/config";
+import { ApiResponse, User, UseUsersReturn } from "../types/types";
+
+export const useUsers = (): UseUsersReturn => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [openUserDialog, setOpenUserDialog] = useState(false);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/users`, {
+        headers: {
+          "x-api-key": API_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Unauthorized, HTTP error! status: ${response.status} kindly login to access this data`
+        );
+      }
+
+      const result: ApiResponse = await response.json();
+      const mappedUsers = (result.users || []).map(mapApiUserToFrontend);
+      setUsers(mappedUsers);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch users");
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddUser = async (userData: Partial<User>): Promise<void> => {
+    try {
+      setLoading(true);
+      const apiData = {
+        email: userData.email,
+        first_name: userData.firstName || "",
+        last_name: userData.lastName || "",
+        national_id: userData.nationalNumber,
+        phone: userData.phone,
+        gender: userData.gender?.toLowerCase(),
+        type: userData.userType?.toLowerCase(),
+      };
+
+      const response = await fetch(`${API_BASE_URL}/users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": API_KEY,
+        },
+        body: JSON.stringify(apiData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to add User! status: ${response.status}`);
+      }
+
+      setOpenUserDialog(false);
+      await fetchUsers();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to add user");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditUser = async (userData: Partial<User>): Promise<void> => {
+    if (!userData.id) {
+      throw new Error("User ID is required for editing");
+    }
+
+    try {
+      setLoading(true);
+      const apiData = {
+        email: userData.email,
+        first_name: userData.firstName || userData.fullName?.split(" ")[0],
+        last_name: userData.lastName || userData.fullName?.split(" ")[1],
+        national_id: userData.nationalNumber,
+        phone: userData.phone,
+        gender: userData.gender?.toLowerCase(),
+        type: userData.userType?.toLowerCase(),
+      };
+
+      const response = await fetch(`${API_BASE_URL}/users/${userData.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": API_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(apiData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          `Failed to update user: ${errorData.message || response.statusText}`
+        );
+      }
+      setOpenUserDialog(false);
+      setEditingUser(null);
+      await fetchUsers();
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Failed to update user"
+      );
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteUsers = async (): Promise<void> => {
+    try {
+      setLoading(true);
+      // Implement delete functionality here
+      await Promise.all(
+        selectedUsers.map((userId) =>
+          fetch(`${API_BASE_URL}/users/${userId}`, {
+            method: "DELETE",
+            headers: {
+              "x-api-key": API_KEY,
+              Authorization: `Bearer ${token}`,
+            },
+          })
+        )
+      );
+      setSelectedUsers([]);
+      await fetchUsers();
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Failed to delete users"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    setSelectedUsers(checked ? users.map((user) => user.id) : []);
+  };
+
+  const handleSelectUser = (userId: string) => {
+    setSelectedUsers((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  return {
+    users,
+    selectedUsers,
+    loading,
+    error,
+    editingUser,
+    openUserDialog,
+    fetchUsers,
+    handleAddUser,
+    handleEditUser,
+    handleDeleteUsers,
+    handleSelectAll,
+    handleSelectUser,
+    setEditingUser,
+    setOpenUserDialog,
+    setError,
+  };
+};

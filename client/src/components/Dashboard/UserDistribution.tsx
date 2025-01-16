@@ -9,16 +9,10 @@ import {
 } from "@mui/material";
 import { PieChart } from "@mui/x-charts/PieChart";
 import SectionFooter from "./SectionFooter";
+import { cardStyles } from "../../config/styles";
+import { OSData } from "../../types/types";
 
-// Define proper types
-interface OSData {
-  id: number;
-  label: string;
-  value: number;
-  color: string;
-}
-
-// Sample data with proper structure
+// Sample data
 const mobileAndDesktopOS: OSData[] = [
   { id: 1, label: "Men", value: 42, color: "#4CAF50" },
   { id: 3, label: "Women", value: 20, color: "#9C27B0" },
@@ -34,14 +28,6 @@ const UserDistribution: React.FC = () => {
     };
     loadData();
   }, []);
-
-  const cardStyles = {
-    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-    border: "1px solid rgba(0, 0, 0, 0.12)",
-    borderRadius: "8px",
-    width: "100%",
-    height: "100%",
-  };
 
   return (
     <Grid>

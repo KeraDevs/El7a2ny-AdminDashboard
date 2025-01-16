@@ -14,7 +14,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Checkbox,
   Avatar,
   Chip,
@@ -22,207 +21,105 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import { Refresh, Edit, Delete, Add } from "@mui/icons-material";
-import UserForm from "../../../../components/Users/UsersForm";
-import { User, ApiUser, ApiResponse } from "../../../../types/types";
-
-const API_BASE_URL = import.meta.env.VITE_API_RAIL_WAY;
-const API_KEY = import.meta.env.VITE_API_RAIL_WAY;
-const token = import.meta.env.VITE_TOKEN;
-
-const mapApiUserToFrontend = (apiUser: ApiUser): User => ({
-  id: apiUser.id,
-  fullName: apiUser.first_name + " " + apiUser.last_name,
-  email: apiUser.email,
-  phone: apiUser.phone,
-  nationalNumber: apiUser.national_id,
-  profilePic:
-    apiUser.profile_pic ||
-    "https://w7.pngwing.com/pngs/340/946/png-transparent-avatar-user-computer-icons-software-developer-avatar-child-face-heroes-thumbnail.png",
-  gender: (apiUser.gender.charAt(0).toUpperCase() + apiUser.gender.slice(1)) as
-    | "Male"
-    | "Female",
-  userType: (apiUser.type.charAt(0).toUpperCase() + apiUser.type.slice(1)) as
-    | "customer"
-    | "workshopAdmin"
-    | "worker"
-    | "superadmin",
-  labels: [],
-  isActive: true,
-  cars: [],
-  createdAt: apiUser.created_at,
-  updatedAt: apiUser.updated_at,
-  firstName: apiUser.first_name,
-  lastName: apiUser.last_name,
-});
+import {
+  Refresh,
+  Edit,
+  Delete,
+  Add,
+  Close as CloseIcon,
+} from "@mui/icons-material";
+import UserForm from "@components/Users/UsersForm";
+import { useUsers } from "@hooks/useUsers";
+import { dialogStyles } from "@config/styles";
+import { User } from "../../../../types/types";
 
 const UsersList: React.FC = () => {
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [openUserDialog, setOpenUserDialog] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    users,
+    selectedUsers,
+    loading,
+    error,
+    editingUser,
+    openUserDialog,
+    fetchUsers,
+    handleAddUser,
+    handleEditUser,
+    handleDeleteUsers,
+    handleSelectAll,
+    handleSelectUser,
+    setEditingUser,
+    setOpenUserDialog,
+    setError,
+  } = useUsers();
 
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/users`, {
-        headers: {
-          "x-api-key": API_KEY,
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `Unauthorized, HTTP error! status: ${response.status} kindly login to access this data`
-        );
-      }
-
-      const result: ApiResponse = await response.json();
-      const mappedUsers = (result.users || []).map(mapApiUserToFrontend);
-      setUsers(mappedUsers);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch users");
-      setUsers([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddUser = async (userData: Partial<User>) => {
-    try {
-      setLoading(true);
-      const apiData = {
-        email: userData.email,
-        first_name: userData.firstName || "",
-        last_name: userData.lastName || "",
-        national_id: userData.nationalNumber,
-        phone: userData.phone,
-        gender: userData.gender?.toLowerCase(),
-        type: userData.userType?.toLowerCase(),
-      };
-
-      const response = await fetch(`${API_BASE_URL}/users`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": API_KEY,
-        },
-        body: JSON.stringify(apiData),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to add User! status: ${response.status}`);
-      }
-
-      await fetchUsers();
-      setOpenUserDialog(false);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "Failed to add user");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEditUser = async (userData: Partial<User>) => {
-    if (!editingUser) return;
-
-    try {
-      setLoading(true);
-      const apiData = {
-        email: userData.email,
-        first_name: userData.firstName,
-        last_name: userData.lastName,
-        national_id: userData.nationalNumber,
-        phone: userData.phone,
-        gender: userData.gender?.toLowerCase(),
-        type: userData.userType?.toLowerCase(),
-      };
-
-      const response = await fetch(`${API_BASE_URL}/users/${editingUser.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": API_KEY,
-        },
-        body: JSON.stringify(apiData),
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `HTTP Response error! share status code: ${response.status} with your technical team`
-        );
-      }
-
-      await fetchUsers();
-      setEditingUser(null);
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Failed to update user"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [updateConfirmOpen, setUpdateConfirmOpen] = useState(false);
+  const [pendingUserData, setPendingUserData] = useState<Partial<User> | null>(
+    null
+  );
 
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  const handleSelectAll = (checked: boolean) => {
-    setSelectedUsers(checked ? users.map((user) => user.id) : []);
-  };
-
-  const handleSelectUser = (userId: string) => {
-    setSelectedUsers((prev) =>
-      prev.includes(userId)
-        ? prev.filter((id) => id !== userId)
-        : [...prev, userId]
-    );
-  };
-
   return (
-    <Card className="p-4">
-      <Box className="flex justify-between items-center mb-4">
-        <Typography variant="h5">Customer List</Typography>
-        <Box className="space-x-2">
-          <IconButton onClick={fetchUsers} disabled={loading}>
-            <Refresh />
-          </IconButton>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => setOpenUserDialog(true)}
-            disabled={loading}
-          >
-            Add User
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            startIcon={<Delete />}
-            disabled={selectedUsers.length === 0 || loading}
-          >
-            Delete Selected
-          </Button>
+    <Card sx={{ borderRadius: 2, boxShadow: 2 }}>
+      <Box sx={{ p: 3, borderBottom: "1px solid #eee" }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography variant="h5" fontWeight="500">
+            Customer List
+          </Typography>
+          <Box display="flex" gap={1}>
+            <IconButton
+              onClick={fetchUsers}
+              disabled={loading}
+              sx={{ backgroundColor: "#f5f5f5" }}
+            >
+              <Refresh />
+            </IconButton>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => setOpenUserDialog(true)}
+              disabled={loading}
+              sx={{ borderRadius: 2, textTransform: "none" }}
+            >
+              Add User
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<Delete />}
+              onClick={() => setDeleteConfirmOpen(true)}
+              disabled={selectedUsers.length === 0 || loading}
+              sx={{ borderRadius: 2, textTransform: "none" }}
+            >
+              Delete Selected
+            </Button>
+          </Box>
         </Box>
       </Box>
 
+      {/* Error Alert */}
       {error && (
-        <Alert severity="error" className="mb-4" onClose={() => setError(null)}>
-          {error}
-        </Alert>
+        <Box sx={{ px: 3, py: 2 }}>
+          <Alert
+            severity="error"
+            onClose={() => setError(null)}
+            sx={{ borderRadius: 2 }}
+          >
+            {error}
+          </Alert>
+        </Box>
       )}
-
+      {/* Table Content */}
       {loading ? (
         <Box className="flex justify-center p-4">
           <CircularProgress />
         </Box>
       ) : (
-        <TableContainer component={Paper}>
-          <Table>
+        <TableContainer sx={{ p: 3 }}>
+          <Table sx={{ minWidth: 800 }}>
             <TableHead>
               <TableRow>
                 <TableCell padding="checkbox">
@@ -268,7 +165,7 @@ const UsersList: React.FC = () => {
                   <TableCell>{user.userType}</TableCell>
                   <TableCell>
                     {user.labels && user.labels.length > 0 ? (
-                      <Box className="space-x-1">
+                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                         {user.labels.map((label, index) => (
                           <Tooltip key={index} title={`Label: ${label}`}>
                             <Chip
@@ -276,6 +173,13 @@ const UsersList: React.FC = () => {
                               size="small"
                               color="primary"
                               variant="outlined"
+                              sx={{
+                                borderRadius: "4px",
+                                "& .MuiChip-label": {
+                                  px: 1,
+                                  py: 0.25,
+                                },
+                              }}
                             />
                           </Tooltip>
                         ))}
@@ -288,14 +192,34 @@ const UsersList: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     {user.cars && user.cars.length > 0 ? (
-                      <Box className="space-x-1">
+                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                         {user.cars.map((car) => (
-                          <Tooltip key={car.id} title={`VIN: ${car.vinNumber}`}>
+                          <Tooltip
+                            key={car.id}
+                            title={
+                              <Box>
+                                <Typography variant="caption">
+                                  VIN: {car.vinNumber}
+                                </Typography>
+                                <br />
+                                <Typography variant="caption">
+                                  Model: {car.model}
+                                </Typography>
+                              </Box>
+                            }
+                          >
                             <Chip
                               label={car.licensePlate}
                               size="small"
                               color="primary"
                               variant="outlined"
+                              sx={{
+                                borderRadius: "4px",
+                                "& .MuiChip-label": {
+                                  px: 1,
+                                  py: 0.25,
+                                },
+                              }}
                             />
                           </Tooltip>
                         ))}
@@ -318,10 +242,15 @@ const UsersList: React.FC = () => {
                       size="small"
                       onClick={() => {
                         setEditingUser(user);
+                        setPendingUserData(null);
                       }}
                       disabled={loading}
+                      sx={{
+                        backgroundColor: "#f5f5f5",
+                        "&:hover": { backgroundColor: "#e0e0e0" },
+                      }}
                     >
-                      <Edit />
+                      <Edit fontSize="small" />
                     </IconButton>
                   </TableCell>
                 </TableRow>
@@ -331,27 +260,126 @@ const UsersList: React.FC = () => {
         </TableContainer>
       )}
 
-      {/* Edit/Add Dialog */}
+      {/* Add/Edit Dialog */}
       <Dialog
         open={openUserDialog || !!editingUser}
         onClose={() => {
           setOpenUserDialog(false);
           setEditingUser(null);
+          setError(null);
         }}
         maxWidth="sm"
         fullWidth
+        PaperProps={{ sx: { borderRadius: 2 } }}
+        sx={dialogStyles}
       >
-        <DialogTitle>{editingUser ? "Edit User" : "Add New User"}</DialogTitle>
+        <DialogTitle>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Typography>
+              {editingUser ? "Edit User" : "Add New User"}
+            </Typography>
+            <IconButton
+              onClick={() => {
+                setOpenUserDialog(false);
+                setEditingUser(null);
+              }}
+              size="small"
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
         <DialogContent>
           <UserForm
             user={editingUser || undefined}
-            onSubmit={editingUser ? handleEditUser : handleAddUser}
+            onSubmit={(formData) => {
+              setPendingUserData(formData);
+              setOpenUserDialog(false);
+              setUpdateConfirmOpen(true);
+            }}
             onClose={() => {
               setOpenUserDialog(false);
               setEditingUser(null);
             }}
+            open={openUserDialog || !!editingUser}
           />
         </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        PaperProps={{ sx: { borderRadius: 2 } }}
+      >
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete {selectedUsers.length} selected
+            user(s)? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end", gap: 1 }}>
+          <Button
+            variant="outlined"
+            onClick={() => setDeleteConfirmOpen(false)}
+            sx={{ borderRadius: 2 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              setDeleteConfirmOpen(false);
+              handleDeleteUsers();
+            }}
+            sx={{ borderRadius: 2 }}
+          >
+            Delete
+          </Button>
+        </Box>
+      </Dialog>
+
+      {/* Update Confirmation Dialog */}
+      <Dialog
+        open={updateConfirmOpen}
+        onClose={() => setUpdateConfirmOpen(false)}
+        PaperProps={{ sx: { borderRadius: 2 } }}
+      >
+        <DialogTitle>Confirm Update</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to update this user's information?
+          </Typography>
+        </DialogContent>
+        <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end", gap: 1 }}>
+          <Button
+            variant="outlined"
+            onClick={() => setUpdateConfirmOpen(false)}
+            sx={{ borderRadius: 2 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              setUpdateConfirmOpen(false);
+              if (pendingUserData) {
+                handleEditUser(pendingUserData);
+              }
+              setPendingUserData(null);
+            }}
+            sx={{ borderRadius: 2 }}
+          >
+            Update
+          </Button>
+        </Box>
       </Dialog>
     </Card>
   );

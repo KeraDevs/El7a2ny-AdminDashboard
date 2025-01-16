@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -14,7 +14,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Checkbox,
   Avatar,
   Chip,
@@ -31,290 +30,107 @@ import {
   RemoveRedEye as RemoveRedEyeIcon,
   Close as CloseIcon,
 } from "@mui/icons-material";
-import {
-  Workshop,
-  ApiWorkshopsList,
-  ApiResponse,
-  PhoneNumber,
-} from "../../../../types/types";
+import { Workshop } from "../../../../types/types";
 import WorkShopForm from "../../../../components/Workshops/WorkShopForm";
-
-const API_BASE_URL = import.meta.env.VITE_API_RAIL_WAY;
-const API_KEY = import.meta.env.VITE_API_KEY;
-const token = import.meta.env.VITE_TOKEN;
-
-if (!API_BASE_URL || !API_KEY) {
-  throw new Error("Missing API environment variables");
-}
-
-const mapApiWorkshopToFrontend = (apiWorkshop: ApiWorkshopsList): Workshop => ({
-  id: apiWorkshop.id,
-  parentId: apiWorkshop.parent_id,
-  ownerId: apiWorkshop.owner_id,
-  email: apiWorkshop.email,
-  name: apiWorkshop.name,
-  address: apiWorkshop.address,
-  latitude: Number(apiWorkshop.latitude),
-  longitude: Number(apiWorkshop.longitude),
-  profilePic: apiWorkshop.profile_pic,
-  isActive: apiWorkshop.is_active,
-  status: apiWorkshop.status,
-  createdAt: apiWorkshop.created_at,
-  updatedAt: apiWorkshop.updated_at,
-  users: apiWorkshop.users || [],
-  phoneNumbers: apiWorkshop.phone_numbers.map((phone) => ({
-    ...phone,
-    type: phone.type.toUpperCase() as PhoneNumber["type"],
-  })),
-  services: [],
-  ratings: 0,
-  totalReviews: 0,
-  labels: [],
-});
-
-const mapFrontendToApiWorkshop = (workshop: Partial<Workshop>) => ({
-  email: workshop.email,
-  name: workshop.name,
-  address: workshop.address,
-  latitude: workshop.latitude,
-  longitude: workshop.longitude,
-  profile_pic: workshop.profilePic,
-  is_active: workshop.isActive,
-  phone_numbers:
-    workshop.phoneNumbers?.map((phone) => ({
-      phone_number: phone.phone_number,
-      type: phone.type,
-      is_primary: phone.is_primary,
-    })) || [],
-});
+import { dialogStyles } from "../../../../config/styles";
+import { useWorkshops } from "../../../../hooks/useWorkshops";
 
 const WorkshopsList: React.FC = () => {
-  const [selectedWorkshops, setSelectedWorkshops] = useState<string[]>([]);
-  const [openWorkshopDialog, setOpenWorkshopDialog] = useState(false);
-  const [editingWorkshop, setEditingWorkshop] = useState<Workshop | null>(null);
-  const [workshops, setWorkshops] = useState<Workshop[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [updateConfirmOpen, setUpdateConfirmOpen] = useState(false);
+  const [pendingWorkshopData, setPendingWorkshopData] =
+    useState<Partial<Workshop> | null>(null);
 
-  const fetchWorkshops = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/workshops?limit=10&offset=0&is_active=true`,
-        {
-          headers: {
-            "x-api-key": API_KEY,
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          `Unauthorized, HTTP error! status: ${response.status} kindly login to access this data`
-        );
-      }
-
-      const result: ApiResponse = await response.json();
-      const mappedWorkshops = (result.workshops || []).map(
-        mapApiWorkshopToFrontend
-      );
-      setWorkshops(mappedWorkshops);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to fetch workshops"
-      );
-      setWorkshops([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSelectAll = (checked: boolean) => {
-    setSelectedWorkshops(
-      checked ? workshops.map((workshop) => workshop.id) : []
-    );
-  };
-
-  const handleSelectWorkshop = (workshopId: string) => {
-    setSelectedWorkshops((prev) =>
-      prev.includes(workshopId)
-        ? prev.filter((id) => id !== workshopId)
-        : [...prev, workshopId]
-    );
-  };
-  // Adding Workshop
-  const handleAddWorkShop = async (workshopData: Partial<Workshop>) => {
-    try {
-      setLoading(true);
-      const apiData = mapFrontendToApiWorkshop(workshopData);
-
-      const response = await fetch(`${API_BASE_URL}/workshops`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": API_KEY,
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(apiData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message ||
-            `Failed to add Workshop! Status Code: ${response.status}`
-        );
-      }
-
-      await fetchWorkshops();
-      setOpenWorkshopDialog(false);
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Failed to add Workshop"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-  // handle Edit Workshop
-  const handleEditWorkshop = async (workshopData: Partial<Workshop>) => {
-    if (!editingWorkshop?.id) {
-      setError("No workshop selected for editing");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const apiData = mapFrontendToApiWorkshop(workshopData);
-      console.log(
-        "Sending update request for workshop:",
-        editingWorkshop.id,
-        apiData
-      );
-
-      const response = await fetch(
-        `${API_BASE_URL}/workshops/${editingWorkshop.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": API_KEY,
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(apiData),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message ||
-            `Failed to update Workshop! Status Code: ${response.status}`
-        );
-      }
-
-      const updatedWorkshop = await response.json();
-      console.log("Workshop updated successfully:", updatedWorkshop);
-
-      await fetchWorkshops();
-      setEditingWorkshop(null);
-      setOpenWorkshopDialog(false);
-    } catch (error) {
-      console.error("Error updating workshop:", error);
-      setError(
-        error instanceof Error ? error.message : "Failed to update Workshop"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-  // deleting workshop
-  const handleDeleteWorkshops = async () => {
-    try {
-      setLoading(true);
-
-      await Promise.all(
-        selectedWorkshops.map(async (workshopId) => {
-          const response = await fetch(
-            `${API_BASE_URL}/workshops/${workshopId}`,
-            {
-              method: "DELETE",
-              headers: {
-                "x-api-key": API_KEY,
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          if (!response.ok) {
-            throw new Error(`Failed to delete workshop ${workshopId}`);
-          }
-        })
-      );
-
-      await fetchWorkshops();
-      setSelectedWorkshops([]);
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Failed to delete workshops"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchWorkshops();
-  }, []);
+  const {
+    workshops,
+    selectedWorkshops,
+    loading,
+    error,
+    fetchWorkshops,
+    handleSelectAll,
+    handleSelectWorkshop,
+    handleAddWorkShop,
+    handleEditWorkshop,
+    handleDeleteWorkshops,
+    setEditingWorkshop,
+    setOpenWorkshopDialog,
+    editingWorkshop,
+    openWorkshopDialog,
+    setError,
+  } = useWorkshops();
 
   return (
-    <Card className="p-4">
-      <Box className="flex justify-between items-center mb-4">
-        <Typography variant="h5">Workshops List</Typography>
-        <Box className="space-x-2">
-          <IconButton onClick={fetchWorkshops} disabled={loading}>
-            <Refresh />
-          </IconButton>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => setOpenWorkshopDialog(true)}
-            disabled={loading}
-            sx={{ marginRight: "1rem" }}
-          >
-            Add Workshop
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            startIcon={<Delete />}
-            onClick={handleDeleteWorkshops}
-            disabled={selectedWorkshops.length === 0 || loading}
-          >
-            Delete Selected
-          </Button>
+    <Card sx={{ borderRadius: 2, boxShadow: 2 }}>
+      <Box sx={{ p: 3, borderBottom: "1px solid #eee" }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography variant="h5" fontWeight="500">
+            Workshops List
+          </Typography>
+          <Box display="flex" gap={1}>
+            <IconButton
+              onClick={fetchWorkshops}
+              disabled={loading}
+              sx={{ backgroundColor: "#f5f5f5" }}
+            >
+              <Refresh />
+            </IconButton>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => setOpenWorkshopDialog(true)}
+              disabled={loading}
+              sx={{
+                borderRadius: 2,
+                textTransform: "none",
+                boxShadow: "none",
+              }}
+            >
+              Add Workshop
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<Delete />}
+              onClick={() => setDeleteConfirmOpen(true)}
+              disabled={selectedWorkshops.length === 0 || loading}
+              sx={{
+                borderRadius: 2,
+                textTransform: "none",
+              }}
+            >
+              Delete Selected
+            </Button>
+          </Box>
         </Box>
       </Box>
 
+      {/* Error Alert */}
       {error && (
-        <Alert severity="error" className="mb-4" onClose={() => setError(null)}>
-          {error}
-        </Alert>
+        <Box sx={{ px: 3, py: 2 }}>
+          <Alert
+            severity="error"
+            onClose={() => setError(null)}
+            sx={{ borderRadius: 2 }}
+          >
+            {error}
+          </Alert>
+        </Box>
       )}
 
+      {/* Table Content */}
       {loading ? (
-        <Box className="flex justify-center p-4">
+        <Box display="flex" justifyContent="center" p={4}>
           <CircularProgress />
         </Box>
       ) : (
-        <TableContainer component={Paper}>
-          <Table>
+        <TableContainer sx={{ p: 3 }}>
+          <Table sx={{ minWidth: 800 }}>
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox">
+                <TableCell
+                  padding="checkbox"
+                  sx={{ borderBottom: "2px solid #eee" }}
+                >
                   <Checkbox
                     checked={selectedWorkshops.length === workshops.length}
                     indeterminate={
@@ -325,20 +141,23 @@ const WorkshopsList: React.FC = () => {
                   />
                 </TableCell>
                 <TableCell>Picture</TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell>Address</TableCell>
-                <TableCell>Phone Numbers</TableCell>
+                <TableCell>Workshop Name</TableCell>
+                <TableCell>Main Branch</TableCell>
                 <TableCell>Owner</TableCell>
+                <TableCell>Address</TableCell>
                 <TableCell>Status</TableCell>
-                <TableCell>Services</TableCell>
-                <TableCell>Ratings</TableCell>
-                <TableCell>Actions</TableCell>
-                <TableCell>View</TableCell>
+                <TableCell>Join Date</TableCell>
+                <TableCell align="center">Actions</TableCell>
+                <TableCell align="center">View</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {workshops.map((workshop) => (
-                <TableRow key={workshop.id}>
+                <TableRow
+                  key={workshop.id}
+                  hover
+                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                >
                   <TableCell padding="checkbox">
                     <Checkbox
                       checked={selectedWorkshops.includes(workshop.id)}
@@ -349,84 +168,68 @@ const WorkshopsList: React.FC = () => {
                     <Avatar
                       src={workshop.profilePic || ""}
                       alt={workshop.name}
+                      sx={{ width: 40, height: 40, border: "2px solid #eee" }}
                     />
                   </TableCell>
                   <TableCell>{workshop.name}</TableCell>
                   <TableCell>
+                    {workshop.parentId ? workshop.parentId : "Main Workshop"}
+                  </TableCell>
+                  <TableCell>
+                    {workshop.users[0]?.firstName
+                      ? `${workshop.users[0]?.firstName} ${workshop.users[0]?.lastName}`
+                      : "No owner assigned"}
+                  </TableCell>
+                  <TableCell>
                     <Tooltip
                       title={`${workshop.latitude}, ${workshop.longitude}`}
                     >
-                      <Box className="flex items-center">
-                        <LocationOn className="mr-1" />
+                      <Box display="flex" alignItems="center">
+                        <LocationOn sx={{ mr: 1 }} />
                         {workshop.address}
                       </Box>
                     </Tooltip>
                   </TableCell>
                   <TableCell>
-                    <Box className="space-x-1">
-                      {workshop.phoneNumbers.map((phone, index) => (
-                        <Tooltip
-                          key={index}
-                          title={`${phone.type} - ${
-                            phone.is_verified ? "Verified" : "Unverified"
-                          }`}
-                        >
-                          <Chip
-                            label={phone.phone_number}
-                            size="small"
-                            color={phone.is_primary ? "primary" : "default"}
-                            variant="outlined"
-                          />
-                        </Tooltip>
-                      ))}
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    {workshop.users[0]?.fullName || "No owner assigned"}
-                  </TableCell>
-                  <TableCell>
                     <Chip
-                      label={workshop.status}
+                      label={workshop.activeStatus}
                       color={
-                        workshop.status === "Open"
+                        workshop.activeStatus === "active"
                           ? "success"
-                          : workshop.status === "Busy"
+                          : workshop.activeStatus === "pending"
                           ? "warning"
                           : "error"
                       }
                       size="small"
+                      sx={{ borderRadius: 1, textTransform: "capitalize" }}
                     />
                   </TableCell>
                   <TableCell>
-                    <Box className="space-x-1">
-                      {workshop.services.map((service, index) => (
-                        <Chip
-                          key={index}
-                          label={service}
-                          size="small"
-                          color="primary"
-                          variant="outlined"
-                        />
-                      ))}
-                    </Box>
+                    {new Date(workshop.createdAt).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>
-                    <Tooltip title={`${workshop.totalReviews} reviews`}>
-                      <Box>{workshop.ratings.toFixed(1)} ⭐</Box>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell>
+                  <TableCell align="center">
                     <IconButton
                       size="small"
+                      sx={{
+                        backgroundColor: "#f5f5f5",
+                        "&:hover": { backgroundColor: "#e0e0e0" },
+                      }}
+                      onClick={() => setEditingWorkshop(workshop)}
+                    >
+                      <Edit fontSize="small" />
+                    </IconButton>
+                  </TableCell>
+                  <TableCell align="center">
+                    <IconButton
+                      size="small"
+                      sx={{
+                        backgroundColor: "#f5f5f5",
+                        "&:hover": { backgroundColor: "#e0e0e0" },
+                      }}
                       onClick={() => setEditingWorkshop(workshop)}
                       disabled={loading}
                     >
-                      <Edit />
-                    </IconButton>
-                  </TableCell>
-                  <TableCell>
-                    <IconButton size="small" disabled={loading}>
-                      <RemoveRedEyeIcon />
+                      <RemoveRedEyeIcon fontSize="small" />
                     </IconButton>
                   </TableCell>
                 </TableRow>
@@ -436,7 +239,7 @@ const WorkshopsList: React.FC = () => {
         </TableContainer>
       )}
 
-      {/* Edit/Add Dialog */}
+      {/* Add/Edit Workshop Dialog */}
       <Dialog
         open={openWorkshopDialog || !!editingWorkshop}
         onClose={() => {
@@ -446,6 +249,8 @@ const WorkshopsList: React.FC = () => {
         }}
         maxWidth="sm"
         fullWidth
+        PaperProps={{ sx: { borderRadius: 2 } }}
+        sx={dialogStyles}
       >
         <DialogTitle>
           <Box
@@ -475,8 +280,81 @@ const WorkshopsList: React.FC = () => {
               setOpenWorkshopDialog(false);
               setEditingWorkshop(null);
             }}
+            open={false}
           />
         </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        PaperProps={{ sx: { borderRadius: 2 } }}
+      >
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete {selectedWorkshops.length} selected
+            workshop(s)? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end", gap: 1 }}>
+          <Button
+            variant="outlined"
+            onClick={() => setDeleteConfirmOpen(false)}
+            sx={{ borderRadius: 2 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              setDeleteConfirmOpen(false);
+              handleDeleteWorkshops();
+            }}
+            sx={{ borderRadius: 2 }}
+          >
+            Delete
+          </Button>
+        </Box>
+      </Dialog>
+
+      {/* Update Confirmation Dialog */}
+      <Dialog
+        open={updateConfirmOpen}
+        onClose={() => setUpdateConfirmOpen(false)}
+        PaperProps={{ sx: { borderRadius: 2 } }}
+      >
+        <DialogTitle>Confirm Update</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to update this workshop?
+          </Typography>
+        </DialogContent>
+        <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end", gap: 1 }}>
+          <Button
+            variant="outlined"
+            onClick={() => setUpdateConfirmOpen(false)}
+            sx={{ borderRadius: 2 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              setUpdateConfirmOpen(false);
+              if (pendingWorkshopData) {
+                handleEditWorkshop(pendingWorkshopData);
+              }
+              setPendingWorkshopData(null);
+            }}
+            sx={{ borderRadius: 2 }}
+          >
+            Update
+          </Button>
+        </Box>
       </Dialog>
     </Card>
   );

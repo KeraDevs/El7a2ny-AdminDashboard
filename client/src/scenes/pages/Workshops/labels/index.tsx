@@ -1,13 +1,11 @@
-import { Component } from "react";
+import React from "react";
 
-type Props = {};
+const Labels: React.FC = () => {
+  return (
+    <div>
+      <h1>Labels Page</h1>
+    </div>
+  );
+};
 
-type State = {};
-
-export default class Labels extends Component<Props, State> {
-  state = {};
-
-  render() {
-    return <div>Labels</div>;
-  }
-}
+export default Labels;

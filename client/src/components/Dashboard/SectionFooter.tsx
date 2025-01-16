@@ -2,10 +2,7 @@ import React from "react";
 import { Button } from "@mui/material";
 import LaunchRoundedIcon from "@mui/icons-material/LaunchRounded";
 import { Box } from "@mui/system";
-
-interface SectionFooterProps {
-  link: string;
-}
+import { SectionFooterProps } from "../../types/types";
 
 const SectionFooter: React.FC<SectionFooterProps> = ({ link }) => (
   <Box className="mt-4 pt-3 border-t border-gray-200">

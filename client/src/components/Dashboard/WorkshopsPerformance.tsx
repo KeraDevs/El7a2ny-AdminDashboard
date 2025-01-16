@@ -10,6 +10,7 @@ import {
   useTheme,
 } from "@mui/material";
 import SectionFooter from "./SectionFooter";
+import { cardStyles } from "../../config/styles";
 
 const workshopData = {
   months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
@@ -17,13 +18,7 @@ const workshopData = {
   revenue: [16000, 18000, 19500, 20000, 10000, 21000],
   completed: [15000, 17000, 10000, 10000, 50000, 20000],
 };
-const cardStyles = {
-  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-  border: "1px solid rgba(0, 0, 0, 0.12)",
-  borderRadius: "8px",
-  width: "100%",
-  height: "100%",
-};
+
 const WorkshopsPerformance: React.FC = () => {
   const [isWorkshopDataLoading, setIsWorkshopDataLoading] = useState(true);
   const theme = useTheme();

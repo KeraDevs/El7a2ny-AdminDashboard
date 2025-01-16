@@ -17,7 +17,7 @@ const Dashboard: React.FC = () => {
 
         <KeyMetrics />
 
-        <Grid container spacing={4} mt={1}>
+        <Grid container spacing={4} mt={1} mb={2}>
           <Grid item xs={12} md={6}>
             <WorkshopsPerformance />
           </Grid>

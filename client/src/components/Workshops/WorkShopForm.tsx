@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, KeyboardEvent } from "react";
 import {
   Box,
   Button,
@@ -7,179 +7,11 @@ import {
   MenuItem,
   Select,
   TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  IconButton,
   Chip,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  CircularProgress,
 } from "@mui/material";
-import { Close as CloseIcon, Add as AddIcon } from "@mui/icons-material";
-import {
-  Workshop,
-  WorkshopFormProps,
-  User,
-  ApiUserResponse,
-} from "../../types/types";
-
-const API_BASE_URL = import.meta.env.VITE_API_RAIL_WAY;
-const API_KEY = import.meta.env.VITE_API_KEY;
-const token = import.meta.env.VITE_TOKEN;
-
-interface AssignOwnerDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onSelect: (userId: string) => void;
-  currentOwnerId?: string;
-}
-
-const AssignOwnerDialog: React.FC<AssignOwnerDialogProps> = ({
-  open,
-  onClose,
-  onSelect,
-  currentOwnerId,
-}) => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const API_BASE_URL = import.meta.env.VITE_API_RAIL_WAY;
-  const API_KEY = import.meta.env.VITE_API_KEY;
-  const token = import.meta.env.VITE_TOKEN;
-
-  const convertApiUserToUser = (
-    apiUser: ApiUserResponse["users"][0]
-  ): User => ({
-    id: apiUser.id,
-    email: apiUser.email,
-    phone: apiUser.phone,
-    nationalNumber: apiUser.national_id,
-    profilePic: apiUser.profile_pic || "",
-    gender: apiUser.gender as "Male" | "Female" | "Other",
-    userType: apiUser.type as
-      | "customer"
-      | "workshopAdmin"
-      | "worker"
-      | "superadmin",
-    labels: [],
-    isActive: true,
-    cars: [],
-    createdAt: apiUser.created_at,
-    updatedAt: apiUser.updated_at,
-    firstName: apiUser.first_name,
-    lastName: apiUser.last_name,
-    fullName: apiUser.fullName,
-  });
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/users?type=workshop_admin&limit=100&offset=0`,
-          {
-            headers: {
-              "x-api-key": API_KEY,
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch users: ${response.status}`);
-        }
-
-        const data: ApiUserResponse = await response.json();
-        const mappedUsers = data.users.map(convertApiUserToUser);
-        setUsers(mappedUsers);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to fetch workshop admins"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (open) {
-      fetchUsers();
-    }
-  }, [open, API_BASE_URL, API_KEY, token]);
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography>Assign Workshop Owner (Admin)</Typography>
-          <IconButton onClick={onClose} size="small">
-            <CloseIcon />
-          </IconButton>
-        </Box>
-      </DialogTitle>
-      <DialogContent>
-        {loading ? (
-          <Box display="flex" justifyContent="center" p={3}>
-            <CircularProgress />
-          </Box>
-        ) : error ? (
-          <Typography color="error">{error}</Typography>
-        ) : users.length === 0 ? (
-          <Typography color="textSecondary" textAlign="center" py={3}>
-            No workshop administrators found
-          </Typography>
-        ) : (
-          <TableContainer component={Paper} sx={{ mt: 2 }}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Phone</TableCell>
-                  <TableCell align="right">Action</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow
-                    key={user.id}
-                    selected={user.id === currentOwnerId}
-                    hover
-                  >
-                    <TableCell>{user.fullName}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.phone}</TableCell>
-                    <TableCell align="right">
-                      <Button
-                        variant="contained"
-                        size="small"
-                        color={
-                          user.id === currentOwnerId ? "success" : "primary"
-                        }
-                        onClick={() => {
-                          onSelect(user.id);
-                          onClose();
-                        }}
-                      >
-                        {user.id === currentOwnerId ? "Selected" : "Select"}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-};
+import { Person as PersonIcon } from "@mui/icons-material";
+import { Workshop, WorkshopFormProps } from "../../types/types";
+import { AssignOwnerDialog } from "./AssignOwnerDialog";
 
 const WorkshopForm: React.FC<WorkshopFormProps> = ({
   workshop,
@@ -189,33 +21,67 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({
   const [formData, setFormData] = useState<Partial<Workshop>>(
     workshop || {
       name: "",
-      address: "",
-      isActive: true,
-      labels: [],
+      activeStatus: "pending",
+      status: "Open",
       services: [],
-      phoneNumbers: [],
+      labels: [],
     }
   );
   const [showOwnerDialog, setShowOwnerDialog] = useState(false);
+  const [selectedOwnerName, setSelectedOwnerName] = useState("");
+  const [serviceInput, setServiceInput] = useState("");
+  const [labelInput, setLabelInput] = useState("");
 
-  const handleServicesChange = (value: string) => {
-    const services = value
-      .split(",")
-      .map((service) => service.trim())
-      .filter(Boolean);
-    setFormData((prev) => ({ ...prev, services }));
+  const handleServiceKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" && serviceInput.trim()) {
+      e.preventDefault();
+      setFormData((prev) => ({
+        ...prev,
+        services: [...(prev.services || []), serviceInput.trim()],
+      }));
+      setServiceInput("");
+    }
   };
 
-  const handleLabelsChange = (value: string) => {
-    const labels = value
-      .split(",")
-      .map((label) => label.trim())
-      .filter(Boolean);
-    setFormData((prev) => ({ ...prev, labels }));
+  const handleLabelKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" && labelInput.trim()) {
+      e.preventDefault();
+      setFormData((prev) => ({
+        ...prev,
+        labels: [...(prev.labels || []), labelInput.trim()],
+      }));
+      setLabelInput("");
+    }
+  };
+
+  const handleDeleteService = (serviceToDelete: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      services: prev.services?.filter((service) => service !== serviceToDelete),
+    }));
+  };
+
+  const handleDeleteLabel = (labelToDelete: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      labels: prev.labels?.filter((label) => label !== labelToDelete),
+    }));
   };
 
   return (
-    <Box className="space-y-4 pt-2">
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 3,
+        p: 3,
+        maxWidth: 600,
+        mx: "auto",
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        borderRadius: "8px",
+        boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
+      }}
+    >
       <TextField
         fullWidth
         label="Workshop Name"
@@ -223,74 +89,101 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({
         onChange={(e) =>
           setFormData((prev) => ({ ...prev, name: e.target.value }))
         }
-        size="small"
+        sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
       />
 
-      <TextField
-        fullWidth
-        label="Address"
-        value={formData.address || ""}
-        onChange={(e) =>
-          setFormData((prev) => ({ ...prev, address: e.target.value }))
-        }
-        size="small"
-      />
-
-      <FormControl fullWidth size="small">
-        <InputLabel>Status</InputLabel>
+      <FormControl fullWidth>
+        <InputLabel>Active Status</InputLabel>
         <Select
-          value={formData.isActive ? "active" : "inactive"}
-          label="Status"
+          value={formData.activeStatus || "pending"}
+          label="Active Status"
           onChange={(e) =>
-            setFormData((prev) => ({
-              ...prev,
-              isActive: e.target.value === "active",
-            }))
+            setFormData((prev) => ({ ...prev, activeStatus: e.target.value }))
           }
+          sx={{ borderRadius: 2 }}
         >
           <MenuItem value="active">Active</MenuItem>
+          <MenuItem value="pending">Pending</MenuItem>
           <MenuItem value="inactive">Inactive</MenuItem>
         </Select>
       </FormControl>
 
-      <TextField
-        fullWidth
-        label="Services (comma separated)"
-        value={formData.services?.join(", ") || ""}
-        onChange={(e) => handleServicesChange(e.target.value)}
-        size="small"
-        helperText="Enter services separated by commas"
-      />
-
-      <TextField
-        fullWidth
-        label="Labels (comma separated)"
-        value={formData.labels?.join(", ") || ""}
-        onChange={(e) => handleLabelsChange(e.target.value)}
-        size="small"
-        helperText="Enter labels separated by commas"
-      />
+      <Button
+        variant="outlined"
+        onClick={() => setShowOwnerDialog(true)}
+        startIcon={<PersonIcon />}
+        sx={{
+          borderRadius: 2,
+          textTransform: "none",
+          justifyContent: "flex-start",
+          p: 1.5,
+        }}
+      >
+        {selectedOwnerName || "Select Workshop Owner"}
+      </Button>
 
       <Box>
-        <Button
-          variant="outlined"
-          startIcon={<AddIcon />}
-          onClick={() => setShowOwnerDialog(true)}
-          size="small"
+        <TextField
           fullWidth
-        >
-          {formData.ownerId ? "Change Owner" : "Assign Owner"}
-        </Button>
+          label="Services"
+          value={serviceInput}
+          onChange={(e) => setServiceInput(e.target.value)}
+          onKeyDown={handleServiceKeyDown}
+          helperText="Press Enter to add services"
+          sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+        />
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
+          {formData.services?.map((service) => (
+            <Chip
+              key={service}
+              label={service}
+              onDelete={() => handleDeleteService(service)}
+              sx={{ borderRadius: 1 }}
+            />
+          ))}
+        </Box>
       </Box>
 
-      <Box className="flex justify-end space-x-2 pt-4">
-        <Button onClick={onClose} size="small">
+      <Box>
+        <TextField
+          fullWidth
+          label="Labels"
+          value={labelInput}
+          onChange={(e) => setLabelInput(e.target.value)}
+          onKeyDown={handleLabelKeyDown}
+          helperText="Press Enter to add labels"
+          sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+        />
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
+          {formData.labels?.map((label) => (
+            <Chip
+              key={label}
+              label={label}
+              onDelete={() => handleDeleteLabel(label)}
+              sx={{ borderRadius: 1 }}
+            />
+          ))}
+        </Box>
+      </Box>
+
+      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 2 }}>
+        <Button
+          onClick={onClose}
+          variant="outlined"
+          sx={{ borderRadius: 2, textTransform: "none" }}
+        >
           Cancel
         </Button>
         <Button
           variant="contained"
           onClick={() => onSubmit(formData)}
-          size="small"
+          disabled={!formData.name || !formData.ownerId}
+          sx={{
+            borderRadius: 2,
+            textTransform: "none",
+            boxShadow: "none",
+            "&:hover": { boxShadow: "none" },
+          }}
         >
           {workshop ? "Update" : "Add"} Workshop
         </Button>
@@ -299,9 +192,10 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({
       <AssignOwnerDialog
         open={showOwnerDialog}
         onClose={() => setShowOwnerDialog(false)}
-        onSelect={(userId) =>
-          setFormData((prev) => ({ ...prev, ownerId: userId }))
-        }
+        onSelect={(userId, userName) => {
+          setFormData((prev) => ({ ...prev, ownerId: userId }));
+          setSelectedOwnerName(userName);
+        }}
         currentOwnerId={formData.ownerId}
       />
     </Box>

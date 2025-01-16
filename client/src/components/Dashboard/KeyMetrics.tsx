@@ -16,18 +16,8 @@ import {
   History as HistoryIcon,
   AttachMoney as AttachMoneyIcon,
 } from "@mui/icons-material";
-
-const TOTAL_USERS_API = import.meta.env.VITE_TOTAL_USERS_API;
-const API_KEY = import.meta.env.VITE_API_KEY;
-
-interface DashboardMetrics {
-  totalUsers: number;
-  activeWorkshops: number;
-  pendingRequests: number;
-  totalRevenue: string;
-  completedServices: number;
-  activeChats: number;
-}
+import { TOTAL_USERS_API, API_KEY } from "../../config/config";
+import { DashboardMetrics } from "../../types/types";
 
 const KeyMetrics: React.FC = () => {
   const [isMetricsLoading, setIsMetricsLoading] = useState(true);

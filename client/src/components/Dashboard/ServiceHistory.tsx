@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { BarChart } from "@mui/x-charts/BarChart";
-
 import {
   Box,
   Card,
@@ -10,14 +9,8 @@ import {
   CircularProgress,
 } from "@mui/material";
 import SectionFooter from "./SectionFooter";
+import { cardStyles } from "../../config/styles";
 
-const cardStyles = {
-  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-  border: "1px solid rgba(0, 0, 0, 0.12)",
-  borderRadius: "8px",
-  width: "100%",
-  height: "100%",
-};
 const ServiceHistory: React.FC = () => {
   const [isServiceHistoryLoading, setIsServiceHistoryLoading] = useState(true);
   React.useEffect(() => {

@@ -20,7 +20,8 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-
+import { cardStyles } from "../../config/styles";
+import { DetailedSalesData } from "../../types/types";
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -30,32 +31,6 @@ ChartJS.register(
   Tooltip,
   Legend
 );
-
-interface SalesData {
-  day: string;
-  amount: number;
-  date: string;
-}
-
-interface DetailedSalesData {
-  currentWeek: {
-    total: number;
-    percentageChange: number;
-    dailyData: SalesData[];
-  };
-  previousWeek: {
-    total: number;
-    dailyData: SalesData[];
-  };
-}
-
-const cardStyles = {
-  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-  border: "1px solid rgba(0, 0, 0, 0.12)",
-  borderRadius: "8px",
-  width: "100%",
-  height: "100%",
-};
 
 const initialSalesData: DetailedSalesData = {
   currentWeek: {

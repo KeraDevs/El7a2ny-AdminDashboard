@@ -1,13 +1,11 @@
-import { Component } from "react";
+import React from "react";
 
-type Props = {};
+const Workers: React.FC = () => {
+  return (
+    <div>
+      <h1>Workers Page</h1>
+    </div>
+  );
+};
 
-type State = {};
-
-export default class Workers extends Component<Props, State> {
-  state = {};
-
-  render() {
-    return <div>Workers</div>;
-  }
-}
+export default Workers;

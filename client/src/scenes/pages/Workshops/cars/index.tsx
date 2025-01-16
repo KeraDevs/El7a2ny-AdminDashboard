@@ -1,13 +1,11 @@
-import { Component } from "react";
+import React from "react";
 
-type Props = {};
+const Cars: React.FC = () => {
+  return (
+    <div>
+      <h1>Cars Page</h1>
+    </div>
+  );
+};
 
-type State = {};
-
-export default class Cars extends Component<Props, State> {
-  state = {};
-
-  render() {
-    return <div>Cars</div>;
-  }
-}
+export default Cars;

@@ -13,22 +13,8 @@ import {
   TableRow,
 } from "@mui/material";
 import SectionFooter from "./SectionFooter";
-
-interface RecentActivity {
-  id: number;
-  type: string;
-  user: string;
-  workshop: string;
-  status: string;
-  time: string;
-}
-const cardStyles = {
-  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-  border: "1px solid rgba(0, 0, 0, 0.12)",
-  borderRadius: "8px",
-  width: "100%",
-  height: "100%",
-};
+import { RecentActivity } from "../../types/types";
+import { cardStyles } from "../../config/styles";
 
 const RequetsHistory: React.FC = () => {
   const [isActivitiesLoading, setIsActivitiesLoading] = useState(true);

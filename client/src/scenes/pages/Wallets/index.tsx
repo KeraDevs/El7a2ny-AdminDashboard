@@ -1,5 +1,5 @@
 const Wallets = () => {
-  return <div>Wallets</div>;
+  return <h1>Wallets</h1>;
 };
 
 export default Wallets;

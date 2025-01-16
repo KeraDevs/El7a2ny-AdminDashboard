@@ -11,48 +11,49 @@ import {
 import { User, UserFormProps } from "../../types/types";
 
 const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onClose }) => {
-  const [formData, setFormData] = useState<Partial<User>>(
-    user || {
+  const [formData, setFormData] = useState<Partial<User>>(() => {
+    if (user) {
+      const [firstName, ...lastNameParts] = user.fullName.split(" ");
+      return {
+        ...user,
+        firstName,
+        lastName: lastNameParts.join(" "),
+      };
+    }
+    return {
       gender: "Male",
       userType: "customer",
       isActive: true,
       labels: [],
-    }
-  );
+    };
+  });
 
+  const handleSubmit = () => {
+    const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+    onSubmit({
+      ...formData,
+      fullName,
+    });
+  };
   return (
-    <Box className="space-y-4">
+    <Box sx={{ p: 2 }}>
       <TextField
         fullWidth
-        label="Full Name"
-        value={formData.fullName || ""}
-        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-        sx={{ margin: ".3rem 0 .3rem 0" }}
-      />
-      <TextField
-        fullWidth
-        label="Email"
-        value={formData.email || ""}
-        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-        sx={{ margin: ".3rem 0 .3rem 0" }}
-      />
-      <TextField
-        fullWidth
-        label="Phone"
-        value={formData.phone || ""}
-        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-        sx={{ margin: ".3rem 0 .3rem 0" }}
-      />
-      <TextField
-        fullWidth
-        label="National Number"
-        value={formData.nationalNumber || ""}
+        label="First Name"
+        value={formData.firstName || ""}
         onChange={(e) =>
-          setFormData({ ...formData, nationalNumber: e.target.value })
+          setFormData({ ...formData, firstName: e.target.value })
         }
         sx={{ margin: ".3rem 0 .3rem 0" }}
       />
-      <InputLabel>Gender</InputLabel>
+      <TextField
+        fullWidth
+        label="Last Name"
+        value={formData.firstName || ""}
+        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+        sx={{ margin: ".3rem 0 .3rem 0" }}
+      />
+
       <FormControl fullWidth>
         <Select
           value={formData.gender || "Male"}
@@ -70,7 +71,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onClose }) => {
       <InputLabel>User Type</InputLabel>
       <FormControl fullWidth>
         <Select
-          value={formData.userType || "Customer"}
+          value={formData.userType || "customer"}
           onChange={(e) =>
             setFormData({
               ...formData,
@@ -83,11 +84,12 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onClose }) => {
           }
         >
           <MenuItem value="customer">Customer</MenuItem>
-          <MenuItem value="workshop_admin">Workshop Admin</MenuItem>
-          <MenuItem value="worker">worker</MenuItem>
+          <MenuItem value="workshopAdmin">Workshop Admin</MenuItem>
+          <MenuItem value="worker">Worker</MenuItem>
           <MenuItem value="superadmin">Super Admin</MenuItem>
         </Select>
       </FormControl>
+
       <TextField
         fullWidth
         label="Labels (comma separated)"
@@ -98,19 +100,16 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onClose }) => {
         }}
         sx={{ margin: ".3rem 0 .3rem 0" }}
       />
-      <TextField
-        fullWidth
-        label="Cars VIN List"
-        value={formData.labels?.join(", ") || ""}
-        onChange={(e) => {
-          const labels = e.target.value.split(",").map((label) => label.trim());
-          setFormData({ ...formData, labels });
-        }}
-        sx={{ margin: ".3rem 0 .3rem 0" }}
-      />
-      <Box className="flex justify-end space-x-2">
-        <Button onClick={onClose}>Cancel</Button>
-        <Button variant="contained" onClick={() => onSubmit(formData)}>
+
+      <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end", gap: 1 }}>
+        <Button variant="outlined" onClick={onClose} sx={{ borderRadius: 2 }}>
+          Cancel
+        </Button>
+        <Button
+          variant="contained"
+          onClick={handleSubmit}
+          sx={{ borderRadius: 2 }}
+        >
           {user ? "Update" : "Add"} User
         </Button>
       </Box>
