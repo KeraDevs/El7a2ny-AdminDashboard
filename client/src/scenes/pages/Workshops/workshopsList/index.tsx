@@ -46,16 +46,16 @@ const WorkshopsList: React.FC = () => {
     selectedWorkshops,
     loading,
     error,
+    editingWorkshop,
+    openWorkshopDialog,
     fetchWorkshops,
-    handleSelectAll,
-    handleSelectWorkshop,
     handleAddWorkShop,
     handleEditWorkshop,
     handleDeleteWorkshops,
+    handleSelectAll,
+    handleSelectWorkshop,
     setEditingWorkshop,
     setOpenWorkshopDialog,
-    editingWorkshop,
-    openWorkshopDialog,
     setError,
   } = useWorkshops();
 
@@ -275,12 +275,16 @@ const WorkshopsList: React.FC = () => {
         <DialogContent>
           <WorkShopForm
             workshop={editingWorkshop || undefined}
-            onSubmit={editingWorkshop ? handleEditWorkshop : handleAddWorkShop}
+            onSubmit={(formData) => {
+              setPendingWorkshopData(formData);
+              setOpenWorkshopDialog(false);
+              setUpdateConfirmOpen(true);
+            }}
             onClose={() => {
               setOpenWorkshopDialog(false);
               setEditingWorkshop(null);
             }}
-            open={false}
+            open={openWorkshopDialog || !!editingWorkshop}
           />
         </DialogContent>
       </Dialog>
@@ -326,10 +330,16 @@ const WorkshopsList: React.FC = () => {
         onClose={() => setUpdateConfirmOpen(false)}
         PaperProps={{ sx: { borderRadius: 2 } }}
       >
-        <DialogTitle>Confirm Update</DialogTitle>
+        <DialogTitle>
+          {editingWorkshop ? "Update Workshop" : "Add New Workshop"}
+        </DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to update this workshop?
+            {`Are you sure you want to ${
+              editingWorkshop
+                ? "update Workshop information?"
+                : "add New Workshop?"
+            }`}
           </Typography>
         </DialogContent>
         <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end", gap: 1 }}>
@@ -346,13 +356,17 @@ const WorkshopsList: React.FC = () => {
             onClick={() => {
               setUpdateConfirmOpen(false);
               if (pendingWorkshopData) {
-                handleEditWorkshop(pendingWorkshopData);
+                if (editingWorkshop) {
+                  handleEditWorkshop(pendingWorkshopData);
+                } else {
+                  handleAddWorkShop(pendingWorkshopData);
+                }
               }
               setPendingWorkshopData(null);
             }}
             sx={{ borderRadius: 2 }}
           >
-            Update
+            {editingWorkshop ? "Update" : "Add"}
           </Button>
         </Box>
       </Dialog>

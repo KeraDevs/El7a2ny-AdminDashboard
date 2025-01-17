@@ -366,10 +366,14 @@ const UsersList: React.FC = () => {
         onClose={() => setUpdateConfirmOpen(false)}
         PaperProps={{ sx: { borderRadius: 2 } }}
       >
-        <DialogTitle>Confirm Update</DialogTitle>
+        <DialogTitle>
+          {editingUser ? "Update User" : "Add New User"}
+        </DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to update this user's information?
+            {`Are you sure you want to ${
+              editingUser ? "update User information?" : "add New User?"
+            }`}
           </Typography>
         </DialogContent>
         <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end", gap: 1 }}>
