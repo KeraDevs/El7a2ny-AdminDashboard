@@ -42,10 +42,8 @@ const DeleteUsers: React.FC<DeleteUsersProps> = ({
 
       const errors: string[] = [];
 
-      // Delete users one by one
       for (const userId of selectedUsers) {
         try {
-          // First, delete from backend
           const backendResponse = await fetch(
             `${VITE_API_RAIL_WAY}/users/${userId}`,
             {
@@ -62,7 +60,6 @@ const DeleteUsers: React.FC<DeleteUsersProps> = ({
             throw new Error(`Failed to delete user from backend: ${userId}`);
           }
 
-          // Then, delete from Firebase if it's the current user
           if (currentUser && currentUser.uid === userId) {
             await deleteUser(currentUser);
           }
@@ -73,7 +70,6 @@ const DeleteUsers: React.FC<DeleteUsersProps> = ({
               ? error.message
               : `Failed to delete user ${userId}`
           );
-          // Continue with next user instead of throwing
           continue;
         }
       }

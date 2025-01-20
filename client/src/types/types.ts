@@ -372,6 +372,7 @@ export interface AssignOwnerDialogProps {
 
 export interface ApiUserResponse {
   users: {
+    password: string;
     id: string;
     email: string;
     first_name: string;

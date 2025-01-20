@@ -1,10 +1,10 @@
+import { User } from "../types/userTypes";
 import {
   Workshop,
   ApiWorkshopsList,
   PhoneNumber,
   ApiUserResponse,
-  User,
-} from "../types/types";
+} from "../types/workshopTypes";
 
 export const mapApiWorkshopToFrontend = (
   apiWorkshop: ApiWorkshopsList
@@ -58,10 +58,14 @@ export const convertApiUserToUser = (
 ): User => ({
   id: apiUser.id,
   email: apiUser.email,
+  password: apiUser.password,
+  firstName: apiUser.first_name,
+  lastName: apiUser.last_name,
+  fullName: `${apiUser.first_name} ${apiUser.last_name}`,
   phone: apiUser.phone,
   nationalNumber: apiUser.national_id,
   profilePic: apiUser.profile_pic || "",
-  gender: apiUser.gender as "Male" | "Female" | "Other",
+  gender: apiUser.gender as "male" | "female",
   userType: apiUser.type as
     | "customer"
     | "workshopAdmin"
@@ -72,7 +76,4 @@ export const convertApiUserToUser = (
   cars: [],
   createdAt: apiUser.created_at,
   updatedAt: apiUser.updated_at,
-  firstName: apiUser.first_name,
-  lastName: apiUser.last_name,
-  fullName: `${apiUser.first_name} ${apiUser.last_name}`,
 });

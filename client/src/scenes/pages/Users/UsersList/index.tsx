@@ -30,10 +30,10 @@ import {
 } from "@mui/icons-material";
 import { useUsers } from "@hooks/useUsers";
 import { dialogStyles } from "@config/styles";
-import { User } from "../../../../types/types";
+import { User } from "../../../../types/userTypes";
 import AddUserForm from "@components/Users/AddUserForm";
 import EditUserForm from "@components/Users/EditUserForm";
-import DeleteUsers from "@components/Users/DeleteIsers";
+import DeleteUsers from "@components/Users/DeleteUsers";
 
 const UsersList: React.FC = () => {
   const {

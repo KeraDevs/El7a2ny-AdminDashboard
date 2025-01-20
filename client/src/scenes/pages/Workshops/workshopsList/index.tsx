@@ -31,6 +31,7 @@ import {
   Close as CloseIcon,
 } from "@mui/icons-material";
 import { Workshop } from "../../../../types/types";
+
 import WorkShopForm from "../../../../components/Workshops/WorkShopForm";
 import { dialogStyles } from "../../../../config/styles";
 import { useWorkshops } from "../../../../hooks/useWorkshops";
