@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { mapApiUserToFrontend } from "@utils/usersApi";
-import { API_BASE_URL, API_KEY, token } from "@config/config";
 import { ApiResponse, User, UseUsersReturn } from "../types/types";
+import { useAuth } from "src/contexts/AuthContext";
+import { API_KEY, VITE_API_RAIL_WAY } from "@config/config";
 
 export const useUsers = (): UseUsersReturn => {
   const [users, setUsers] = useState<User[]>([]);
@@ -11,13 +12,19 @@ export const useUsers = (): UseUsersReturn => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [openUserDialog, setOpenUserDialog] = useState(false);
 
+  //Auth
+  const getAuth = useAuth();
+  const token = getAuth.currentUser?.getIdToken();
+
+  // fetching users
   const fetchUsers = async () => {
     setLoading(true);
+
     try {
-      const response = await fetch(`${API_BASE_URL}/users`, {
+      const response = await fetch(`${VITE_API_RAIL_WAY}/users`, {
         headers: {
           "x-api-key": API_KEY,
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${await token}`,
         },
       });
 
@@ -38,42 +45,6 @@ export const useUsers = (): UseUsersReturn => {
     }
   };
 
-  const handleAddUser = async (userData: Partial<User>): Promise<void> => {
-    try {
-      setLoading(true);
-      const apiData = {
-        email: userData.email,
-        first_name: userData.firstName || "",
-        last_name: userData.lastName || "",
-        national_id: userData.nationalNumber,
-        phone: userData.phone,
-        gender: userData.gender?.toLowerCase(),
-        type: userData.userType?.toLowerCase(),
-      };
-
-      const response = await fetch(`${API_BASE_URL}/users`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": API_KEY,
-        },
-        body: JSON.stringify(apiData),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to add User! status: ${response.status}`);
-      }
-
-      setOpenUserDialog(false);
-      await fetchUsers();
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "Failed to add user");
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleEditUser = async (userData: Partial<User>): Promise<void> => {
     if (!userData.id) {
       throw new Error("User ID is required for editing");
@@ -82,6 +53,7 @@ export const useUsers = (): UseUsersReturn => {
     try {
       setLoading(true);
       const apiData = {
+        id: userData.id,
         email: userData.email,
         first_name: userData.firstName || userData.fullName?.split(" ")[0],
         last_name: userData.lastName || userData.fullName?.split(" ")[1],
@@ -91,15 +63,18 @@ export const useUsers = (): UseUsersReturn => {
         type: userData.userType?.toLowerCase(),
       };
 
-      const response = await fetch(`${API_BASE_URL}/users/${userData.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": API_KEY,
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(apiData),
-      });
+      const response = await fetch(
+        `${VITE_API_RAIL_WAY}/users/${userData.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": API_KEY,
+            Authorization: `Bearer ${await token}`,
+          },
+          body: JSON.stringify(apiData),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -123,14 +98,13 @@ export const useUsers = (): UseUsersReturn => {
   const handleDeleteUsers = async (): Promise<void> => {
     try {
       setLoading(true);
-      // Implement delete functionality here
       await Promise.all(
-        selectedUsers.map((userId) =>
-          fetch(`${API_BASE_URL}/users/${userId}`, {
+        selectedUsers.map(async (userId) =>
+          fetch(`${VITE_API_RAIL_WAY}/users/${userId}`, {
             method: "DELETE",
             headers: {
               "x-api-key": API_KEY,
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${await token}`,
             },
           })
         )
@@ -166,7 +140,6 @@ export const useUsers = (): UseUsersReturn => {
     editingUser,
     openUserDialog,
     fetchUsers,
-    handleAddUser,
     handleEditUser,
     handleDeleteUsers,
     handleSelectAll,
@@ -174,5 +147,6 @@ export const useUsers = (): UseUsersReturn => {
     setEditingUser,
     setOpenUserDialog,
     setError,
+    setSelectedUsers,
   };
 };

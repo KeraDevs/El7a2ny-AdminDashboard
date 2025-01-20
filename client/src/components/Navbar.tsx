@@ -21,11 +21,7 @@ import {
   useMediaQuery,
   Stack,
 } from "@mui/material";
-
-interface NavbarProps {
-  isSidebarOpen: boolean;
-  setIsSidebarOpen: (isOpen: boolean) => void;
-}
+import { NavbarProps } from "../types/types";
 
 const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -44,7 +40,6 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen }) => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Searching for:", searchValue);
   };
 
   return (
@@ -90,7 +85,7 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen }) => {
             display: isMobile && !isSearchOpen ? "none" : "block",
             margin: isMobile ? "0" : "0 auto",
             position: isMobile ? "static" : "relative",
-            left: isMobile ? 0 : "1rem", // Offset for the menu button
+            left: isMobile ? 0 : "1rem",
           }}
         >
           <FlexBetween

@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import FlexBetween from "./FlexBetween";
-
 import profileImage from "../assets/profile.jpg";
-
 import {
   Box,
   Divider,
@@ -18,7 +16,6 @@ import {
 } from "@mui/material";
 
 import {
-  SettingsOutlined,
   ChevronLeft,
   ChevronRightOutlined,
   HomeOutlined,
@@ -34,18 +31,8 @@ import {
   NotificationsActive as NotificationsActiveIcon,
   AttachMoney as AttachMoneyIcon,
 } from "@mui/icons-material";
-
-interface NavItem {
-  text: string;
-  icon: React.ReactNode | null;
-}
-
-interface SidebarProps {
-  drawerWidth: number;
-  isSidebarOpen: boolean;
-  setIsSidebarOpen: (isOpen: boolean) => void;
-  isNonMobile: boolean;
-}
+import { dialogStyles } from "@config/styles";
+import { NavItem, SidebarProps } from "../types/types";
 
 const navItems: NavItem[] = [
   { text: "Dashboard", icon: <HomeOutlined /> },
