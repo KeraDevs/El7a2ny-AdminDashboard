@@ -16,8 +16,8 @@ import {
   Chip,
   SelectChangeEvent,
 } from "@mui/material";
-import { User, AddUserFormProps } from "../../types/userTypes";
-import { CarBrand } from "../../types/types";
+import { User, AddUserFormProps } from "../../../types/userTypes";
+import { CarBrand } from "../../../types/types";
 import { API_KEY, VITE_API_RAIL_WAY } from "@config/config";
 import { useAuth } from "src/contexts/AuthContext";
 

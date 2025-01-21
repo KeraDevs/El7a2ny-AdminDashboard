@@ -28,12 +28,12 @@ import {
   Add,
   Close as CloseIcon,
 } from "@mui/icons-material";
-import { useUsers } from "@hooks/useUsers";
+import { useUsers } from "@hooks/users/useUsers";
 import { dialogStyles } from "@config/styles";
 import { User } from "../../../../types/userTypes";
-import AddUserForm from "@components/Users/AddUserForm";
-import EditUserForm from "@components/Users/EditUserForm";
-import DeleteUsers from "@components/Users/DeleteUsers";
+import AddUserForm from "@components/Users/users/AddUserForm";
+import EditUserForm from "@components/Users/users/EditUserForm";
+import DeleteUsers from "@components/Users/users/DeleteUsers";
 
 const UsersList: React.FC = () => {
   const {

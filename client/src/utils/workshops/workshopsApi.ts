@@ -1,10 +1,10 @@
-import { User } from "../types/userTypes";
+import { User } from "../../types/userTypes";
 import {
   Workshop,
   ApiWorkshopsList,
   PhoneNumber,
   ApiUserResponse,
-} from "../types/workshopTypes";
+} from "../../types/workshopTypes";
 
 export const mapApiWorkshopToFrontend = (
   apiWorkshop: ApiWorkshopsList

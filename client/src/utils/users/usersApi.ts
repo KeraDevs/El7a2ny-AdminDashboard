@@ -1,4 +1,4 @@
-import { User, ApiUser } from "../types/userTypes";
+import { User, ApiUser } from "../../types/userTypes";
 
 export const mapApiUserToFrontend = (apiUser: ApiUser): User => ({
   id: apiUser.id,

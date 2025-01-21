@@ -23,8 +23,7 @@ import {
 } from "../../types/types";
 import { API_BASE_URL, API_KEY, token } from "../../config/config";
 import { dialogStyles } from "../../config/styles";
-import { convertApiUserToUser } from "../../utils/workshopsApi";
-
+import { convertApiUserToUser } from "@utils/workshops/workshopsApi";
 export const AssignOwnerDialog: React.FC<AssignOwnerDialogProps> = ({
   open,
   onClose,

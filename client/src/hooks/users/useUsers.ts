@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { mapApiUserToFrontend } from "@utils/usersApi";
-import { ApiResponse, User, UseUsersReturn } from "../types/userTypes";
+import { mapApiUserToFrontend } from "@utils/users/usersApi";
+import { ApiResponse, User, UseUsersReturn } from "../../types/userTypes";
 import { useAuth } from "src/contexts/AuthContext";
 import { API_KEY, VITE_API_RAIL_WAY } from "@config/config";
 
