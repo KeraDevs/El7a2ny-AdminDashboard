@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { mapApiUserToFrontend } from "@utils/users/usersApi";
-import { ApiResponse, User, UseUsersReturn } from "../../types/userTypes";
+import { User, UseUsersReturn } from "../../types/userTypes";
 import { useAuth } from "src/contexts/AuthContext";
 import { API_KEY, VITE_API_RAIL_WAY } from "@config/config";
+import { ApiResponse } from "../../types/apiTypes";
 
 export const useUsers = (): UseUsersReturn => {
   const [users, setUsers] = useState<User[]>([]);
@@ -55,8 +56,8 @@ export const useUsers = (): UseUsersReturn => {
       const apiData = {
         id: userData.id,
         email: userData.email,
-        first_name: userData.firstName || userData.fullName?.split(" ")[0],
-        last_name: userData.lastName || userData.fullName?.split(" ")[1],
+        firstName: userData.firstName || userData.fullName?.split(" ")[0],
+        lastName: userData.lastName || userData.fullName?.split(" ")[1],
         national_id: userData.nationalNumber,
         phone: userData.phone,
         gender: userData.gender?.toLowerCase(),

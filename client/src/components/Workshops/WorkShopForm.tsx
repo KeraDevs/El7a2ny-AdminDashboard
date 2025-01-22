@@ -10,7 +10,7 @@ import {
   Chip,
 } from "@mui/material";
 import { Person as PersonIcon } from "@mui/icons-material";
-import { Workshop, WorkshopFormProps } from "../../types/types";
+import { Workshop, WorkshopFormProps } from "../../types/workshopTypes";
 import { AssignOwnerDialog } from "./AssignOwnerDialog";
 
 const WorkshopForm: React.FC<WorkshopFormProps> = ({
@@ -192,7 +192,7 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({
       <AssignOwnerDialog
         open={showOwnerDialog}
         onClose={() => setShowOwnerDialog(false)}
-        onSelect={(userId, userName) => {
+        onSelect={(userId: any, userName: React.SetStateAction<string>) => {
           setFormData((prev) => ({ ...prev, ownerId: userId }));
           setSelectedOwnerName(userName);
         }}

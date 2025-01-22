@@ -30,8 +30,7 @@ import {
   RemoveRedEye as RemoveRedEyeIcon,
   Close as CloseIcon,
 } from "@mui/icons-material";
-import { Workshop } from "../../../../types/types";
-
+import { Workshop } from "../../../../types/workshopTypes";
 import WorkShopForm from "../../../../components/Workshops/WorkShopForm";
 import { dialogStyles } from "../../../../config/styles";
 import { useWorkshops } from "../../../../hooks/workshops/useWorkshops";
@@ -47,16 +46,16 @@ const WorkshopsList: React.FC = () => {
     selectedWorkshops,
     loading,
     error,
-    editingWorkshop,
-    openWorkshopDialog,
     fetchWorkshops,
+    handleSelectAll,
+    handleSelectWorkshop,
     handleAddWorkShop,
     handleEditWorkshop,
     handleDeleteWorkshops,
-    handleSelectAll,
-    handleSelectWorkshop,
     setEditingWorkshop,
     setOpenWorkshopDialog,
+    editingWorkshop,
+    openWorkshopDialog,
     setError,
   } = useWorkshops();
 
@@ -276,16 +275,12 @@ const WorkshopsList: React.FC = () => {
         <DialogContent>
           <WorkShopForm
             workshop={editingWorkshop || undefined}
-            onSubmit={(formData) => {
-              setPendingWorkshopData(formData);
-              setOpenWorkshopDialog(false);
-              setUpdateConfirmOpen(true);
-            }}
+            onSubmit={editingWorkshop ? handleEditWorkshop : handleAddWorkShop}
             onClose={() => {
               setOpenWorkshopDialog(false);
               setEditingWorkshop(null);
             }}
-            open={openWorkshopDialog || !!editingWorkshop}
+            open={false}
           />
         </DialogContent>
       </Dialog>
@@ -331,16 +326,10 @@ const WorkshopsList: React.FC = () => {
         onClose={() => setUpdateConfirmOpen(false)}
         PaperProps={{ sx: { borderRadius: 2 } }}
       >
-        <DialogTitle>
-          {editingWorkshop ? "Update Workshop" : "Add New Workshop"}
-        </DialogTitle>
+        <DialogTitle>Confirm Update</DialogTitle>
         <DialogContent>
           <Typography>
-            {`Are you sure you want to ${
-              editingWorkshop
-                ? "update Workshop information?"
-                : "add New Workshop?"
-            }`}
+            Are you sure you want to update this workshop?
           </Typography>
         </DialogContent>
         <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end", gap: 1 }}>
@@ -357,17 +346,13 @@ const WorkshopsList: React.FC = () => {
             onClick={() => {
               setUpdateConfirmOpen(false);
               if (pendingWorkshopData) {
-                if (editingWorkshop) {
-                  handleEditWorkshop(pendingWorkshopData);
-                } else {
-                  handleAddWorkShop(pendingWorkshopData);
-                }
+                handleEditWorkshop(pendingWorkshopData);
               }
               setPendingWorkshopData(null);
             }}
             sx={{ borderRadius: 2 }}
           >
-            {editingWorkshop ? "Update" : "Add"}
+            Update
           </Button>
         </Box>
       </Dialog>

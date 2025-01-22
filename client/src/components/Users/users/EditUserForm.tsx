@@ -114,8 +114,8 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
       const fullName = `${formData.firstName} ${formData.lastName}`.trim();
 
       const apiData = {
-        first_name: formData.firstName,
-        last_name: formData.lastName,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         national_id: formData.nationalNumber,
         phone: formData.phone,
         gender: formData.gender?.toLowerCase(),

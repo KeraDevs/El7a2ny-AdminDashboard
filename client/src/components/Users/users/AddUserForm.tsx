@@ -17,10 +17,9 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 import { User, AddUserFormProps } from "../../../types/userTypes";
-import { CarBrand } from "../../../types/types";
 import { API_KEY, VITE_API_RAIL_WAY } from "@config/config";
 import { useAuth } from "src/contexts/AuthContext";
-
+import { CarBrand } from "../../../types/vehicleTypes";
 const AddUserForm: React.FC<AddUserFormProps> = ({
   user,
   onSubmit,
@@ -201,13 +200,15 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
   const handleBackendRegistration = async () => {
     try {
       const backendData = {
-        first_name: formData.firstName,
-        last_name: formData.lastName,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         national_id: formData.nationalNumber,
         phone: formData.phone,
         gender: formData.gender || "male",
         type: formData.userType,
-        profile_pic: formData.profilePic || "https://example.com/pic.jpg",
+        profile_pic:
+          formData.profilePic ||
+          "https://w7.pngwing.com/pngs/340/946/png-transparent-avatar-user-computer-icons-software-developer-avatar-child-face-heroes-thumbnail.png",
         vehicle: {
           brand_id: formData.vehicle?.brand_id,
           model: formData.vehicle?.model,

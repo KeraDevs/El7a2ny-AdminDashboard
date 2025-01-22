@@ -1,12 +1,13 @@
-import { User, ApiUser } from "../../types/userTypes";
+import { User } from "../../types/userTypes";
+import { ApiUser } from "../../types/apiTypes";
 
 export const mapApiUserToFrontend = (apiUser: ApiUser): User => ({
   id: apiUser.id,
   email: apiUser.email,
   password: apiUser.password,
-  firstName: apiUser.first_name,
-  lastName: apiUser.last_name,
-  fullName: `${apiUser.first_name} ${apiUser.last_name}`,
+  firstName: apiUser.firstName,
+  lastName: apiUser.lastName,
+  fullName: `${apiUser.firstName} ${apiUser.lastName}`,
   phone: apiUser.phone,
   nationalNumber: apiUser.national_id,
   profilePic:
