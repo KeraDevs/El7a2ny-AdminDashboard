@@ -11,10 +11,11 @@ export interface ApiResponse {
 
 export interface ApiUser {
   id: string;
+  first_name: string;
+  last_name: string;
+  fullName: string;
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
   phone: string;
   national_id: string;
   profile_pic?: string;
@@ -45,8 +46,8 @@ export interface ApiWorkshopsList {
   users: {
     id: string;
     email: string;
-    firstName: string;
-    lastName: string;
+    first_name: string;
+    last_name: string;
     national_id: string;
     phone: string;
     profile_pic: string | null;
@@ -69,8 +70,8 @@ export interface ApiUserResponse {
     password: string;
     id: string;
     email: string;
-    firstName: string;
-    lastName: string;
+    first_name: string;
+    last_name: string;
     phone: string;
     national_id: string;
     profile_pic: string | null;

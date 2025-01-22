@@ -176,8 +176,8 @@ const WorkshopsList: React.FC = () => {
                     {workshop.parentId ? workshop.parentId : "Main Workshop"}
                   </TableCell>
                   <TableCell>
-                    {workshop.users[0]?.firstName
-                      ? `${workshop.users[0]?.firstName} ${workshop.users[0]?.lastName}`
+                    {workshop.users[0]?.first_name
+                      ? `${workshop.users[0]?.first_name} ${workshop.users[0]?.last_name}`
                       : "No owner assigned"}
                   </TableCell>
                   <TableCell>
@@ -251,8 +251,10 @@ const WorkshopsList: React.FC = () => {
         fullWidth
         PaperProps={{ sx: { borderRadius: 2 } }}
         sx={dialogStyles}
+        aria-labelledby="workshop-dialog-title"
+        disableRestoreFocus
       >
-        <DialogTitle>
+        <DialogTitle id="workshop-dialog-title">
           <Box
             display="flex"
             justifyContent="space-between"
@@ -290,8 +292,10 @@ const WorkshopsList: React.FC = () => {
         open={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
         PaperProps={{ sx: { borderRadius: 2 } }}
+        aria-labelledby="delete-dialog-title"
+        disableRestoreFocus
       >
-        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogTitle id="delete-dialog-title">Confirm Delete</DialogTitle>
         <DialogContent>
           <Typography>
             Are you sure you want to delete {selectedWorkshops.length} selected
@@ -325,8 +329,10 @@ const WorkshopsList: React.FC = () => {
         open={updateConfirmOpen}
         onClose={() => setUpdateConfirmOpen(false)}
         PaperProps={{ sx: { borderRadius: 2 } }}
+        aria-labelledby="update-dialog-title"
+        disableRestoreFocus
       >
-        <DialogTitle>Confirm Update</DialogTitle>
+        <DialogTitle id="update-dialog-title">Confirm Update</DialogTitle>
         <DialogContent>
           <Typography>
             Are you sure you want to update this workshop?

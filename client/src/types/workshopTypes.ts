@@ -29,6 +29,13 @@ export interface WorkshopFormProps {
   open: boolean;
 }
 
+export interface AssignOwnerDialogProps {
+  open: boolean;
+  onClose: () => void;
+  onSelect: (userId: string, userName: string) => void;
+  currentOwnerId?: string;
+}
+
 export interface PhoneNumber {
   phone_number: string;
   type: "MOBILE" | string;

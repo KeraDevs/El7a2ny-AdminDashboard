@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { API_BASE_URL, API_KEY, token } from "../../config/config";
+import { VITE_API_RAIL_WAY, API_KEY } from "../../config/config";
 import { UseWorkshopsReturn } from "../../types/hookTypes";
 import { ApiResponse, ApiWorkshopsList } from "../../types/apiTypes";
 import { Workshop } from "../../types/workshopTypes";
@@ -7,6 +7,8 @@ import {
   mapApiWorkshopToFrontend,
   mapFrontendToApiWorkshop,
 } from "../../utils/workshops/workshopsApi";
+import { useAuth } from "src/contexts/AuthContext";
+
 export const useWorkshops = (): UseWorkshopsReturn => {
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [selectedWorkshops, setSelectedWorkshops] = useState<string[]>([]);
@@ -15,18 +17,19 @@ export const useWorkshops = (): UseWorkshopsReturn => {
   const [editingWorkshop, setEditingWorkshop] = useState<Workshop | null>(null);
   const [openWorkshopDialog, setOpenWorkshopDialog] = useState<boolean>(false);
 
+  //Auth
+  const getAuth = useAuth();
+  const token = getAuth.currentUser?.getIdToken();
+
   const fetchWorkshops = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/workshops?limit=10&offset=0&is_active=true`,
-        {
-          headers: {
-            "x-api-key": API_KEY,
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${VITE_API_RAIL_WAY}/workshops`, {
+        headers: {
+          "x-api-key": API_KEY,
+          Authorization: `Bearer ${await token}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error(
@@ -70,7 +73,7 @@ export const useWorkshops = (): UseWorkshopsReturn => {
 
       const apiData = mapFrontendToApiWorkshop(workshopData);
 
-      const response = await fetch(`${API_BASE_URL}/workshops`, {
+      const response = await fetch(`${VITE_API_RAIL_WAY}/workshops`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -115,7 +118,7 @@ export const useWorkshops = (): UseWorkshopsReturn => {
       });
 
       const response = await fetch(
-        `${API_BASE_URL}/workshops/${editingWorkshop.id}`,
+        `${VITE_API_RAIL_WAY}/workshops/${editingWorkshop.id}`,
         {
           method: "PUT",
           headers: {
@@ -160,7 +163,7 @@ export const useWorkshops = (): UseWorkshopsReturn => {
 
       for (const workshopId of selectedWorkshops) {
         const response = await fetch(
-          `${API_BASE_URL}/workshops/${workshopId}`,
+          `${VITE_API_RAIL_WAY}/workshops/${workshopId}`,
           {
             method: "DELETE",
             headers: {

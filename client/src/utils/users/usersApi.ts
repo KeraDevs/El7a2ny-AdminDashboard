@@ -5,9 +5,9 @@ export const mapApiUserToFrontend = (apiUser: ApiUser): User => ({
   id: apiUser.id,
   email: apiUser.email,
   password: apiUser.password,
-  firstName: apiUser.firstName,
-  lastName: apiUser.lastName,
-  fullName: `${apiUser.firstName} ${apiUser.lastName}`,
+  first_name: apiUser.first_name,
+  last_name: apiUser.last_name,
+  fullName: `${apiUser.first_name} ${apiUser.last_name}`,
   phone: apiUser.phone,
   nationalNumber: apiUser.national_id,
   profilePic:

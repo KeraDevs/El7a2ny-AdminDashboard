@@ -25,13 +25,13 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
 }) => {
   const [formData, setFormData] = useState<Partial<User>>({
     id: user?.id,
-    firstName: user ? user.fullName.split(" ")[0] : "",
-    lastName: user ? user.fullName.split(" ").slice(1).join(" ") : "",
+    first_name: user ? user.fullName.split(" ")[0] : "",
+    last_name: user ? user.fullName.split(" ").slice(1).join(" ") : "",
     email: user?.email || "",
     phone: user?.phone || "",
     nationalNumber: user?.nationalNumber || "",
     gender: user?.gender || "male",
-    userType: user?.userType || "customer",
+    userType: user?.userType || "worker",
     isActive: user?.isActive ?? true,
     labels: user?.labels || [],
     vehicle: user?.vehicle
@@ -111,11 +111,11 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
   const handleSubmit = async () => {
     try {
       const token = await getAuth.currentUser?.getIdToken();
-      const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+      const fullName = `${formData.first_name} ${formData.last_name}`.trim();
 
       const apiData = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
         national_id: formData.nationalNumber,
         phone: formData.phone,
         gender: formData.gender?.toLowerCase(),
@@ -164,7 +164,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
         fullWidth
         name="firstName"
         label="First Name"
-        value={formData.firstName}
+        value={formData.first_name}
         onChange={handleChange}
       />
 
@@ -172,7 +172,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
         fullWidth
         name="lastName"
         label="Last Name"
-        value={formData.lastName}
+        value={formData.last_name}
         onChange={handleChange}
       />
 
@@ -195,6 +195,8 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
       <FormControl fullWidth>
         <InputLabel>Gender</InputLabel>
         <Select
+          id="gender"
+          label="Gender"
           name="gender"
           value={formData.gender}
           onChange={handleSelectChange}
@@ -207,8 +209,10 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
       <FormControl fullWidth>
         <InputLabel>User Type</InputLabel>
         <Select
+          id="userType"
+          label="User Type"
           name="userType"
-          value={formData.userType}
+          value={formData.userType?.toLowerCase()}
           onChange={handleSelectChange}
         >
           <MenuItem value="customer">Customer</MenuItem>
@@ -218,7 +222,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
         </Select>
       </FormControl>
 
-      <TextField
+      {/* <TextField
         fullWidth
         label="Add Labels"
         value={labelInput}
@@ -235,7 +239,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
             onDelete={() => handleDeleteLabel(index)}
           />
         ))}
-      </Box>
+      </Box> */}
 
       {formData.userType === "customer" && formData.vehicle && (
         <Box sx={{ border: "1px solid #ddd", p: 2, borderRadius: 1 }}>

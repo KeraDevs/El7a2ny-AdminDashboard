@@ -53,6 +53,9 @@ export const convertApiUserToUser = (
   apiUser: ApiUserResponse["users"][0]
 ): User => ({
   id: apiUser.id,
+  first_name: apiUser.first_name,
+  last_name: apiUser.last_name,
+  fullName: `${apiUser.first_name} ${apiUser.last_name}`,
   email: apiUser.email,
   phone: apiUser.phone,
   nationalNumber: apiUser.national_id,
@@ -69,7 +72,4 @@ export const convertApiUserToUser = (
   cars: [],
   createdAt: apiUser.created_at,
   updatedAt: apiUser.updated_at,
-  firstName: apiUser.firstName,
-  lastName: apiUser.lastName,
-  fullName: `${apiUser.firstName} ${apiUser.lastName}`,
 });

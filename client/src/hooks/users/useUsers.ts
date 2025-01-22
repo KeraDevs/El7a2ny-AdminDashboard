@@ -56,14 +56,13 @@ export const useUsers = (): UseUsersReturn => {
       const apiData = {
         id: userData.id,
         email: userData.email,
-        firstName: userData.firstName || userData.fullName?.split(" ")[0],
-        lastName: userData.lastName || userData.fullName?.split(" ")[1],
+        first_name: userData.first_name || userData.fullName?.split(" ")[0],
+        last_name: userData.last_name || userData.fullName?.split(" ")[1],
         national_id: userData.nationalNumber,
         phone: userData.phone,
         gender: userData.gender?.toLowerCase(),
         type: userData.userType?.toLowerCase(),
       };
-
       const response = await fetch(
         `${VITE_API_RAIL_WAY}/users/${userData.id}`,
         {

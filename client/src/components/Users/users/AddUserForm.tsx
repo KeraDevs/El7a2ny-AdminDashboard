@@ -35,26 +35,26 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
   });
 
   const [formData, setFormData] = useState<Partial<User>>({
-    id: user?.id,
-    firstName: user ? user.fullName.split(" ")[0] : "",
-    lastName: user ? user.fullName.split(" ").slice(1).join(" ") : "",
+    id: user?.id || "",
+    first_name: user?.first_name || user?.fullName.split(" ")[0],
+    last_name: user?.last_name || user?.fullName.split(" ").slice(1).join(" "),
     email: "",
     password: "",
     phone: "",
     nationalNumber: "",
     gender: user?.gender || "male",
-    userType: "customer",
+    userType: user?.userType || "worker",
     isActive: true,
     labels: user?.labels || [],
     vehicle: user?.vehicle
       ? {
-          id: user.vehicle.id,
-          brand_id: user.vehicle.brand_id,
-          model: user.vehicle.model,
-          year: user.vehicle.year,
-          license_plate: user.vehicle.license_plate,
-          vin_number: user.vehicle.vin_number,
-          car_type: user.vehicle.car_type,
+          id: user.vehicle.id || "",
+          brand_id: user.vehicle.brand_id || "",
+          model: user.vehicle.model || "",
+          year: user.vehicle.year || new Date().getFullYear(),
+          license_plate: user.vehicle.license_plate || "",
+          vin_number: user.vehicle.vin_number || "",
+          car_type: user.vehicle.car_type || "",
           turbo: Boolean(user.vehicle.turbo),
           exotic: Boolean(user.vehicle.exotic),
         }
@@ -70,7 +70,6 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
           exotic: false,
         },
   });
-
   const getAuth = useAuth();
 
   const token = getAuth.currentUser?.getIdToken();
@@ -190,7 +189,6 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
         id: newUserToken,
       }));
 
-      console.log("Setting user ID:", newUserToken);
       setActiveStep(1);
     } catch (error) {
       console.error("Firebase registration error:", error);
@@ -200,8 +198,8 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
   const handleBackendRegistration = async () => {
     try {
       const backendData = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
         national_id: formData.nationalNumber,
         phone: formData.phone,
         gender: formData.gender || "male",
@@ -303,16 +301,16 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           <TextField
             fullWidth
-            name="firstName"
+            name="FirstName"
             label="First Name"
-            value={formData.firstName}
+            value={formData.first_name}
             onChange={handleChange}
           />
           <TextField
             fullWidth
-            name="lastName"
+            name="Last Name"
             label="Last Name"
-            value={formData.lastName}
+            value={formData.last_name}
             onChange={handleChange}
           />
           <TextField
@@ -332,6 +330,8 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
           <FormControl fullWidth>
             <InputLabel>Gender</InputLabel>
             <Select
+              id="gender"
+              label="Gender"
               value={formData.gender}
               onChange={(e) =>
                 setFormData((prev) => ({
@@ -347,6 +347,8 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
           <FormControl fullWidth>
             <InputLabel>User Type</InputLabel>
             <Select
+              id="userType"
+              label="User Type"
               value={formData.userType}
               onChange={(e) =>
                 setFormData((prev) => ({
