@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { mapApiUserToFrontend } from "@utils/users/usersApi";
-import { User, UseUsersReturn } from "../../types/userTypes";
+import { User } from "../types/userTypes";
 import { useAuth } from "src/contexts/AuthContext";
 import { API_KEY, VITE_API_RAIL_WAY } from "@config/config";
-import { ApiResponse } from "../../types/apiTypes";
+import { ApiResponse } from "../types/apiTypes";
+import { UseUsersReturn } from "../types/hookTypes";
 
 export const useUsers = (): UseUsersReturn => {
   const [users, setUsers] = useState<User[]>([]);
@@ -23,6 +24,35 @@ export const useUsers = (): UseUsersReturn => {
 
     try {
       const response = await fetch(`${VITE_API_RAIL_WAY}/users`, {
+        headers: {
+          "x-api-key": API_KEY,
+          Authorization: `Bearer ${await token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Unauthorized, HTTP error! status: ${response.status} kindly login to access this data`
+        );
+      }
+
+      const result: ApiResponse = await response.json();
+      const mappedUsers = (result.users || []).map(mapApiUserToFrontend);
+      setUsers(mappedUsers);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch users");
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // fetching workers
+  const fetchWorkers = async () => {
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${VITE_API_RAIL_WAY}/users?type=worker`, {
         headers: {
           "x-api-key": API_KEY,
           Authorization: `Bearer ${await token}`,
@@ -148,5 +178,6 @@ export const useUsers = (): UseUsersReturn => {
     setOpenUserDialog,
     setError,
     setSelectedUsers,
+    fetchWorkers,
   };
 };

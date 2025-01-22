@@ -58,6 +58,8 @@ const App: React.FC = () => {
             </Route>
 
             <Route path="marketplace" element={<Marketplace />} />
+            <Route path="cars" element={<Cars />} />
+
             <Route path="notifications" element={<Notifications />} />
             <Route path="chats" element={<Chats />} />
             <Route path="requests" element={<Requests />} />

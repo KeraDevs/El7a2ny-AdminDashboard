@@ -28,7 +28,7 @@ import {
   Add,
   Close as CloseIcon,
 } from "@mui/icons-material";
-import { useUsers } from "@hooks/users/useUsers";
+import { useUsers } from "@hooks/useUsers";
 import { dialogStyles } from "@config/styles";
 import { User } from "../../../../types/userTypes";
 import AddUserForm from "@components/Users/users/AddUserForm";

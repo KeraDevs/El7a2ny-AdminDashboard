@@ -33,7 +33,7 @@ import {
 import { Workshop } from "../../../../types/workshopTypes";
 import WorkShopForm from "../../../../components/Workshops/WorkShopForm";
 import { dialogStyles } from "../../../../config/styles";
-import { useWorkshops } from "../../../../hooks/workshops/useWorkshops";
+import { useWorkshops } from "../../../../hooks/useWorkshops";
 
 const WorkshopsList: React.FC = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);

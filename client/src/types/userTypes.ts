@@ -42,20 +42,3 @@ export interface EditUserFormProps {
   loading?: boolean;
   error?: string | null;
 }
-export interface UseUsersReturn {
-  users: User[];
-  selectedUsers: string[];
-  loading: boolean;
-  error: string | null;
-  editingUser: User | null;
-  openUserDialog: boolean;
-  fetchUsers: () => Promise<void>;
-  handleEditUser: (userData: Partial<User>) => Promise<void>;
-  handleDeleteUsers: () => Promise<void>;
-  handleSelectAll: (checked: boolean) => void;
-  handleSelectUser: (userId: string) => void;
-  setEditingUser: (user: User | null) => void;
-  setOpenUserDialog: (open: boolean) => void;
-  setError: (error: string | null) => void;
-  setSelectedUsers: React.Dispatch<React.SetStateAction<string[]>>;
-}

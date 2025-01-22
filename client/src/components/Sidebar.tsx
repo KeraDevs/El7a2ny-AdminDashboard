@@ -30,15 +30,18 @@ import {
   History as HistoryIcon,
   NotificationsActive as NotificationsActiveIcon,
   AttachMoney as AttachMoneyIcon,
+  DirectionsCar as DirectionsCarIcon,
 } from "@mui/icons-material";
 import { dialogStyles } from "@config/styles";
-import { NavItem, SidebarProps } from "../types/types";
+import { NavItem, SidebarProps } from "../types/layoutTypes";
 
 const navItems: NavItem[] = [
   { text: "Dashboard", icon: <HomeOutlined /> },
   { text: "Mangement", icon: null },
   { text: "Users", icon: <GroupIcon /> },
   { text: "Workshops", icon: <HomeRepairServiceIcon /> },
+  { text: "Cars", icon: <DirectionsCarIcon /> },
+
   { text: "Marketplace", icon: <StorefrontIcon /> },
   { text: "Live Support", icon: null },
   { text: "Notifications", icon: <NotificationsActiveIcon /> },

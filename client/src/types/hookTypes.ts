@@ -21,17 +21,22 @@ interface UseCrudReturn<T> extends SelectionState<T> {
   setError: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
-export interface UseUsersReturn extends UseCrudReturn<User> {
+export interface UseUsersReturn {
   users: User[];
   selectedUsers: string[];
+  loading: boolean;
+  error: string | null;
   editingUser: User | null;
   openUserDialog: boolean;
   fetchUsers: () => Promise<void>;
+  fetchWorkers: () => Promise<void>;
   handleEditUser: (userData: Partial<User>) => Promise<void>;
   handleDeleteUsers: () => Promise<void>;
+  handleSelectAll: (checked: boolean) => void;
   handleSelectUser: (userId: string) => void;
-  setEditingUser: React.Dispatch<React.SetStateAction<User | null>>;
-  setOpenUserDialog: React.Dispatch<React.SetStateAction<boolean>>;
+  setEditingUser: (user: User | null) => void;
+  setOpenUserDialog: (open: boolean) => void;
+  setError: (error: string | null) => void;
   setSelectedUsers: React.Dispatch<React.SetStateAction<string[]>>;
 }
 

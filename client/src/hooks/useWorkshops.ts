@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { VITE_API_RAIL_WAY, API_KEY } from "../../config/config";
-import { UseWorkshopsReturn } from "../../types/hookTypes";
-import { ApiResponse, ApiWorkshopsList } from "../../types/apiTypes";
-import { Workshop } from "../../types/workshopTypes";
+import { VITE_API_RAIL_WAY, API_KEY } from "../config/config";
+import { UseWorkshopsReturn } from "../types/hookTypes";
+import { ApiResponse, ApiWorkshopsList } from "../types/apiTypes";
+import { Workshop } from "../types/workshopTypes";
 import {
   mapApiWorkshopToFrontend,
   mapFrontendToApiWorkshop,
-} from "../../utils/workshops/workshopsApi";
+} from "../utils/workshops/workshopsApi";
 import { useAuth } from "src/contexts/AuthContext";
 
 export const useWorkshops = (): UseWorkshopsReturn => {
