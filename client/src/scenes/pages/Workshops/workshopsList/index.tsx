@@ -98,7 +98,7 @@ const WorkshopsList: React.FC = () => {
                 textTransform: "none",
               }}
             >
-              Delete Selected
+              Deactivate Selected
             </Button>
           </Box>
         </Box>

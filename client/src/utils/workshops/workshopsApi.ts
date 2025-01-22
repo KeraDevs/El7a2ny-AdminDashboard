@@ -15,7 +15,7 @@ export const mapApiWorkshopToFrontend = (
   longitude: Number(apiWorkshop.longitude),
   profilePic: apiWorkshop.profile_pic,
   activeStatus: apiWorkshop.active_status,
-  status: apiWorkshop.status,
+  status: apiWorkshop.status.toLowerCase() as "open" | "busy" | "closed",
   createdAt: apiWorkshop.created_at,
   updatedAt: apiWorkshop.updated_at,
   users: [],
@@ -39,14 +39,15 @@ export const mapFrontendToApiWorkshop = (workshop: Partial<Workshop>) => ({
   longitude: workshop.longitude ? Number(workshop.longitude.toFixed(8)) : null,
   profile_pic: workshop.profilePic,
   active_status: workshop.activeStatus,
+  status: workshop.status,
   phone_numbers:
     workshop.phoneNumbers?.map((phone) => ({
       phone_number: phone.phone_number,
       type: phone.type,
       is_primary: phone.is_primary,
     })) || [],
-  services: workshop.services || [],
-  labels: workshop.labels || [],
+  // services: workshop.services || [],
+  // labels: workshop.labels || [],
 });
 
 export const convertApiUserToUser = (

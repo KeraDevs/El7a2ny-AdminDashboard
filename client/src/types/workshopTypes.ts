@@ -12,7 +12,7 @@ export interface Workshop {
   longitude: number | null;
   profilePic: string | null;
   activeStatus: string;
-  status: "Open" | "Busy" | "Closed";
+  status: "open" | "busy" | "closed";
   createdAt: string;
   updatedAt: string;
   phoneNumbers: PhoneNumber[];

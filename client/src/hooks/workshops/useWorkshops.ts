@@ -73,12 +73,14 @@ export const useWorkshops = (): UseWorkshopsReturn => {
 
       const apiData = mapFrontendToApiWorkshop(workshopData);
 
+      const currentToken = await token;
+
       const response = await fetch(`${VITE_API_RAIL_WAY}/workshops`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-api-key": API_KEY,
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${currentToken}`,
         },
         body: JSON.stringify(apiData),
       });
@@ -116,15 +118,16 @@ export const useWorkshops = (): UseWorkshopsReturn => {
         ...editingWorkshop,
         ...workshopData,
       });
+      const currentToken = await token;
 
       const response = await fetch(
         `${VITE_API_RAIL_WAY}/workshops/${editingWorkshop.id}`,
         {
-          method: "PUT",
+          method: "PATCH",
           headers: {
             "Content-Type": "application/json",
             "x-api-key": API_KEY,
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${currentToken}`,
           },
           body: JSON.stringify(apiData),
         }
@@ -153,29 +156,30 @@ export const useWorkshops = (): UseWorkshopsReturn => {
 
   const handleDeleteWorkshops = async () => {
     if (selectedWorkshops.length === 0) {
-      setError("No workshops selected for deletion");
+      setError("No workshops selected for deactivation");
       return;
     }
 
     try {
       setLoading(true);
       setError(null);
+      const currentToken = await token;
 
       for (const workshopId of selectedWorkshops) {
         const response = await fetch(
-          `${VITE_API_RAIL_WAY}/workshops/${workshopId}`,
+          `${VITE_API_RAIL_WAY}/workshops/${workshopId}/deactivate`,
           {
-            method: "DELETE",
+            method: "POST",
             headers: {
               "x-api-key": API_KEY,
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${currentToken}`,
             },
           }
         );
 
         if (!response.ok) {
           throw new Error(
-            `Failed to delete workshop ${workshopId} (${response.status})`
+            `Failed to deactivate workshop ${workshopId} (${response.status})`
           );
         }
       }
@@ -184,7 +188,9 @@ export const useWorkshops = (): UseWorkshopsReturn => {
       setSelectedWorkshops([]);
     } catch (error) {
       setError(
-        error instanceof Error ? error.message : "Failed to delete workshops"
+        error instanceof Error
+          ? error.message
+          : "Failed to deactivate workshops"
       );
     } finally {
       setLoading(false);
