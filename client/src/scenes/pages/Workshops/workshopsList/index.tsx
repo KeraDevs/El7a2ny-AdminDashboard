@@ -192,11 +192,11 @@ const WorkshopsList: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Chip
-                      label={workshop.activeStatus}
+                      label={workshop.active_status}
                       color={
-                        workshop.activeStatus === "active"
+                        workshop.active_status === "active"
                           ? "success"
-                          : workshop.activeStatus === "pending"
+                          : workshop.active_status === "pending"
                           ? "warning"
                           : "error"
                       }

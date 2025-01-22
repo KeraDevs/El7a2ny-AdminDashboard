@@ -14,7 +14,10 @@ export const mapApiWorkshopToFrontend = (
   latitude: Number(apiWorkshop.latitude),
   longitude: Number(apiWorkshop.longitude),
   profilePic: apiWorkshop.profile_pic,
-  activeStatus: apiWorkshop.active_status,
+  active_status: apiWorkshop.active_status as
+    | "pending"
+    | "active"
+    | "deactivated",
   status: apiWorkshop.status.toLowerCase() as "open" | "busy" | "closed",
   createdAt: apiWorkshop.created_at,
   updatedAt: apiWorkshop.updated_at,
@@ -38,7 +41,7 @@ export const mapFrontendToApiWorkshop = (workshop: Partial<Workshop>) => ({
   latitude: workshop.latitude ? Number(workshop.latitude.toFixed(8)) : null,
   longitude: workshop.longitude ? Number(workshop.longitude.toFixed(8)) : null,
   profile_pic: workshop.profilePic,
-  active_status: workshop.activeStatus,
+  active_status: workshop.active_status || "active",
   status: workshop.status,
   phone_numbers:
     workshop.phoneNumbers?.map((phone) => ({

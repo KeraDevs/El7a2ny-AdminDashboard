@@ -39,7 +39,7 @@ export interface ApiWorkshopsList {
   latitude: number | null;
   longitude: number | null;
   profile_pic: string | null;
-  active_status: string;
+  active_status: "pending" | "active" | "deactivated";
   status: "Open" | "Busy" | "Closed";
   created_at: string;
   updated_at: string;

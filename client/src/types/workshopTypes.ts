@@ -11,7 +11,7 @@ export interface Workshop {
   latitude: number | null;
   longitude: number | null;
   profilePic: string | null;
-  activeStatus: string;
+  active_status: "pending" | "active" | "deactivated";
   status: "open" | "busy" | "closed";
   createdAt: string;
   updatedAt: string;

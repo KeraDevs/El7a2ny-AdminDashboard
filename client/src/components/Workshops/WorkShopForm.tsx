@@ -22,11 +22,11 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({
   const [formData, setFormData] = useState<Partial<Workshop>>(
     workshop || {
       name: "",
-      activeStatus: "pending",
+      active_status: "pending" as "pending" | "active" | "deactivated",
       address: "",
       latitude: 0,
       longitude: 0,
-      status: "open",
+      status: "closed" as "open" | "busy" | "closed",
       services: [],
       labels: [],
       profilePic: "",
@@ -188,23 +188,29 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({
       <FormControl fullWidth>
         <InputLabel>Active Status</InputLabel>
         <Select
-          value={formData.activeStatus || "pending"}
+          value={formData.active_status || "pending"}
           label="Active Status"
           onChange={(e) =>
-            setFormData((prev) => ({ ...prev, activeStatus: e.target.value }))
+            setFormData((prev) => ({
+              ...prev,
+              active_status: e.target.value as
+                | "pending"
+                | "active"
+                | "deactivated",
+            }))
           }
           sx={{ borderRadius: 2 }}
         >
           <MenuItem value="active">Active</MenuItem>
           <MenuItem value="pending">Pending</MenuItem>
-          <MenuItem value="inactive">Inactive</MenuItem>
+          <MenuItem value="deactivated">Deactivated</MenuItem>
         </Select>
       </FormControl>
       <FormControl fullWidth>
         <InputLabel>Current Status</InputLabel>
         <Select
-          value={formData.status || "pending"}
-          label="Active Status"
+          value={formData.status || "closed"}
+          label="Current Status"
           onChange={(e) =>
             setFormData((prev) => ({
               ...prev,
@@ -287,7 +293,10 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({
         </Button>
         <Button
           variant="contained"
-          onClick={() => onSubmit(formData)}
+          onClick={() => {
+            console.log("Submitting workshop data:", formData);
+            onSubmit(formData);
+          }}
           disabled={!formData.name || !formData.ownerId}
           sx={{
             borderRadius: 2,

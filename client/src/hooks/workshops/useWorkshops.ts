@@ -70,10 +70,13 @@ export const useWorkshops = (): UseWorkshopsReturn => {
     try {
       setLoading(true);
       setError(null);
+      console.log("Before transformation:", workshopData);
 
       const apiData = mapFrontendToApiWorkshop(workshopData);
+      console.log("After transformation:", apiData);
 
       const currentToken = await token;
+      console.log("Request payload:", JSON.stringify(apiData));
 
       const response = await fetch(`${VITE_API_RAIL_WAY}/workshops`, {
         method: "POST",
@@ -86,7 +89,7 @@ export const useWorkshops = (): UseWorkshopsReturn => {
       });
 
       const responseData = await response.json();
-
+      console.log("API Response:", responseData);
       if (!response.ok) {
         throw new Error(
           responseData.message || `Failed to add workshop (${response.status})`
