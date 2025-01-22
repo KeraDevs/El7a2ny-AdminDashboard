@@ -3,6 +3,8 @@ import { CssBaseline } from "@mui/material";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext.tsx";
 import Layout from "./scenes/layout";
+import ProfileLayout from "./scenes/layout/ProfileLayout.tsx";
+
 import Dashboard from "./scenes/pages/Dashboard";
 import Users from "./scenes/pages/Users";
 import Workshops from "./scenes/pages/Workshops";
@@ -23,6 +25,7 @@ import Workers from "./scenes/pages/Workshops/workers";
 import "./index.css";
 import ProtectedRoute from "@components/auth/ProtectedRoute";
 import LoginPage from "@pages/auth";
+import WorkshopProfile from "@pages/Workshops/workshopProfile/index.tsx";
 
 const App: React.FC = () => {
   return (
@@ -53,7 +56,14 @@ const App: React.FC = () => {
             <Route path="workshops" element={<Workshops />}>
               <Route index element={<WorkshopsList />} />
               <Route path="cars" element={<Cars />} />
-              <Route path="worker" element={<Workers />} />
+              <Route path="workers" element={<Workers />} />
+              <Route path="labels" element={<Labels />} />
+            </Route>
+
+            <Route path="workshops/:id" element={<ProfileLayout />}>
+              <Route path="workers" element={<Workers />} />
+              <Route path="owners" element={<UsersList />} />
+              <Route path="cars" element={<Cars />} />
               <Route path="labels" element={<Labels />} />
             </Route>
 

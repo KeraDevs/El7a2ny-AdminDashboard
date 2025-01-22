@@ -34,6 +34,7 @@ import { Workshop } from "../../../../types/workshopTypes";
 import WorkShopForm from "../../../../components/Workshops/WorkShopForm";
 import { dialogStyles } from "../../../../config/styles";
 import { useWorkshops } from "../../../../hooks/useWorkshops";
+import { useNavigate } from "react-router-dom";
 
 const WorkshopsList: React.FC = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -58,6 +59,7 @@ const WorkshopsList: React.FC = () => {
     openWorkshopDialog,
     setError,
   } = useWorkshops();
+  const navigate = useNavigate();
 
   return (
     <Card sx={{ borderRadius: 2, boxShadow: 2 }}>
@@ -226,7 +228,7 @@ const WorkshopsList: React.FC = () => {
                         backgroundColor: "#f5f5f5",
                         "&:hover": { backgroundColor: "#e0e0e0" },
                       }}
-                      onClick={() => setEditingWorkshop(workshop)}
+                      onClick={() => navigate(`/workshops/${workshop.id}`)}
                       disabled={loading}
                     >
                       <RemoveRedEyeIcon fontSize="small" />

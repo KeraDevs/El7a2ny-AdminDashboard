@@ -21,7 +21,7 @@ import {
   useMediaQuery,
   Stack,
 } from "@mui/material";
-import { NavbarProps } from "../types/types";
+import { NavbarProps } from "../types/layoutTypes";
 
 const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);

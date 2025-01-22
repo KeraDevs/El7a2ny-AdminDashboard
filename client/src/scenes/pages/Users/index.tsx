@@ -29,9 +29,6 @@ const Users: React.FC = () => {
       case 1:
         navigate("/users/cars");
         break;
-      case 2:
-        navigate("/users/labels");
-        break;
     }
   };
 
@@ -41,11 +38,6 @@ const Users: React.FC = () => {
         <Tabs value={tabValue} onChange={handleTabChange}>
           <Tab label="Users" icon={<GroupIcon />} iconPosition="start" />
           <Tab label="Cars" icon={<DirectionsCar />} iconPosition="start" />
-          <Tab
-            label="Labels"
-            icon={<LabelImportantIcon />}
-            iconPosition="start"
-          />
         </Tabs>
       </Box>
       <Outlet />
