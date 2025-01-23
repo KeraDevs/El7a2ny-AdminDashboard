@@ -26,6 +26,7 @@ import "./index.css";
 import ProtectedRoute from "@components/auth/ProtectedRoute";
 import LoginPage from "@pages/auth";
 import WorkshopProfile from "@pages/Workshops/workshopProfile/index.tsx";
+import Data from "@components/Workshops/tabs/Data.tsx";
 
 const App: React.FC = () => {
   return (
@@ -61,10 +62,15 @@ const App: React.FC = () => {
             </Route>
 
             <Route path="workshops/:id" element={<ProfileLayout />}>
-              <Route path="workers" element={<Workers />} />
-              <Route path="owners" element={<UsersList />} />
-              <Route path="cars" element={<Cars />} />
-              <Route path="labels" element={<Labels />} />
+              <Route element={<WorkshopProfile />}>
+                <Route index element={<Navigate to="data" replace />} />
+                <Route path="data" element={<Data />} />
+                <Route path="workers" element={<Workers />} />
+                <Route path="owners" element={<UsersList />} />
+                <Route path="cars" element={<Cars />} />
+                <Route path="labels" element={<Labels />} />
+                <Route path="history" element={<History />} />
+              </Route>
             </Route>
 
             <Route path="marketplace" element={<Marketplace />} />

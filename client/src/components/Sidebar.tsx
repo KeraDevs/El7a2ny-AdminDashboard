@@ -66,7 +66,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   const navigate = useNavigate();
 
   useEffect(() => {
-    setActive(pathname.substring(1));
+    const baseRoute = pathname.split("/")[1];
+    setActive(baseRoute);
   }, [pathname]);
 
   return (
@@ -147,8 +148,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                         setActive(lcText);
                       }}
                       sx={{
-                        backgroundColor:
-                          active === lcText ? "#ddd" : "transparent",
+                        backgroundColor: pathname.startsWith(`/${lcText}`)
+                          ? "#ddd"
+                          : "transparent",
                         color: "#000",
                       }}
                     >
