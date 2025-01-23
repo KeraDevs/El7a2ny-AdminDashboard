@@ -6,16 +6,21 @@ import {
   Engineering as EngineeringIcon,
   HomeRepairService as HomeRepairServiceIcon,
 } from "@mui/icons-material";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Outlet, useNavigate, useLocation, useParams } from "react-router-dom";
 
 const Workshop: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { id } = useParams();
+
+  const isProfilePage = location.pathname.includes(`/workshops/${id}`);
+  if (isProfilePage) {
+    return <Outlet />;
+  }
 
   const getActiveTab = () => {
+    if (isProfilePage) return 2;
     if (location.pathname.endsWith("/worker")) return 1;
-    if (location.pathname.endsWith("/cars")) return 2;
-    if (location.pathname.endsWith("/labels")) return 3;
     return 0;
   };
 
@@ -29,13 +34,7 @@ const Workshop: React.FC = () => {
         navigate("/workshops");
         break;
       case 1:
-        navigate("/workshops/worker");
-        break;
-      case 2:
-        navigate("/workshops/cars");
-        break;
-      case 3:
-        navigate("/workshops/labels");
+        navigate("/workshops/workers");
         break;
     }
   };
@@ -49,11 +48,9 @@ const Workshop: React.FC = () => {
             icon={<HomeRepairServiceIcon />}
             iconPosition="start"
           />
-          <Tab label="worker" icon={<EngineeringIcon />} iconPosition="start" />
-          <Tab label="cars" icon={<DirectionsCar />} iconPosition="start" />
           <Tab
-            label="labels"
-            icon={<LabelImportantIcon />}
+            label="workers"
+            icon={<EngineeringIcon />}
             iconPosition="start"
           />
         </Tabs>

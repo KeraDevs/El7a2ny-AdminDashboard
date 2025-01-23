@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { API_BASE_URL, API_KEY, token } from "../config/config";
-import { ApiResponse, Workshop, UseWorkshopsReturn } from "../types/types";
-
+import { VITE_API_RAIL_WAY, API_KEY } from "../config/config";
+import { UseWorkshopsReturn } from "../types/hookTypes";
+import { ApiResponse, ApiWorkshopsList } from "../types/apiTypes";
+import { Workshop } from "../types/workshopTypes";
 import {
   mapApiWorkshopToFrontend,
   mapFrontendToApiWorkshop,
-} from "../utils/workshopsApi";
+} from "../utils/workshops/workshopsApi";
+import { useAuth } from "src/contexts/AuthContext";
 
 export const useWorkshops = (): UseWorkshopsReturn => {
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
@@ -15,18 +17,19 @@ export const useWorkshops = (): UseWorkshopsReturn => {
   const [editingWorkshop, setEditingWorkshop] = useState<Workshop | null>(null);
   const [openWorkshopDialog, setOpenWorkshopDialog] = useState<boolean>(false);
 
+  //Auth
+  const getAuth = useAuth();
+  const token = getAuth.currentUser?.getIdToken();
+
   const fetchWorkshops = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/workshops?limit=10&offset=0&is_active=true`,
-        {
-          headers: {
-            "x-api-key": API_KEY,
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${VITE_API_RAIL_WAY}/workshops`, {
+        headers: {
+          "x-api-key": API_KEY,
+          Authorization: `Bearer ${await token}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error(
@@ -67,21 +70,26 @@ export const useWorkshops = (): UseWorkshopsReturn => {
     try {
       setLoading(true);
       setError(null);
+      console.log("Before transformation:", workshopData);
 
       const apiData = mapFrontendToApiWorkshop(workshopData);
+      console.log("After transformation:", apiData);
 
-      const response = await fetch(`${API_BASE_URL}/workshops`, {
+      const currentToken = await token;
+      console.log("Request payload:", JSON.stringify(apiData));
+
+      const response = await fetch(`${VITE_API_RAIL_WAY}/workshops`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-api-key": API_KEY,
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${currentToken}`,
         },
         body: JSON.stringify(apiData),
       });
 
       const responseData = await response.json();
-
+      console.log("API Response:", responseData);
       if (!response.ok) {
         throw new Error(
           responseData.message || `Failed to add workshop (${response.status})`
@@ -113,15 +121,16 @@ export const useWorkshops = (): UseWorkshopsReturn => {
         ...editingWorkshop,
         ...workshopData,
       });
+      const currentToken = await token;
 
       const response = await fetch(
-        `${API_BASE_URL}/workshops/${editingWorkshop.id}`,
+        `${VITE_API_RAIL_WAY}/workshops/${editingWorkshop.id}`,
         {
-          method: "PUT",
+          method: "PATCH",
           headers: {
             "Content-Type": "application/json",
             "x-api-key": API_KEY,
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${currentToken}`,
           },
           body: JSON.stringify(apiData),
         }
@@ -150,29 +159,30 @@ export const useWorkshops = (): UseWorkshopsReturn => {
 
   const handleDeleteWorkshops = async () => {
     if (selectedWorkshops.length === 0) {
-      setError("No workshops selected for deletion");
+      setError("No workshops selected for deactivation");
       return;
     }
 
     try {
       setLoading(true);
       setError(null);
+      const currentToken = await token;
 
       for (const workshopId of selectedWorkshops) {
         const response = await fetch(
-          `${API_BASE_URL}/workshops/${workshopId}`,
+          `${VITE_API_RAIL_WAY}/workshops/${workshopId}/deactivate`,
           {
-            method: "DELETE",
+            method: "POST",
             headers: {
               "x-api-key": API_KEY,
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${currentToken}`,
             },
           }
         );
 
         if (!response.ok) {
           throw new Error(
-            `Failed to delete workshop ${workshopId} (${response.status})`
+            `Failed to deactivate workshop ${workshopId} (${response.status})`
           );
         }
       }
@@ -181,7 +191,9 @@ export const useWorkshops = (): UseWorkshopsReturn => {
       setSelectedWorkshops([]);
     } catch (error) {
       setError(
-        error instanceof Error ? error.message : "Failed to delete workshops"
+        error instanceof Error
+          ? error.message
+          : "Failed to deactivate workshops"
       );
     } finally {
       setLoading(false);

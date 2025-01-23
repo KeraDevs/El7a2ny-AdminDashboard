@@ -3,7 +3,6 @@ import { Box, Grid, Container, Typography } from "@mui/material";
 import WorkshopsPerformance from "../../../components/Dashboard/WorkshopsPerformance";
 import RequetsHistory from "../../../components/Dashboard/RequestsHistory";
 import ServiceHistory from "../../../components/Dashboard/ServiceHistory";
-import UserDistribution from "../../../components/Dashboard/UserDistribution";
 import KeyMetrics from "../../../components/Dashboard/KeyMetrics";
 import SalesChart from "../../../components/Dashboard/SalesCharts";
 
@@ -21,18 +20,15 @@ const Dashboard: React.FC = () => {
           <Grid item xs={12} md={6}>
             <WorkshopsPerformance />
           </Grid>
-          <Grid item xs={12} lg={6}>
+          <Grid item xs={12} md={6}>
             <ServiceHistory />
           </Grid>
           <Grid item xs={12} md={6}>
             <SalesChart />
           </Grid>
-          <Grid item xs={12} lg={6}>
+          <Grid item xs={12} md={6}>
             <RequetsHistory />
           </Grid>
-          {/* <Grid item xs={12} md={6}>
-            <UserDistribution />
-          </Grid> */}
         </Grid>
       </Box>
     </Container>

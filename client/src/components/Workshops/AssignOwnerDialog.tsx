@@ -16,14 +16,14 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { Close as CloseIcon } from "@mui/icons-material";
-import {
-  User,
-  ApiUserResponse,
-  AssignOwnerDialogProps,
-} from "../../types/types";
-import { API_BASE_URL, API_KEY, token } from "../../config/config";
+import { User } from "../../types/userTypes";
+import { ApiUserResponse } from "../../types/apiTypes";
+import { AssignOwnerDialogProps } from "../../types/workshopTypes";
+
+import { VITE_API_RAIL_WAY, API_KEY } from "../../config/config";
 import { dialogStyles } from "../../config/styles";
-import { convertApiUserToUser } from "../../utils/workshopsApi";
+import { convertApiUserToUser } from "@utils/workshops/workshopsApi";
+import { useAuth } from "src/contexts/AuthContext";
 
 export const AssignOwnerDialog: React.FC<AssignOwnerDialogProps> = ({
   open,
@@ -35,12 +35,21 @@ export const AssignOwnerDialog: React.FC<AssignOwnerDialogProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  //Auth
+  const getAuth = useAuth();
+
   useEffect(() => {
+    let isMounted = true;
+
     const fetchUsers = async () => {
+      if (!open) return;
+
       setLoading(true);
       try {
+        const token = await getAuth.currentUser?.getIdToken();
+
         const response = await fetch(
-          `${API_BASE_URL}/users?type=workshopAdmin`,
+          `${VITE_API_RAIL_WAY}/users?type=workshopAdmin`,
           {
             headers: {
               "x-api-key": API_KEY,
@@ -54,21 +63,31 @@ export const AssignOwnerDialog: React.FC<AssignOwnerDialogProps> = ({
         }
 
         const data: ApiUserResponse = await response.json();
-        const mappedUsers = data.users.map(convertApiUserToUser);
-        setUsers(mappedUsers);
+        if (isMounted) {
+          const mappedUsers = data.users.map(convertApiUserToUser);
+          setUsers(mappedUsers);
+        }
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to fetch workshop admins"
-        );
+        if (isMounted) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Failed to fetch workshop admins"
+          );
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    if (open) {
-      fetchUsers();
-    }
-  }, [open, API_BASE_URL, API_KEY, token]);
+    fetchUsers();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [open, getAuth.currentUser]);
   return (
     <Dialog
       open={open}
@@ -76,8 +95,10 @@ export const AssignOwnerDialog: React.FC<AssignOwnerDialogProps> = ({
       maxWidth="sm"
       fullWidth
       sx={dialogStyles}
+      aria-labelledby="assign-owner-dialog-title"
+      disableRestoreFocus
     >
-      <DialogTitle>
+      <DialogTitle id="assign-owner-dialog-title">
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h6">Select Workshop Owner</Typography>
           <IconButton onClick={onClose} size="small">

@@ -29,6 +29,11 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/contexts/AuthContext.tsx",
+    "src/contexts/text"
+  ],
   "exclude": ["node_modules", "dist"]
 }

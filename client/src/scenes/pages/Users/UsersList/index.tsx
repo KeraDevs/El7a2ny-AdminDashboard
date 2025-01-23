@@ -28,10 +28,12 @@ import {
   Add,
   Close as CloseIcon,
 } from "@mui/icons-material";
-import UserForm from "@components/Users/UsersForm";
 import { useUsers } from "@hooks/useUsers";
 import { dialogStyles } from "@config/styles";
-import { User } from "../../../../types/types";
+import { User } from "../../../../types/userTypes";
+import AddUserForm from "@components/Users/users/AddUserForm";
+import EditUserForm from "@components/Users/users/EditUserForm";
+import DeleteUsers from "@components/Users/users/DeleteUsers";
 
 const UsersList: React.FC = () => {
   const {
@@ -42,28 +44,69 @@ const UsersList: React.FC = () => {
     editingUser,
     openUserDialog,
     fetchUsers,
-    handleAddUser,
     handleEditUser,
-    handleDeleteUsers,
     handleSelectAll,
     handleSelectUser,
     setEditingUser,
     setOpenUserDialog,
     setError,
+    setSelectedUsers,
   } = useUsers();
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [updateConfirmOpen, setUpdateConfirmOpen] = useState(false);
-  const [pendingUserData, setPendingUserData] = useState<Partial<User> | null>(
+  const [addConfirmOpen, setAddConfirmOpen] = useState(false);
+  const [editConfirmOpen, setEditConfirmOpen] = useState(false);
+  const [pendingAddData, setPendingAddData] = useState<Partial<User> | null>(
     null
   );
-
+  const [pendingEditData, setPendingEditData] = useState<Partial<User> | null>(
+    null
+  );
   useEffect(() => {
     fetchUsers();
   }, []);
 
+  const handleAddFormSubmit = async (userData: Partial<User>) => {
+    setPendingAddData(userData);
+    setAddConfirmOpen(true);
+  };
+
+  const handleEditFormSubmit = async (userData: Partial<User>) => {
+    setPendingEditData(userData);
+    setEditConfirmOpen(true);
+  };
+
+  const handleConfirmAdd = async () => {
+    try {
+      await fetchUsers();
+      setOpenUserDialog(false);
+      setAddConfirmOpen(false);
+      setPendingAddData(null);
+    } catch (error) {
+      console.error("Error adding user:", error);
+      setError(error instanceof Error ? error.message : "Failed to add user");
+    }
+  };
+
+  const handleConfirmEdit = async () => {
+    try {
+      if (pendingEditData) {
+        await handleEditUser(pendingEditData);
+      }
+      setEditConfirmOpen(false);
+      setEditingUser(null);
+      setPendingEditData(null);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to update user"
+      );
+    }
+  };
+
   return (
     <Card sx={{ borderRadius: 2, boxShadow: 2 }}>
+      {/* Header Section */}
       <Box sx={{ p: 3, borderBottom: "1px solid #eee" }}>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h5" fontWeight="500">
@@ -116,6 +159,7 @@ const UsersList: React.FC = () => {
           </Alert>
         </Box>
       )}
+
       {/* Table Content */}
       {loading ? (
         <Box display="flex" justifyContent="center" p={4}>
@@ -124,6 +168,7 @@ const UsersList: React.FC = () => {
       ) : (
         <TableContainer sx={{ p: 3 }}>
           <Table sx={{ minWidth: 800 }}>
+            {/* Table Header */}
             <TableHead>
               <TableRow>
                 <TableCell
@@ -152,6 +197,8 @@ const UsersList: React.FC = () => {
                 <TableCell align="center">Edit</TableCell>
               </TableRow>
             </TableHead>
+
+            {/* Table Body */}
             <TableBody>
               {users.map((user) => (
                 <TableRow
@@ -190,10 +237,7 @@ const UsersList: React.FC = () => {
                               variant="outlined"
                               sx={{
                                 borderRadius: "4px",
-                                "& .MuiChip-label": {
-                                  px: 1,
-                                  py: 0.25,
-                                },
+                                "& .MuiChip-label": { px: 1, py: 0.25 },
                               }}
                             />
                           </Tooltip>
@@ -214,7 +258,7 @@ const UsersList: React.FC = () => {
                             title={
                               <Box>
                                 <Typography variant="caption">
-                                  VIN: {car.vinNumber}
+                                  VIN: {car.vin_number}
                                 </Typography>
                                 <br />
                                 <Typography variant="caption">
@@ -224,16 +268,13 @@ const UsersList: React.FC = () => {
                             }
                           >
                             <Chip
-                              label={car.licensePlate}
+                              label={car.license_plate}
                               size="small"
                               color="primary"
                               variant="outlined"
                               sx={{
                                 borderRadius: "4px",
-                                "& .MuiChip-label": {
-                                  px: 1,
-                                  py: 0.25,
-                                },
+                                "& .MuiChip-label": { px: 1, py: 0.25 },
                               }}
                             />
                           </Tooltip>
@@ -257,7 +298,7 @@ const UsersList: React.FC = () => {
                       size="small"
                       onClick={() => {
                         setEditingUser(user);
-                        setPendingUserData(null);
+                        setPendingEditData(null);
                       }}
                       disabled={loading}
                       sx={{
@@ -275,11 +316,45 @@ const UsersList: React.FC = () => {
         </TableContainer>
       )}
 
-      {/* Add/Edit Dialog */}
+      {/* Add User Dialog */}
       <Dialog
-        open={openUserDialog || !!editingUser}
+        open={openUserDialog}
         onClose={() => {
           setOpenUserDialog(false);
+          setError(null);
+        }}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 2 } }}
+        sx={dialogStyles}
+      >
+        <DialogTitle>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Typography>Add New User</Typography>
+            <IconButton onClick={() => setOpenUserDialog(false)} size="small">
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <AddUserForm
+            onSubmit={handleAddFormSubmit}
+            onClose={() => setOpenUserDialog(false)}
+            loading={loading}
+            open={openUserDialog}
+            isEdit={false}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog
+        open={!!editingUser}
+        onClose={() => {
           setEditingUser(null);
           setError(null);
         }}
@@ -294,76 +369,57 @@ const UsersList: React.FC = () => {
             justifyContent="space-between"
             alignItems="center"
           >
-            <Typography>
-              {editingUser ? "Edit User" : "Add New User"}
-            </Typography>
-            <IconButton
-              onClick={() => {
-                setOpenUserDialog(false);
-                setEditingUser(null);
-              }}
-              size="small"
-            >
+            <Typography>Edit User</Typography>
+            <IconButton onClick={() => setEditingUser(null)} size="small">
               <CloseIcon />
             </IconButton>
           </Box>
         </DialogTitle>
         <DialogContent>
-          <UserForm
-            user={editingUser || undefined}
-            onSubmit={(formData) => {
-              setPendingUserData(formData);
-              setOpenUserDialog(false);
-              setUpdateConfirmOpen(true);
-            }}
-            onClose={() => {
-              setOpenUserDialog(false);
-              setEditingUser(null);
-            }}
-            open={openUserDialog || !!editingUser}
-          />
+          {editingUser && (
+            <EditUserForm
+              user={editingUser}
+              onSubmit={handleEditFormSubmit}
+              onClose={() => setEditingUser(null)}
+              loading={loading}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Add Confirmation Dialog */}
       <Dialog
-        open={deleteConfirmOpen}
-        onClose={() => setDeleteConfirmOpen(false)}
+        open={addConfirmOpen}
+        onClose={() => setAddConfirmOpen(false)}
         PaperProps={{ sx: { borderRadius: 2 } }}
       >
-        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogTitle>Confirm Add User</DialogTitle>
         <DialogContent>
-          <Typography>
-            Are you sure you want to delete {selectedUsers.length} selected
-            user(s)? This action cannot be undone.
-          </Typography>
+          <Typography>Are you sure you want to add this new user?</Typography>
         </DialogContent>
         <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end", gap: 1 }}>
           <Button
             variant="outlined"
-            onClick={() => setDeleteConfirmOpen(false)}
+            onClick={() => setAddConfirmOpen(false)}
             sx={{ borderRadius: 2 }}
           >
             Cancel
           </Button>
           <Button
             variant="contained"
-            color="error"
-            onClick={() => {
-              setDeleteConfirmOpen(false);
-              handleDeleteUsers();
-            }}
+            color="primary"
+            onClick={handleConfirmAdd}
             sx={{ borderRadius: 2 }}
           >
-            Delete
+            Add User
           </Button>
         </Box>
       </Dialog>
 
-      {/* Update Confirmation Dialog */}
+      {/* Edit Confirmation Dialog */}
       <Dialog
-        open={updateConfirmOpen}
-        onClose={() => setUpdateConfirmOpen(false)}
+        open={editConfirmOpen}
+        onClose={() => setEditConfirmOpen(false)}
         PaperProps={{ sx: { borderRadius: 2 } }}
       >
         <DialogTitle>Confirm Update</DialogTitle>
@@ -375,7 +431,7 @@ const UsersList: React.FC = () => {
         <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end", gap: 1 }}>
           <Button
             variant="outlined"
-            onClick={() => setUpdateConfirmOpen(false)}
+            onClick={() => setEditConfirmOpen(false)}
             sx={{ borderRadius: 2 }}
           >
             Cancel
@@ -383,19 +439,24 @@ const UsersList: React.FC = () => {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => {
-              setUpdateConfirmOpen(false);
-              if (pendingUserData) {
-                handleEditUser(pendingUserData);
-              }
-              setPendingUserData(null);
-            }}
+            onClick={handleConfirmEdit}
             sx={{ borderRadius: 2 }}
           >
             Update
           </Button>
         </Box>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteUsers
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        selectedUsers={selectedUsers}
+        onSuccess={() => {
+          fetchUsers();
+          setSelectedUsers([]);
+        }}
+      />
     </Card>
   );
 };

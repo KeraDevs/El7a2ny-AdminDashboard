@@ -30,10 +30,11 @@ import {
   RemoveRedEye as RemoveRedEyeIcon,
   Close as CloseIcon,
 } from "@mui/icons-material";
-import { Workshop } from "../../../../types/types";
+import { Workshop } from "../../../../types/workshopTypes";
 import WorkShopForm from "../../../../components/Workshops/WorkShopForm";
 import { dialogStyles } from "../../../../config/styles";
 import { useWorkshops } from "../../../../hooks/useWorkshops";
+import { useNavigate } from "react-router-dom";
 
 const WorkshopsList: React.FC = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -58,6 +59,7 @@ const WorkshopsList: React.FC = () => {
     openWorkshopDialog,
     setError,
   } = useWorkshops();
+  const navigate = useNavigate();
 
   return (
     <Card sx={{ borderRadius: 2, boxShadow: 2 }}>
@@ -98,7 +100,7 @@ const WorkshopsList: React.FC = () => {
                 textTransform: "none",
               }}
             >
-              Delete Selected
+              Deactivate Selected
             </Button>
           </Box>
         </Box>
@@ -176,8 +178,8 @@ const WorkshopsList: React.FC = () => {
                     {workshop.parentId ? workshop.parentId : "Main Workshop"}
                   </TableCell>
                   <TableCell>
-                    {workshop.users[0]?.firstName
-                      ? `${workshop.users[0]?.firstName} ${workshop.users[0]?.lastName}`
+                    {workshop.users[0]?.first_name
+                      ? `${workshop.users[0]?.first_name} ${workshop.users[0]?.last_name}`
                       : "No owner assigned"}
                   </TableCell>
                   <TableCell>
@@ -192,11 +194,11 @@ const WorkshopsList: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Chip
-                      label={workshop.activeStatus}
+                      label={workshop.active_status}
                       color={
-                        workshop.activeStatus === "active"
+                        workshop.active_status === "active"
                           ? "success"
-                          : workshop.activeStatus === "pending"
+                          : workshop.active_status === "pending"
                           ? "warning"
                           : "error"
                       }
@@ -226,7 +228,7 @@ const WorkshopsList: React.FC = () => {
                         backgroundColor: "#f5f5f5",
                         "&:hover": { backgroundColor: "#e0e0e0" },
                       }}
-                      onClick={() => setEditingWorkshop(workshop)}
+                      onClick={() => navigate(`/workshops/${workshop.id}`)}
                       disabled={loading}
                     >
                       <RemoveRedEyeIcon fontSize="small" />
@@ -251,8 +253,10 @@ const WorkshopsList: React.FC = () => {
         fullWidth
         PaperProps={{ sx: { borderRadius: 2 } }}
         sx={dialogStyles}
+        aria-labelledby="workshop-dialog-title"
+        disableRestoreFocus
       >
-        <DialogTitle>
+        <DialogTitle id="workshop-dialog-title">
           <Box
             display="flex"
             justifyContent="space-between"
@@ -290,8 +294,10 @@ const WorkshopsList: React.FC = () => {
         open={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
         PaperProps={{ sx: { borderRadius: 2 } }}
+        aria-labelledby="delete-dialog-title"
+        disableRestoreFocus
       >
-        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogTitle id="delete-dialog-title">Confirm Delete</DialogTitle>
         <DialogContent>
           <Typography>
             Are you sure you want to delete {selectedWorkshops.length} selected
@@ -325,8 +331,10 @@ const WorkshopsList: React.FC = () => {
         open={updateConfirmOpen}
         onClose={() => setUpdateConfirmOpen(false)}
         PaperProps={{ sx: { borderRadius: 2 } }}
+        aria-labelledby="update-dialog-title"
+        disableRestoreFocus
       >
-        <DialogTitle>Confirm Update</DialogTitle>
+        <DialogTitle id="update-dialog-title">Confirm Update</DialogTitle>
         <DialogContent>
           <Typography>
             Are you sure you want to update this workshop?

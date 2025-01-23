@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import FlexBetween from "./FlexBetween";
-
 import profileImage from "../assets/profile.jpg";
-
 import {
   Box,
   Divider,
@@ -18,7 +16,6 @@ import {
 } from "@mui/material";
 
 import {
-  SettingsOutlined,
   ChevronLeft,
   ChevronRightOutlined,
   HomeOutlined,
@@ -33,25 +30,18 @@ import {
   History as HistoryIcon,
   NotificationsActive as NotificationsActiveIcon,
   AttachMoney as AttachMoneyIcon,
+  DirectionsCar as DirectionsCarIcon,
 } from "@mui/icons-material";
-
-interface NavItem {
-  text: string;
-  icon: React.ReactNode | null;
-}
-
-interface SidebarProps {
-  drawerWidth: number;
-  isSidebarOpen: boolean;
-  setIsSidebarOpen: (isOpen: boolean) => void;
-  isNonMobile: boolean;
-}
+import { dialogStyles } from "@config/styles";
+import { NavItem, SidebarProps } from "../types/layoutTypes";
 
 const navItems: NavItem[] = [
   { text: "Dashboard", icon: <HomeOutlined /> },
   { text: "Mangement", icon: null },
   { text: "Users", icon: <GroupIcon /> },
   { text: "Workshops", icon: <HomeRepairServiceIcon /> },
+  { text: "Cars", icon: <DirectionsCarIcon /> },
+
   { text: "Marketplace", icon: <StorefrontIcon /> },
   { text: "Live Support", icon: null },
   { text: "Notifications", icon: <NotificationsActiveIcon /> },
@@ -76,7 +66,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   const navigate = useNavigate();
 
   useEffect(() => {
-    setActive(pathname.substring(1));
+    const baseRoute = pathname.split("/")[1];
+    setActive(baseRoute);
   }, [pathname]);
 
   return (
@@ -157,8 +148,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                         setActive(lcText);
                       }}
                       sx={{
-                        backgroundColor:
-                          active === lcText ? "#ddd" : "transparent",
+                        backgroundColor: pathname.startsWith(`/${lcText}`)
+                          ? "#ddd"
+                          : "transparent",
                         color: "#000",
                       }}
                     >

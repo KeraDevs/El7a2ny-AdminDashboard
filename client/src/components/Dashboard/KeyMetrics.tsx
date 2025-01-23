@@ -17,7 +17,7 @@ import {
   AttachMoney as AttachMoneyIcon,
 } from "@mui/icons-material";
 import { TOTAL_USERS_API, API_KEY } from "../../config/config";
-import { DashboardMetrics } from "../../types/types";
+import { DashboardMetrics } from "../../types/dashboardTypes";
 
 const KeyMetrics: React.FC = () => {
   const [isMetricsLoading, setIsMetricsLoading] = useState(true);
