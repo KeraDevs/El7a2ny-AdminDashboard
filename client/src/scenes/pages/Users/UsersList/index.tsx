@@ -56,9 +56,7 @@ const UsersList: React.FC = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [addConfirmOpen, setAddConfirmOpen] = useState(false);
   const [editConfirmOpen, setEditConfirmOpen] = useState(false);
-  const [pendingAddData, setPendingAddData] = useState<Partial<User> | null>(
-    null
-  );
+
   const [pendingEditData, setPendingEditData] = useState<Partial<User> | null>(
     null
   );
@@ -66,8 +64,7 @@ const UsersList: React.FC = () => {
     fetchUsers();
   }, []);
 
-  const handleAddFormSubmit = async (userData: Partial<User>) => {
-    setPendingAddData(userData);
+  const handleAddFormSubmit = async () => {
     setAddConfirmOpen(true);
   };
 
@@ -81,7 +78,6 @@ const UsersList: React.FC = () => {
       await fetchUsers();
       setOpenUserDialog(false);
       setAddConfirmOpen(false);
-      setPendingAddData(null);
     } catch (error) {
       console.error("Error adding user:", error);
       setError(error instanceof Error ? error.message : "Failed to add user");
@@ -342,7 +338,7 @@ const UsersList: React.FC = () => {
         </DialogTitle>
         <DialogContent>
           <AddUserForm
-            onSubmit={handleAddFormSubmit}
+            onSubmit={() => handleAddFormSubmit}
             onClose={() => setOpenUserDialog(false)}
             loading={loading}
             open={openUserDialog}

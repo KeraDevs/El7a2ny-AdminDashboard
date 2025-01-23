@@ -7,7 +7,6 @@ import {
   MenuItem,
   Select,
   TextField,
-  Chip,
   Switch,
   FormControlLabel,
   Typography,
@@ -52,8 +51,22 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
   const [labelInput, setLabelInput] = useState("");
   const getAuth = useAuth();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    const nameMapping: { [key: string]: string } = {
+      "First Name": "first_name",
+      "Last Name": "last_name",
+      Phone: "phone",
+      "National Number": "nationalNumber",
+    };
+
+    const stateKey = nameMapping[name] || name;
+    setFormData((prev) => ({
+      ...prev,
+      [stateKey]: value,
+    }));
   };
 
   const handleSelectChange = (e: SelectChangeEvent<string>) => {
@@ -162,7 +175,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
     >
       <TextField
         fullWidth
-        name="firstName"
+        name="First Name"
         label="First Name"
         value={formData.first_name}
         onChange={handleChange}
@@ -170,7 +183,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
 
       <TextField
         fullWidth
-        name="lastName"
+        name="Last Name"
         label="Last Name"
         value={formData.last_name}
         onChange={handleChange}

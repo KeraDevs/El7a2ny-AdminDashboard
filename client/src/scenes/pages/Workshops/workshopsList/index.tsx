@@ -294,14 +294,14 @@ const WorkshopsList: React.FC = () => {
         open={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
         PaperProps={{ sx: { borderRadius: 2 } }}
-        aria-labelledby="delete-dialog-title"
+        aria-labelledby="deactivate-dialog-title"
         disableRestoreFocus
       >
-        <DialogTitle id="delete-dialog-title">Confirm Delete</DialogTitle>
+        <DialogTitle id="deactivate-dialog-title">Confirm Delete</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete {selectedWorkshops.length} selected
-            workshop(s)? This action cannot be undone.
+            Are you sure you want to deactivate {selectedWorkshops.length}{" "}
+            selected workshop(s)? This action cannot be undone.
           </Typography>
         </DialogContent>
         <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end", gap: 1 }}>
@@ -321,7 +321,7 @@ const WorkshopsList: React.FC = () => {
             }}
             sx={{ borderRadius: 2 }}
           >
-            Delete
+            Deactivate
           </Button>
         </Box>
       </Dialog>

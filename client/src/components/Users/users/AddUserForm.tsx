@@ -109,8 +109,22 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
       }));
     };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    const nameMapping: { [key: string]: string } = {
+      "First Name": "first_name",
+      "Last Name": "last_name",
+      Phone: "phone",
+      "National Number": "nationalNumber",
+    };
+
+    const stateKey = nameMapping[name] || name;
+    setFormData((prev) => ({
+      ...prev,
+      [stateKey]: value,
+    }));
   };
 
   const handleLabelAdd = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -298,10 +312,22 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
           </Box>
         </Box>
       ) : (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 3,
+            p: 3,
+            maxWidth: 600,
+            mx: "auto",
+            backgroundColor: "rgba(255, 255, 255, 0.95)",
+            borderRadius: "8px",
+            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
+          }}
+        >
           <TextField
             fullWidth
-            name="FirstName"
+            name="First Name"
             label="First Name"
             value={formData.first_name}
             onChange={handleChange}
@@ -367,7 +393,7 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
               <MenuItem value="workshopAdmin">workshopAdmin</MenuItem>
             </Select>
           </FormControl>
-          <TextField
+          {/* <TextField
             fullWidth
             label="Add Labels"
             value={labelInput}
@@ -386,10 +412,10 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
                 sx={{ borderRadius: 1 }}
               />
             ))}
-          </Box>
+          </Box> */}
 
           {/* Vehicle Information */}
-          {formData.userType === "customer" ? (
+          {/* {formData.userType === "customer" ? (
             <Box sx={{ border: "1px solid #ddd", p: 2, borderRadius: 1 }}>
               <Typography variant="subtitle1" sx={{ mb: 2 }}>
                 Vehicle Information
@@ -475,7 +501,7 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
                 />
               </Box>
             </Box>
-          ) : null}
+          ) : null} */}
           <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
             <Button
               onClick={() => setActiveStep(0)}

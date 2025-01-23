@@ -1,10 +1,6 @@
 import React, { useState } from "react";
 import { Box, Tab, Tabs } from "@mui/material";
-import {
-  DirectionsCar,
-  LabelImportant as LabelImportantIcon,
-  Group as GroupIcon,
-} from "@mui/icons-material";
+import { DirectionsCar, Group as GroupIcon } from "@mui/icons-material";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 
 const Users: React.FC = () => {
@@ -13,7 +9,6 @@ const Users: React.FC = () => {
 
   const getActiveTab = () => {
     if (location.pathname.endsWith("/cars")) return 1;
-    if (location.pathname.endsWith("/labels")) return 2;
     return 0;
   };
 
