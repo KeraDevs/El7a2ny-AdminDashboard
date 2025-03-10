@@ -44,9 +44,9 @@ export const sidebarSections: SidebarSection[] = [
     name: "Users Management",
     icon: <Users className="h-4 w-4" />,
     subsections: [
-      { name: "Users List", href: "/users/list" },
+      { name: "Users List", href: "/users" },
       { name: "User Profile", href: "/users/:id" },
-      { name: "Cars", href: "/users/history" },
+      { name: "Cars", href: "/users/cars" },
       { name: "Labels", href: "/users/labels" },
     ],
   },
