@@ -1,6 +1,6 @@
 // components/Navbar.tsx
 "use client";
-
+import { UserAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useState } from "react";
@@ -19,49 +19,59 @@ import {
   PanelRight,
 } from "lucide-react";
 
-const useBreadcrumbs = () => {
-  const pathname = usePathname();
+// const useBreadcrumbs = () => {
+//   const pathname = usePathname();
 
-  const getBreadcrumbs = () => {
-    const breadcrumbs = [{ name: "Dashboard", href: "/" }];
+//   const getBreadcrumbs = () => {
+//     const breadcrumbs = [{ name: "Dashboard", href: "/" }];
 
-    if (pathname === "/") {
-      return breadcrumbs;
-    }
+//     if (pathname === "/") {
+//       return breadcrumbs;
+//     }
 
-    for (const section of sidebarSections) {
-      if (section.href && pathname === section.href) {
-        breadcrumbs.push({ name: section.name, href: section.href });
-        break;
-      }
+//     for (const section of sidebarSections) {
+//       if (section.href && pathname === section.href) {
+//         breadcrumbs.push({ name: section.name, href: section.href });
+//         break;
+//       }
 
-      if (section.subsections) {
-        const matchingSubsection = section.subsections.find(
-          (subsection) => pathname === subsection.href
-        );
+//       if (section.subsections) {
+//         const matchingSubsection = section.subsections.find(
+//           (subsection) => pathname === subsection.href
+//         );
 
-        if (matchingSubsection) {
-          breadcrumbs.push(
-            { name: section.name, href: section.subsections[0].href },
-            { name: matchingSubsection.name, href: matchingSubsection.href }
-          );
-          break;
-        }
-      }
-    }
+//         if (matchingSubsection) {
+//           breadcrumbs.push(
+//             { name: section.name, href: section.subsections[0].href },
+//             { name: matchingSubsection.name, href: matchingSubsection.href }
+//           );
+//           break;
+//         }
+//       }
+//     }
 
-    return breadcrumbs;
-  };
+//     return breadcrumbs;
+//   };
 
-  return getBreadcrumbs();
-};
+//   return getBreadcrumbs();
+// };
 
 const Navbar = () => {
   const { theme, setTheme } = useTheme();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { toggleSidebar } = useSidebar();
-  const breadcrumbs = useBreadcrumbs();
+  // const breadcrumbs = useBreadcrumbs();
+  const { user, googleSignIn, logOut } = UserAuth();
+  const [loading, setLoading] = useState(true);
+
+  const handleSignIn = async () => {
+    try {
+      await googleSignIn();
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <>
@@ -76,7 +86,7 @@ const Navbar = () => {
               <PanelRight className="h-4 w-4" />
             </button>
             <div className="h-4 w-[1px] shrink-0 bg-border" />
-            <nav aria-label="breadcrumb">
+            {/* <nav aria-label="breadcrumb">
               <ol className="flex flex-wrap items-center gap-1.5 break-words text-sm text-muted-foreground sm:gap-2.5">
                 {breadcrumbs.map((breadcrumb, index) => (
                   <li key={breadcrumb.href} className="flex items-center">
@@ -96,7 +106,7 @@ const Navbar = () => {
                   </li>
                 ))}
               </ol>
-            </nav>
+            </nav> */}
           </div>
 
           {/* Right side */}

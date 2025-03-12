@@ -1,11 +1,11 @@
-// app/layout.tsx
-import type { Metadata } from "next";
+"use client";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { SidebarProvider } from "@/contexts/SidebarContext";
+import { AuthContextProvider } from "@/contexts/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,11 +16,6 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
-export const metadata: Metadata = {
-  title: "El7a2ny Admin Dashboard",
-  description: "Developed by KeraDevs",
-};
 
 export default function RootLayout({
   children,
@@ -42,8 +37,10 @@ export default function RootLayout({
             <div className="flex h-screen overflow-hidden">
               <Sidebar />
               <div className="flex flex-1 flex-col overflow-hidden">
-                <Navbar />
-                <main className="flex-1 overflow-auto p-6">{children}</main>
+                <AuthContextProvider>
+                  <Navbar />
+                  <main className="flex-1 overflow-auto p-6">{children}</main>
+                </AuthContextProvider>
               </div>
             </div>
           </SidebarProvider>
