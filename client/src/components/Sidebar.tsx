@@ -146,7 +146,6 @@ const SidebarItem = ({
     );
   }
 
-  // Render single section without subsections
   return (
     <Link
       href={section.href || "#"}
@@ -214,7 +213,7 @@ const Sidebar = () => {
     <div
       className={`${
         isSidebarOpen ? "w-64" : "w-0"
-      } flex h-screen flex-col border-r border-border bg-background transition-all duration-300 overflow-hidden`}
+      } flex h-screen flex-col border-r border-border bg-background transition-all duration-300 overflow-auto`}
     >
       <div
         className={`${
