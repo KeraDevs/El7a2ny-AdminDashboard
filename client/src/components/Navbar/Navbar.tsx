@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import SearchPalette from "./SearchPalette";
 import { useSidebar } from "@/contexts/SidebarContext";
+import { usePathname } from "next/navigation";
 import {
   Search,
   Bell,
@@ -23,6 +24,40 @@ const Navbar = () => {
   const { toggleSidebar } = useSidebar();
   const { userData, logOut } = useAuth();
   const router = useRouter();
+
+  const pathname = usePathname();
+
+  const getPageTitle = (path: string) => {
+    const routeMap: { [key: string]: string } = {
+      "/dashboard": "Dashboard",
+      "/users": "Users List",
+      "/users/:id": "User Profile",
+      "/users/cars": "Cars",
+      "/users/labels": "Labels",
+      "/workshops/list": "Workshops List",
+      "/workshops/:id": "Workshop Profile",
+      "/workshops/cars": "Workshop Cars",
+      "/workshops/labels": "Workshop Labels",
+      "/history": "History",
+      "/marketplace": "Marketplace",
+      "/requests": "Requests",
+      "/wallets": "Wallets",
+      "/chats": "Chats",
+      "/revenue": "Revenue",
+      "/analytics": "Analytics",
+      "/vouchers": "Vouchers",
+      "/profile": "Profile Settings",
+    };
+
+    if (path.startsWith("/users/") && path.split("/").length === 3) {
+      return "User Profile";
+    }
+    if (path.startsWith("/workshops/") && path.split("/").length === 3) {
+      return "Workshop Profile";
+    }
+
+    return routeMap[path] || "Dashboard";
+  };
 
   const handleLogout = async () => {
     try {
@@ -52,7 +87,7 @@ const Navbar = () => {
               <PanelRight className="h-4 w-4" />
             </button>
             <div className="h-4 w-[1px] shrink-0 bg-border" />
-            <div className="text-sm font-medium">Dashboard</div>
+            <div className="text-sm font-medium">{getPageTitle(pathname)}</div>
           </div>
 
           {/* Right side */}

@@ -4,6 +4,7 @@ import ProtectedRoute from "@/components/tools/ProtectedRoutes";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import Navbar from "@/components/Navbar/Navbar";
 import { SidebarProvider } from "@/contexts/SidebarContext";
+import { usePathname } from "next/navigation";
 
 export default function AuthLayout({
   children,

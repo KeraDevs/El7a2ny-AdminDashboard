@@ -1,30 +1,25 @@
-// components/Sidebar.tsx
 "use client";
 
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { useSidebar } from "@/contexts/SidebarContext";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   ChevronDown,
-  Layout,
-  Boxes,
-  FileText,
-  Settings,
-  PlayCircle,
-  History,
-  Star,
-  Wrench,
-  Cpu,
-  Rocket,
-  BookOpen,
+  LayoutDashboard,
   Users,
-  Building2,
-  CreditCard,
-  Gauge,
+  Boxes,
+  History,
+  ShoppingBag,
+  ClipboardList,
+  Wallet,
+  MessageCircle,
+  BarChart,
+  Ticket,
+  Settings,
+  HelpCircle,
   LogOut,
   UserCircle,
-  LayoutDashboard,
 } from "lucide-react";
 
 interface SidebarSection {
@@ -38,7 +33,7 @@ export const sidebarSections: SidebarSection[] = [
   {
     name: "Dashboard",
     icon: <LayoutDashboard className="h-4 w-4" />,
-    href: "/",
+    href: "/dashboard",
   },
   {
     name: "Users Management",
@@ -62,42 +57,42 @@ export const sidebarSections: SidebarSection[] = [
   },
   {
     name: "History",
-    icon: <Boxes className="h-4 w-4" />,
+    icon: <History className="h-4 w-4" />,
     href: "/history",
   },
   {
     name: "Marketplace",
-    icon: <Boxes className="h-4 w-4" />,
+    icon: <ShoppingBag className="h-4 w-4" />,
     href: "/marketplace",
   },
   {
     name: "Requests",
-    icon: <Boxes className="h-4 w-4" />,
+    icon: <ClipboardList className="h-4 w-4" />,
     href: "/requests",
   },
   {
     name: "Wallets",
-    icon: <Boxes className="h-4 w-4" />,
+    icon: <Wallet className="h-4 w-4" />,
     href: "/wallets",
   },
   {
     name: "Chats",
-    icon: <Boxes className="h-4 w-4" />,
+    icon: <MessageCircle className="h-4 w-4" />,
     href: "/chats",
   },
   {
     name: "Revenue",
-    icon: <Boxes className="h-4 w-4" />,
+    icon: <BarChart className="h-4 w-4" />,
     href: "/revenue",
   },
   {
     name: "Analytics",
-    icon: <Boxes className="h-4 w-4" />,
+    icon: <BarChart className="h-4 w-4" />,
     href: "/analytics",
   },
   {
     name: "Vouchers",
-    icon: <Boxes className="h-4 w-4" />,
+    icon: <Ticket className="h-4 w-4" />,
     href: "/vouchers",
   },
 ];
@@ -109,7 +104,7 @@ const SidebarItem = ({
   section: SidebarSection;
   isActive: boolean;
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(isActive);
   const hasSubsections = section.subsections && section.subsections.length > 0;
 
   if (hasSubsections) {
@@ -165,94 +160,91 @@ const UserDropdown = ({
 }: {
   isOpen: boolean;
   onToggle: () => void;
-}) => (
-  <div className="relative">
-    <button
-      onClick={onToggle}
-      className="flex w-full items-center gap-3 p-4 hover:bg-accent transition-colors cursor-pointer"
-    >
-      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-white">
-        AD
-      </div>
-      <div className="flex-1 text-left">
-        <p className="text-sm font-medium text-foreground">Admin</p>
-        <p className="text-xs text-muted-foreground">admin@el7a2ny.com</p>
-      </div>
-      <ChevronDown
-        className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
-      />
-    </button>
+}) => {
+  const { userData, logOut } = useAuth();
 
-    {isOpen && (
-      <div className="absolute bottom-full left-0 w-full bg-background border border-border shadow-lg">
-        <Link
-          href="/account"
-          className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-accent"
-        >
-          <UserCircle className="h-4 w-4" />
-          Account
-        </Link>
-        <Link
-          href="/logout"
-          className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-accent"
-        >
-          <LogOut className="h-4 w-4" />
-          Log out
-        </Link>
-      </div>
-    )}
-  </div>
-);
+  const userInitial = userData?.first_name?.charAt(0) || "A";
+  const full_name =
+    userData?.first_name && userData?.last_name
+      ? `${userData.first_name} ${userData.last_name}`
+      : "Admin";
+
+  return (
+    <div className="relative">
+      <button
+        onClick={onToggle}
+        className="flex w-full items-center gap-3 p-5 hover:bg-accent transition-colors cursor-pointer"
+      >
+        <div className="flex h-8 w-10  items-center justify-center rounded-full bg-primary text-white">
+          {userInitial}
+        </div>
+        <div className="flex-1 text-left">
+          <p className="text-sm font-medium text-foreground">{full_name}</p>
+        </div>
+        <ChevronDown
+          className={`h-4 w-4 transition-transform ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {isOpen && (
+        <div className="absolute bottom-full left-0 w-full bg-background border border-border shadow-lg">
+          <Link
+            href="/profile"
+            className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-accent"
+          >
+            <UserCircle className="h-4 w-4" />
+            Profile Settings
+          </Link>
+          <button
+            onClick={logOut}
+            className="flex w-full items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-accent text-left"
+          >
+            <LogOut className="h-4 w-4" />
+            Log out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Sidebar = () => {
   const pathname = usePathname();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const { isSidebarOpen } = useSidebar();
 
   return (
-    <div
-      className={`${
-        isSidebarOpen ? "w-64" : "w-0"
-      } flex h-screen flex-col border-r border-border bg-background transition-all duration-300 overflow-auto`}
-    >
-      <div
-        className={`${
-          isSidebarOpen ? "opacity-100" : "opacity-0"
-        } transition-opacity duration-300 flex flex-col h-full`}
-      >
-        {/* Company Info */}
-        <div className="flex items-center gap-2 p-4 border-b border-border">
-          <div className="h-8 w-8 rounded-md bg-black text-white flex items-center justify-center">
-            El
-          </div>
-          <div>
-            <h1 className="font-semibold text-foreground">El7a2ny</h1>
-            <p className="text-xs text-muted-foreground">Admin Dashboard</p>
-          </div>
+    <div className="flex h-screen flex-col border-r border-border bg-background transition-all duration-300 overflow-auto w-64">
+      <div className="flex items-center gap-2 p-4 border-b border-border">
+        <div className="h-8 w-8 rounded-md bg-primary text-white flex items-center justify-center">
+          El
         </div>
+        <div>
+          <h1 className="font-semibold text-foreground">El7a2ny</h1>
+          <p className="text-xs text-muted-foreground">Admin Dashboard</p>
+        </div>
+      </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 space-y-1 p-2">
-          {sidebarSections.map((section) => (
-            <SidebarItem
-              key={section.name}
-              section={section}
-              isActive={
-                section.href
-                  ? pathname === section.href
-                  : pathname.startsWith(section.subsections?.[0]?.href || "")
-              }
-            />
-          ))}
-        </nav>
-
-        {/* User section */}
-        <div className="border-t border-border">
-          <UserDropdown
-            isOpen={isUserMenuOpen}
-            onToggle={() => setIsUserMenuOpen(!isUserMenuOpen)}
+      <nav className="flex-1 space-y-1 p-2">
+        {sidebarSections.map((section) => (
+          <SidebarItem
+            key={section.name}
+            section={section}
+            isActive={
+              section.href
+                ? pathname === section.href
+                : pathname.startsWith(section.subsections?.[0]?.href || "")
+            }
           />
-        </div>
+        ))}
+      </nav>
+
+      <div className="border-t border-border">
+        <UserDropdown
+          isOpen={isUserMenuOpen}
+          onToggle={() => setIsUserMenuOpen(!isUserMenuOpen)}
+        />
       </div>
     </div>
   );
