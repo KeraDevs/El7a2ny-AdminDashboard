@@ -6,9 +6,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import SearchPalette from "./SearchPalette";
 import { useSidebar } from "@/contexts/SidebarContext";
-import { sidebarSections } from "../Sidebar/Sidebar";
 import {
-  Menu,
   Search,
   Bell,
   Sun,
@@ -23,17 +21,23 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { toggleSidebar } = useSidebar();
-  // const breadcrumbs = useBreadcrumbs();
-  const { user, googleSignIn, logOut } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const { userData, logOut } = useAuth();
+  const router = useRouter();
 
-  const handleSignIn = async () => {
+  const handleLogout = async () => {
     try {
-      await googleSignIn();
+      await logOut();
+      router.push("/login");
     } catch (error) {
-      console.log(error);
+      console.error("Logout failed:", error);
     }
   };
+
+  const userInitial = userData?.first_name?.charAt(0) || "A";
+  const userEmail = userData?.email || "admin@example.com";
+  const full_name =
+    `${userData?.first_name + " " + userData?.last_name}` || "Super Admin";
+  const userName = full_name;
 
   return (
     <>
@@ -48,27 +52,7 @@ const Navbar = () => {
               <PanelRight className="h-4 w-4" />
             </button>
             <div className="h-4 w-[1px] shrink-0 bg-border" />
-            {/* <nav aria-label="breadcrumb">
-              <ol className="flex flex-wrap items-center gap-1.5 break-words text-sm text-muted-foreground sm:gap-2.5">
-                {breadcrumbs.map((breadcrumb, index) => (
-                  <li key={breadcrumb.href} className="flex items-center">
-                    {index > 0 && <span className="mx-2">/</span>}
-                    {index === breadcrumbs.length - 1 ? (
-                      <span className="font-normal text-foreground">
-                        {breadcrumb.name}
-                      </span>
-                    ) : (
-                      <Link
-                        className="transition-colors hover:text-foreground"
-                        href={breadcrumb.href}
-                      >
-                        {breadcrumb.name}
-                      </Link>
-                    )}
-                  </li>
-                ))}
-              </ol>
-            </nav> */}
+            <div className="text-sm font-medium">Dashboard</div>
           </div>
 
           {/* Right side */}
@@ -115,26 +99,34 @@ const Navbar = () => {
               >
                 <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full">
                   <span className="flex h-full w-full items-center justify-center rounded-full bg-muted cursor-pointer">
-                    M
+                    {userInitial}
                   </span>
                 </span>
               </button>
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 rounded-md border bg-background py-1 shadow-lg">
+                  <div className="px-4 py-2 text-sm">
+                    <div className="font-medium">{userName}</div>
+                    <div className="text-muted-foreground text-xs">
+                      {userEmail}
+                    </div>
+                  </div>
+                  <div className="border-t border-border my-1"></div>
                   <Link
                     href="/profile"
                     className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-accent"
+                    onClick={() => setDropdownOpen(false)}
                   >
                     <UserCircle className="h-4 w-4" />
-                    View Profile
+                    Profile Settings
                   </Link>
-                  <Link
-                    href="/logout"
-                    className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-accent"
+                  <button
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-accent text-left"
                   >
                     <LogOut className="h-4 w-4" />
-                    Logout
-                  </Link>
+                    Log Out
+                  </button>
                 </div>
               )}
             </div>

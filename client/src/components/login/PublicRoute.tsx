@@ -5,24 +5,24 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 
-export default function ProtectedRoute({
+export default function PublicRoute({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { currentUser, isAuthorized, loading, authInitialized } = useAuth();
+  const { isAuthorized, loading, authInitialized } = useAuth();
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     if (!authInitialized) return;
 
-    if (!loading && !isAuthorized) {
-      router.push("/login");
-    } else if (!loading && isAuthorized) {
+    if (!loading && isAuthorized) {
+      router.push("/dashboard");
+    } else if (!loading) {
       setIsReady(true);
     }
-  }, [currentUser, isAuthorized, loading, router, authInitialized]);
+  }, [isAuthorized, loading, router, authInitialized]);
 
   // Show loading state
   if (loading || !isReady) {
@@ -30,11 +30,11 @@ export default function ProtectedRoute({
       <div className="flex h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-2">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground text-sm">Loading Dashboard...</p>
+          <p className="text-muted-foreground text-sm">Loading...</p>
         </div>
       </div>
     );
   }
 
-  return isAuthorized ? <>{children}</> : null;
+  return !isAuthorized ? <>{children}</> : null;
 }

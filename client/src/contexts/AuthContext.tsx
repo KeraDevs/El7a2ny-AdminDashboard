@@ -11,6 +11,7 @@ import {
 } from "firebase/auth";
 import { auth } from "@/firebase.config";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 type UserType = "workshopAdmin" | "superadmin" | "worker" | "customer";
 
@@ -21,10 +22,11 @@ interface AuthContextValue {
   loading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
-  logout: () => Promise<void>;
+  googleSignIn: () => Promise<void>;
+  logOut: () => Promise<void>;
   clearError: () => void;
   isAuthorized: boolean;
+  authInitialized: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -36,76 +38,108 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [authInitialized, setAuthInitialized] = useState(false);
   const router = useRouter();
 
-  // Fetch user type and data from backend
-  const fetchUserTypeFromBackend = async (user: FirebaseUser) => {
+  const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
+  const USERS_ROUTE = process.env.NEXT_PUBLIC_USERS_ROUTE;
+
+  // Fetch user details from backend
+  const fetchUserDetails = async (userId: string, idToken: string) => {
+    try {
+      const response = await fetch(`${USERS_ROUTE}/${userId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+          "x-api-key": API_KEY!,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(
+          `User details fetch failed: ${response.status}`,
+          errorText
+        );
+        throw new Error(`Failed to fetch user details: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+
+      const userData = responseData.user;
+
+      if (!userData) {
+        console.error("User data not found in response:", responseData);
+        throw new Error("User data not found in API response");
+      }
+
+      const userType = userData.type?.toLowerCase() as UserType;
+
+      return { userData, userType };
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+      throw error;
+    }
+  };
+
+  // Login with backend verification
+  const verifyLogin = async (user: FirebaseUser) => {
     try {
       // Get the ID token from Firebase
       const idToken = await user.getIdToken();
 
-      // Make a request to your backend to get user type and data
-      const response = await fetch(
-        "https://el7a2ny-backend-production.up.railway.app/auth/verify-user",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${idToken}`,
-          },
-        }
-      );
+      const { userData, userType } = await fetchUserDetails(user.uid, idToken);
 
-      if (!response.ok) {
-        throw new Error("Failed to verify user with backend");
+      if (userType !== "superadmin") {
+        console.error("Access denied. User type:", userType);
+        throw new Error(
+          "Access denied. Only superadmins can access this application."
+        );
       }
 
-      const data = await response.json();
-      return {
-        userType: data.userType as UserType,
-        userData: data.userData,
-      };
+      return { userData, userType };
     } catch (error) {
-      console.error("Error fetching user type:", error);
-      return {
-        userType: null,
-        userData: null,
-      };
+      console.error("Error during login verification:", error);
+      throw error;
     }
   };
 
   useEffect(() => {
-    // In Next.js, we need to ensure this only runs on the client side
     if (typeof window !== "undefined") {
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
         setCurrentUser(user);
 
         if (user) {
-          // User is signed in, fetch their type from backend
-          const { userType, userData } = await fetchUserTypeFromBackend(user);
-          setUserType(userType);
-          setUserData(userData);
+          try {
+            const { userData, userType } = await verifyLogin(user);
+            setUserType(userType);
+            setUserData(userData);
+            setIsAuthorized(true);
 
-          // Only authorize if userType is superadmin
-          const authorized = userType === "superadmin";
-          setIsAuthorized(authorized);
-
-          // Redirect to login if not authorized
-          if (!authorized) {
-            await signOut(auth); // Sign out unauthorized users
-            setError(
-              "Access denied. Only superadmins can access this application."
-            );
-            router.push("/login"); // Redirect to login page
+            if (window.location.pathname === "/login") {
+              router.push("/dashboard");
+            }
+          } catch (error: any) {
+            console.error("Authorization failed:", error.message);
+            setError(error.message);
+            toast.error(error.message);
+            await signOut(auth);
+            setIsAuthorized(false);
+            router.push("/login");
           }
         } else {
-          // User is signed out
           setUserType(null);
           setUserData(null);
           setIsAuthorized(false);
+
+          if (window.location.pathname !== "/login") {
+            router.push("/login");
+          }
         }
 
         setLoading(false);
+        setAuthInitialized(true);
       });
 
       return unsubscribe;
@@ -117,7 +151,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(true);
       setError(null);
 
-      // Sign in with Firebase
+      const toastId = toast.loading("Signing in...");
+
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
@@ -125,24 +160,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       );
       const user = userCredential.user;
 
-      // Fetch user type from backend
-      const { userType, userData } = await fetchUserTypeFromBackend(user);
-      setUserType(userType);
-      setUserData(userData);
+      try {
+        const { userData, userType } = await verifyLogin(user);
+        setUserType(userType);
+        setUserData(userData);
+        setIsAuthorized(true);
 
-      // Check if user is superadmin
-      if (userType !== "superadmin") {
-        setError(
-          "Access denied. Only superadmins can access this application."
-        );
-        await signOut(auth); // Sign out unauthorized users
+        toast.success("Signed in successfully!", { id: toastId });
+        router.push("/dashboard");
+      } catch (verifyError: any) {
+        console.error("Backend verification failed:", verifyError.message);
+        toast.error(verifyError.message, { id: toastId });
+        await signOut(auth);
         setIsAuthorized(false);
-        return;
+        throw verifyError;
+      }
+    } catch (err: any) {
+      console.error("Login error:", err);
+
+      let errorMsg = err.message || "Login failed";
+
+      if (
+        errorMsg.includes("auth/wrong-password") ||
+        errorMsg.includes("auth/user-not-found") ||
+        errorMsg.includes("auth/invalid-credential") ||
+        errorMsg.includes("auth/invalid-email")
+      ) {
+        errorMsg = "Invalid email or password";
+      } else if (errorMsg.includes("auth/too-many-requests")) {
+        errorMsg = "Too many failed login attempts. Please try again later.";
+      } else if (errorMsg.includes("auth/network-request-failed")) {
+        errorMsg = "Network error. Please check your internet connection.";
       }
 
-      setIsAuthorized(true);
-    } catch (err: any) {
-      setError(err.message || "Login failed");
+      setError(errorMsg);
+      toast.error(errorMsg);
       setIsAuthorized(false);
       throw err;
     } finally {
@@ -150,33 +202,42 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const loginWithGoogle = async () => {
+  const googleSignIn = async () => {
     try {
       setLoading(true);
       setError(null);
+
+      const toastId = toast.loading("Signing in with Google...");
 
       const provider = new GoogleAuthProvider();
       const userCredential = await signInWithPopup(auth, provider);
       const user = userCredential.user;
 
-      // Fetch user type from backend
-      const { userType, userData } = await fetchUserTypeFromBackend(user);
-      setUserType(userType);
-      setUserData(userData);
+      try {
+        const { userData, userType } = await verifyLogin(user);
+        setUserType(userType);
+        setUserData(userData);
+        setIsAuthorized(true);
 
-      // Check if user is superadmin
-      if (userType !== "superadmin") {
-        setError(
-          "Access denied. Only superadmins can access this application."
-        );
-        await signOut(auth); // Sign out unauthorized users
+        toast.success("Signed in successfully!", { id: toastId });
+        router.push("/dashboard");
+      } catch (verifyError: any) {
+        toast.error(verifyError.message, { id: toastId });
+        await signOut(auth);
         setIsAuthorized(false);
-        return;
+        throw verifyError;
+      }
+    } catch (err: any) {
+      let errorMsg = err.message || "Google login failed";
+
+      if (errorMsg.includes("auth/popup-closed-by-user")) {
+        errorMsg = "Sign-in popup was closed before completion";
+      } else if (errorMsg.includes("auth/popup-blocked")) {
+        errorMsg = "Sign-in popup was blocked by your browser";
       }
 
-      setIsAuthorized(true);
-    } catch (err: any) {
-      setError(err.message || "Google login failed");
+      setError(errorMsg);
+      toast.error(errorMsg);
       setIsAuthorized(false);
       throw err;
     } finally {
@@ -184,15 +245,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const logout = async () => {
+  const logOut = async () => {
     try {
       await signOut(auth);
       setUserType(null);
       setUserData(null);
       setIsAuthorized(false);
+      toast.success("Logged out successfully");
       router.push("/login");
-    } catch {
-      setError("Logout failed");
+    } catch (err: any) {
+      const errorMsg = "Logout failed";
+      setError(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
@@ -205,18 +269,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loading,
     error,
     login,
-    loginWithGoogle,
-    logout,
+    googleSignIn,
+    logOut,
     clearError,
     isAuthorized,
+    authInitialized,
   };
 
-  // In Next.js, we need to be careful about hydration issues
-  return (
-    <AuthContext.Provider value={value}>
-      {(!loading || typeof window === "undefined") && children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

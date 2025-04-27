@@ -41,12 +41,12 @@ export function SectionCards() {
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             1,234
           </CardTitle>
-          <CardAction>
+          <CardContent>
             <Badge variant="outline">
               <IconTrendingDown />
               -20%
             </Badge>
-          </CardAction>
+          </CardContent>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
@@ -63,12 +63,12 @@ export function SectionCards() {
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             45,678
           </CardTitle>
-          <CardAction>
+          <CardContent>
             <Badge variant="outline">
               <IconTrendingUp />
               +12.5%
             </Badge>
-          </CardAction>
+          </CardContent>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
@@ -83,12 +83,12 @@ export function SectionCards() {
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             4.5%
           </CardTitle>
-          <CardAction>
+          <CardContent>
             <Badge variant="outline">
               <IconTrendingUp />
               +4.5%
             </Badge>
-          </CardAction>
+          </CardContent>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">

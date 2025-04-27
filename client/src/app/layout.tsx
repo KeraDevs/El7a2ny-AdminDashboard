@@ -2,11 +2,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/tools/theme-provider";
-import Navbar from "@/components/Navbar/Navbar";
-import Sidebar from "@/components/Sidebar/Sidebar";
-import { SidebarProvider } from "@/contexts/SidebarContext";
 import { AuthProvider } from "@/contexts/AuthContext";
-import ProtectedRoute from "@/components/tools/ProtectedRoutes";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,21 +32,41 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <ProtectedRoute>
-              <SidebarProvider>
-                <div className="flex h-screen overflow-hidden">
-                  <Sidebar />
-                  <div className="flex flex-1 flex-col overflow-hidden">
-                    <AuthProvider>
-                      <Navbar />
-                      <main className="flex-1 overflow-auto p-6">
-                        {children}
-                      </main>
-                    </AuthProvider>
-                  </div>
-                </div>
-              </SidebarProvider>
-            </ProtectedRoute>
+            {children}
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 5000,
+                style: {
+                  background: "var(--background)",
+                  color: "var(--foreground)",
+                  border: "1px solid var(--border)",
+                },
+                success: {
+                  style: {
+                    borderLeft: "4px solid #10b981",
+                  },
+                  iconTheme: {
+                    primary: "#10b981",
+                    secondary: "white",
+                  },
+                },
+                error: {
+                  style: {
+                    borderLeft: "4px solid #ef4444",
+                  },
+                  iconTheme: {
+                    primary: "#ef4444",
+                    secondary: "white",
+                  },
+                },
+                loading: {
+                  style: {
+                    borderLeft: "4px solid #3b82f6",
+                  },
+                },
+              }}
+            />
           </AuthProvider>
         </ThemeProvider>
       </body>
