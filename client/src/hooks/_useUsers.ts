@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { User } from "@/types/userTypes";
-// import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { mapApiUserToFrontend } from "@/utils/usersApi";
 import { API_KEY, API_BASE_URL } from "@/utils/config";
 import { ApiResponse } from "../types/apiTypes";
@@ -14,11 +14,11 @@ export const useUsers = (): UseUsersReturn => {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [openUserDialog, setOpenUserDialog] = useState(false);
-  // const { currentUser } = useAuth();
+  const { currentUser } = useAuth();
 
   //Auth
-  // const getAuth = useAuth();
-  // const token = getAuth.currentUser?.getIdToken();
+  const getAuth = useAuth();
+  const token = getAuth.currentUser?.getIdToken();
 
   // Fetching Users
   const fetchUsers = async () => {

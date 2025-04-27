@@ -1,12 +1,12 @@
 "use client";
-import { UserAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import SearchPalette from "./SearchPalette";
 import { useSidebar } from "@/contexts/SidebarContext";
-import { sidebarSections } from "./Sidebar";
+import { sidebarSections } from "../Sidebar/Sidebar";
 import {
   Menu,
   Search,
@@ -18,50 +18,13 @@ import {
   PanelRight,
 } from "lucide-react";
 
-// const useBreadcrumbs = () => {
-//   const pathname = usePathname();
-
-//   const getBreadcrumbs = () => {
-//     const breadcrumbs = [{ name: "Dashboard", href: "/" }];
-
-//     if (pathname === "/") {
-//       return breadcrumbs;
-//     }
-
-//     for (const section of sidebarSections) {
-//       if (section.href && pathname === section.href) {
-//         breadcrumbs.push({ name: section.name, href: section.href });
-//         break;
-//       }
-
-//       if (section.subsections) {
-//         const matchingSubsection = section.subsections.find(
-//           (subsection) => pathname === subsection.href
-//         );
-
-//         if (matchingSubsection) {
-//           breadcrumbs.push(
-//             { name: section.name, href: section.subsections[0].href },
-//             { name: matchingSubsection.name, href: matchingSubsection.href }
-//           );
-//           break;
-//         }
-//       }
-//     }
-
-//     return breadcrumbs;
-//   };
-
-//   return getBreadcrumbs();
-// };
-
 const Navbar = () => {
   const { theme, setTheme } = useTheme();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { toggleSidebar } = useSidebar();
   // const breadcrumbs = useBreadcrumbs();
-  const { user, googleSignIn, logOut } = UserAuth();
+  const { user, googleSignIn, logOut } = useAuth();
   const [loading, setLoading] = useState(true);
 
   const handleSignIn = async () => {

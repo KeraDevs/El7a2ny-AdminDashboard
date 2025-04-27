@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect } from "react";
-import MiniSearchBar from "@/components/MiniSearchBar";
+import MiniSearchBar from "@/components/Navbar/MiniSearchBar";
 import {
   Table,
   TableBody,

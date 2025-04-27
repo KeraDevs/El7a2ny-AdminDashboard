@@ -1,5 +1,16 @@
-import Image from "next/image";
+import { AuthProvider } from "@/contexts/AuthContext";
 
-export default function Home() {
-  return <div>Hello El7a2ny</div>;
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <h1>Hello</h1>
+        <AuthProvider>{children}</AuthProvider>
+      </body>
+    </html>
+  );
 }

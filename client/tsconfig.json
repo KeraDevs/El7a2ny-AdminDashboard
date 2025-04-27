@@ -27,7 +27,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/contexts/AuthContext.js",
+    "src/contexts/AuthContext.tsx",
     "src/firebase.config.js"
   ],
   "exclude": ["node_modules"]
