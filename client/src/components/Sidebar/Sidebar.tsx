@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSidebar } from "@/contexts/SidebarContext"; // Make sure this import is present
 import {
   ChevronDown,
   LayoutDashboard,
@@ -213,9 +214,16 @@ const UserDropdown = ({
 const Sidebar = () => {
   const pathname = usePathname();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  // Get the sidebar state from context
+  const { isOpen } = useSidebar();
+
+  // Apply conditional classes based on isOpen state
+  const sidebarClasses = isOpen
+    ? "flex h-screen flex-col border-r border-border bg-background transition-all duration-300 overflow-auto w-64"
+    : "hidden md:flex md:w-0 h-screen flex-col border-r border-border bg-background transition-all duration-300 overflow-hidden";
 
   return (
-    <div className="flex h-screen flex-col border-r border-border bg-background transition-all duration-300 overflow-auto w-64">
+    <div className={sidebarClasses}>
       <div className="flex items-center gap-2 p-4 border-b border-border">
         <div className="h-8 w-8 rounded-md bg-primary text-white flex items-center justify-center">
           El

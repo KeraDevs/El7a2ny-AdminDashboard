@@ -6,8 +6,6 @@ import { ThemeProvider } from "@/components/tools/theme-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import { Toaster } from "react-hot-toast";
-import Navbar from "@/components/Navbar/Navbar";
-import Sidebar from "@/components/Sidebar/Sidebar"; // Don't forget to import it!
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,13 +35,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             <SidebarProvider>
-              <div className="flex h-screen overflow-hidden">
-                <Sidebar />
-                <div className="flex flex-col flex-1">
-                  <Navbar />
-                  <main className="flex-1 overflow-y-auto p-4">{children}</main>
-                </div>
-              </div>
+              {children}
               <Toaster
                 position="top-right"
                 toastOptions={{
