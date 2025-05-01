@@ -55,8 +55,8 @@ export const UsersPagination: React.FC<UsersPaginationProps> = ({
         )}
       </div>
       <div className="flex items-center gap-6">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Rows per page</span>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm whitespace-nowrap">Rows per page</span>
           <Select
             value={rowsPerPage.toString()}
             onValueChange={(value) => {
@@ -64,14 +64,15 @@ export const UsersPagination: React.FC<UsersPaginationProps> = ({
               setCurrentPage(1);
             }}
           >
-            <SelectTrigger className="h-8 w-16">
+            <SelectTrigger className="h-8 w-20">
               <SelectValue placeholder={rowsPerPage} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent align="end" className="mb-4">
               <SelectItem value="5">5</SelectItem>
               <SelectItem value="10">10</SelectItem>
               <SelectItem value="20">20</SelectItem>
               <SelectItem value="50">50</SelectItem>
+              <SelectItem value="100">100</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -87,12 +88,10 @@ export const UsersPagination: React.FC<UsersPaginationProps> = ({
                 }
               />
             </PaginationItem>
-            {/* Generate pagination items */}
             {Array.from({ length: totalPages }).map((_, index) => {
               const pageNumber = index + 1;
               const isCurrentPage = pageNumber === currentPage;
 
-              // Show limited page numbers for better UI
               if (
                 pageNumber <= 3 ||
                 pageNumber >= totalPages - 2 ||
