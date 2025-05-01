@@ -39,7 +39,7 @@ export function LoginForm({
     try {
       await login(email, password);
     } catch (error) {
-      console.error("Login attempt failed");
+      toast.error("Login attempt failed");
     }
   };
 

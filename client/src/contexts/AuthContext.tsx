@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
   const USERS_ROUTE = process.env.NEXT_PUBLIC_USERS_ROUTE;
 
-  // Fetch user details from backend
+  // Fetch user details from the API
   const fetchUserDetails = async (userId: string, idToken: string) => {
     try {
       const response = await fetch(`${USERS_ROUTE}/${userId}`, {
@@ -58,41 +58,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(
-          `User details fetch failed: ${response.status}`,
-          errorText
-        );
+        toast.error(`Authentication failed: ${response.status}`);
         throw new Error(`Failed to fetch user details: ${response.status}`);
       }
 
       const responseData = await response.json();
-
       const userData = responseData.user;
 
       if (!userData) {
-        console.error("User data not found in response:", responseData);
+        toast.error("User data not found");
         throw new Error("User data not found in API response");
       }
 
       const userType = userData.type?.toLowerCase() as UserType;
-
       return { userData, userType };
     } catch (error) {
-      console.error("Error fetching user details:", error);
+      toast.error("Error fetching user details");
       throw error;
     }
   };
 
-  // Login with backend verification
+  // Verify login with backend
   const verifyLogin = async (user: FirebaseUser) => {
     try {
-      // Get the ID token from Firebase
       const idToken = await user.getIdToken();
-
       const { userData, userType } = await fetchUserDetails(user.uid, idToken);
 
       if (userType !== "superadmin") {
-        console.error("Access denied. User type:", userType);
+        toast.error(
+          "Access denied. Only superadmins can access this application."
+        );
         throw new Error(
           "Access denied. Only superadmins can access this application."
         );
@@ -100,11 +95,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       return { userData, userType };
     } catch (error) {
-      console.error("Error during login verification:", error);
+      // Error toast is already shown in fetchUserDetails
       throw error;
     }
   };
 
+  // Auth state listener
   useEffect(() => {
     if (typeof window !== "undefined") {
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -121,9 +117,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               router.push("/dashboard");
             }
           } catch (error: any) {
-            console.error("Authorization failed:", error.message);
             setError(error.message);
-            toast.error(error.message);
+            // Toast is already shown in verifyLogin
             await signOut(auth);
             setIsAuthorized(false);
             router.push("/login");
@@ -146,6 +141,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [router]);
 
+  // Login with email and password
   const login = async (email: string, password: string) => {
     try {
       setLoading(true);
@@ -169,15 +165,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         toast.success("Signed in successfully!", { id: toastId });
         router.push("/dashboard");
       } catch (verifyError: any) {
-        console.error("Backend verification failed:", verifyError.message);
         toast.error(verifyError.message, { id: toastId });
         await signOut(auth);
         setIsAuthorized(false);
         throw verifyError;
       }
     } catch (err: any) {
-      console.error("Login error:", err);
-
       let errorMsg = err.message || "Login failed";
 
       if (
@@ -202,6 +195,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Google sign in
   const googleSignIn = async () => {
     try {
       setLoading(true);
@@ -245,13 +239,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Log out
   const logOut = async () => {
     try {
+      const toastId = toast.loading("Logging out...");
       await signOut(auth);
       setUserType(null);
       setUserData(null);
       setIsAuthorized(false);
-      toast.success("Logged out successfully");
+      toast.success("Logged out successfully", { id: toastId });
       router.push("/login");
     } catch (err: any) {
       const errorMsg = "Logout failed";

@@ -41,14 +41,11 @@ const UsersList: React.FC = () => {
     handleEditUser,
   } = useUsers();
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // Search state
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Column visibility state
   const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({
     name: true,
     email: true,
@@ -58,23 +55,19 @@ const UsersList: React.FC = () => {
     labels: true,
   });
 
-  // Sorting state
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: null,
     direction: "asc",
   });
 
-  // Dialog states
   const [editUserData, setEditUserData] = useState<Partial<User>>({});
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [viewUserData, setViewUserData] = useState<User | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
-  // Fetch users when component mounts
   useEffect(() => {
     if (isAuthorized && currentUser) {
       fetchUsers().catch((err) => {
-        console.error("Error fetching users:", err);
         toast.error("Failed to fetch users", {
           description: err instanceof Error ? err.message : "Unknown error",
         });
@@ -82,7 +75,6 @@ const UsersList: React.FC = () => {
     }
   }, [isAuthorized, currentUser, fetchUsers]);
 
-  // Show error toast when error state changes
   useEffect(() => {
     if (error) {
       toast.error("Error", {
@@ -91,7 +83,6 @@ const UsersList: React.FC = () => {
     }
   }, [error]);
 
-  // Sort users based on current sort config
   const sortedUsers = useMemo(() => {
     const usersCopy = [...users];
     if (sortConfig.key) {
@@ -99,26 +90,22 @@ const UsersList: React.FC = () => {
         const aValue = a[sortConfig.key as keyof User];
         const bValue = b[sortConfig.key as keyof User];
 
-        // Handle different data types
         if (aValue === bValue) return 0;
         if (aValue === undefined || aValue === null) return 1;
         if (bValue === undefined || bValue === null) return -1;
 
-        // String comparison for string values
         if (typeof aValue === "string" && typeof bValue === "string") {
           return sortConfig.direction === "asc"
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
         }
 
-        // Numeric comparison for numbers
         if (typeof aValue === "number" && typeof bValue === "number") {
           return sortConfig.direction === "asc"
             ? aValue - bValue
             : bValue - aValue;
         }
 
-        // Default comparison for other types
         return sortConfig.direction === "asc"
           ? String(aValue).localeCompare(String(bValue))
           : String(bValue).localeCompare(String(aValue));
@@ -127,7 +114,6 @@ const UsersList: React.FC = () => {
     return usersCopy;
   }, [users, sortConfig]);
 
-  // Filter users based on search query
   const filteredUsers = useMemo(() => {
     if (!searchQuery) return sortedUsers;
 
@@ -148,16 +134,13 @@ const UsersList: React.FC = () => {
     });
   }, [sortedUsers, searchQuery]);
 
-  // Paginate users
   const paginatedUsers = useMemo(() => {
     const startIndex = (currentPage - 1) * rowsPerPage;
     return filteredUsers.slice(startIndex, startIndex + rowsPerPage);
   }, [filteredUsers, currentPage, rowsPerPage]);
 
-  // Calculate total pages
   const totalPages = Math.ceil(filteredUsers.length / rowsPerPage);
 
-  // Handle sort
   const handleSort = (key: keyof User) => {
     setSortConfig((prevConfig) => {
       if (prevConfig.key === key) {
@@ -170,13 +153,10 @@ const UsersList: React.FC = () => {
     });
   };
 
-  // Handle add user
   const handleAddUser = async (userData: Partial<User>) => {
     try {
-      // Here you would typically call an API to add the user
-      // For now, we'll just show a success message
       toast.success("User added successfully!");
-      await fetchUsers(); // Refresh the user list
+      await fetchUsers();
       return Promise.resolve();
     } catch (error) {
       toast.error("Failed to add user", {
@@ -186,19 +166,16 @@ const UsersList: React.FC = () => {
     }
   };
 
-  // Handle edit user
   const handleEdit = (user: User) => {
     setEditUserData(user);
     setIsEditDialogOpen(true);
   };
 
-  // Handle view user
   const handleView = (user: User) => {
     setViewUserData(user);
     setIsViewDialogOpen(true);
   };
 
-  // Handle save edited user
   const handleSaveEdit = async () => {
     try {
       await handleEditUser(editUserData);
@@ -211,7 +188,6 @@ const UsersList: React.FC = () => {
     }
   };
 
-  // Handle delete selected users
   const handleDelete = async () => {
     if (!currentUser) {
       toast.error("Authentication required");
@@ -241,7 +217,6 @@ const UsersList: React.FC = () => {
     }
   };
 
-  // Show loading state while waiting for auth
   if (authLoading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -255,7 +230,6 @@ const UsersList: React.FC = () => {
     );
   }
 
-  // Show auth error state if not authorized
   if (!isAuthorized || !currentUser) {
     return (
       <div className="flex h-full items-center justify-center">

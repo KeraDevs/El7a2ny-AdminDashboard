@@ -16,6 +16,7 @@ import {
   LogOut,
   PanelRight,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 const Navbar = () => {
   const { theme, setTheme } = useTheme();
@@ -64,7 +65,7 @@ const Navbar = () => {
       await logOut();
       router.push("/login");
     } catch (error) {
-      console.error("Logout failed:", error);
+      toast.error("Logout failed!");
     }
   };
 
@@ -109,10 +110,10 @@ const Navbar = () => {
             </button>
 
             {/* Notification Icon */}
-            <button className="relative inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer">
+            {/* <button className="relative inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer">
               <Bell className="h-4 w-4" />
               <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-600" />
-            </button>
+            </button> */}
 
             {/* Theme toggle */}
             <button

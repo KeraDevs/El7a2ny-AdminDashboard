@@ -5,6 +5,7 @@ import { mapApiUserToFrontend } from "@/utils/usersApi";
 import { API_KEY, API_BASE_URL } from "@/utils/config";
 import { ApiResponse } from "@/types/apiTypes";
 import { UseUsersReturn } from "@/types/hookTypes";
+import toast from "react-hot-toast";
 
 export const useUsers = (): UseUsersReturn => {
   const { currentUser } = useAuth();
@@ -78,16 +79,14 @@ export const useUsers = (): UseUsersReturn => {
         hasMore = nextPageResult.hasMore;
         offset += 50;
 
-        // Safety check - if no users returned but hasMore is true, break to avoid infinite loop
         if (nextPageUsers.length === 0) {
           break;
         }
       }
 
-      console.log(`Fetched all ${allUsers.length} users successfully`);
       setUsers(allUsers);
     } catch (error) {
-      console.error("Error fetching users:", error);
+      toast.error("Error fetching users!");
       setError(
         error instanceof Error ? error.message : "Failed to fetch users"
       );
@@ -97,7 +96,6 @@ export const useUsers = (): UseUsersReturn => {
     }
   }, [currentUser]);
 
-  // Fetching Workers
   const fetchWorkers = useCallback(async () => {
     if (!currentUser) {
       setError("Authentication required");
@@ -113,7 +111,6 @@ export const useUsers = (): UseUsersReturn => {
         throw new Error("API key is missing");
       }
 
-      // Fetch all workers using the same approach
       let allWorkers: User[] = [];
       let hasMore = true;
       let offset = 0;
@@ -142,16 +139,14 @@ export const useUsers = (): UseUsersReturn => {
         hasMore = result.hasMore;
         offset += 50;
 
-        // Safety check
         if (mappedUsers.length === 0) {
           break;
         }
       }
 
-      console.log(`Fetched all ${allWorkers.length} workers successfully`);
       setUsers(allWorkers);
     } catch (err) {
-      console.error("Error fetching workers:", err);
+      toast.error("Error fetching workers:");
       setError(err instanceof Error ? err.message : "Failed to fetch workers");
       setUsers([]);
     } finally {
@@ -159,7 +154,6 @@ export const useUsers = (): UseUsersReturn => {
     }
   }, [currentUser]);
 
-  // Edit UserData
   const handleEditUser = async (userData: Partial<User>): Promise<void> => {
     if (!userData.id) {
       throw new Error("User ID is required for editing");
@@ -207,7 +201,6 @@ export const useUsers = (): UseUsersReturn => {
         throw new Error(`Failed to edit user, status: ${response.status}`);
       }
 
-      // Update the user in the current state
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
           user.id === userData.id
@@ -220,7 +213,7 @@ export const useUsers = (): UseUsersReturn => {
         )
       );
     } catch (error) {
-      console.error("Error editing user:", error);
+      toast.error("Error editing user");
       setError(error instanceof Error ? error.message : "Failed to edit user");
       throw error;
     } finally {
@@ -246,7 +239,6 @@ export const useUsers = (): UseUsersReturn => {
         throw new Error("API key is missing");
       }
 
-      // Process all deletion requests in parallel
       const deletePromises = selectedUsers.map(async (userId) => {
         const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
           method: "DELETE",
@@ -263,18 +255,15 @@ export const useUsers = (): UseUsersReturn => {
         }
       });
 
-      // Wait for all deletions to complete
       await Promise.all(deletePromises);
 
-      // Remove deleted users from the current state
       setUsers((prevUsers) =>
         prevUsers.filter((user) => !selectedUsers.includes(user.id))
       );
 
-      // Clear selection
       setSelectedUsers([]);
     } catch (error) {
-      console.error("Error deleting users:", error);
+      toast.error("Error deleting users:");
       setError(
         error instanceof Error ? error.message : "Failed to delete users"
       );

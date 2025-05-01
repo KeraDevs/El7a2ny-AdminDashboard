@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { User } from "@/types/userTypes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "react-hot-toast";
+import { Loader2 } from "lucide-react";
 
 interface EditUserDialogProps {
   isOpen: boolean;
@@ -24,6 +26,7 @@ interface EditUserDialogProps {
   userData: Partial<User>;
   setUserData: React.Dispatch<React.SetStateAction<Partial<User>>>;
   onSave: () => Promise<void>;
+  loading?: boolean;
 }
 
 export const EditUserDialog: React.FC<EditUserDialogProps> = ({
@@ -32,7 +35,28 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
   userData,
   setUserData,
   onSave,
+  loading = false,
 }) => {
+  const handleSave = async () => {
+    try {
+      const toastId = toast.loading("Updating user...");
+      await onSave();
+      toast.success("User updated successfully", { id: toastId });
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? `Failed to update user: ${error.message}`
+          : "Failed to update user: Unknown error"
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      toast("Dialog opened with userData");
+    }
+  }, [isOpen, userData]);
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-md">
@@ -60,6 +84,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 }))
               }
               className="col-span-3"
+              disabled={loading}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -79,6 +104,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 }))
               }
               className="col-span-3"
+              disabled={loading}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -95,6 +121,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 }))
               }
               className="col-span-3"
+              disabled={loading}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -111,29 +138,37 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 }))
               }
               className="col-span-3"
+              disabled={loading}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <label htmlFor="gender" className="text-right text-sm font-medium">
               Gender
             </label>
-            <Select
-              value={userData.gender}
-              onValueChange={(value) =>
-                setUserData((prev) => ({
-                  ...prev,
-                  gender: value as "male" | "female",
-                }))
-              }
-            >
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Select gender" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="col-span-3">
+              <Select
+                key={`gender-${userData.id}`}
+                defaultValue={userData.gender}
+                value={userData.gender}
+                onValueChange={(value) =>
+                  setUserData((prev) => ({
+                    ...prev,
+                    gender: value as "male" | "female",
+                  }))
+                }
+                disabled={loading}
+              >
+                <SelectTrigger id="gender">
+                  {userData.gender && (
+                    <span className="capitalize">{userData.gender}</span>
+                  )}
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <label
@@ -142,36 +177,56 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
             >
               User Type
             </label>
-            <Select
-              value={userData.userType}
-              onValueChange={(value) =>
-                setUserData((prev) => ({
-                  ...prev,
-                  userType: value as
-                    | "customer"
-                    | "workshopAdmin"
-                    | "worker"
-                    | "superadmin",
-                }))
-              }
-            >
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Select user type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="customer">Customer</SelectItem>
-                <SelectItem value="workshopAdmin">Workshop Admin</SelectItem>
-                <SelectItem value="worker">Worker</SelectItem>
-                <SelectItem value="superadmin">Super Admin</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="col-span-3">
+              <Select
+                key={`userType-${userData.id}`}
+                defaultValue={userData.userType}
+                value={userData.userType}
+                onValueChange={(value) =>
+                  setUserData((prev) => ({
+                    ...prev,
+                    userType: value as
+                      | "customer"
+                      | "workshopAdmin"
+                      | "worker"
+                      | "superadmin",
+                  }))
+                }
+                disabled={loading}
+              >
+                <SelectTrigger id="userType">
+                  {userData.userType && (
+                    <span className="capitalize">{userData.userType}</span>
+                  )}
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="customer">Customer</SelectItem>
+                  <SelectItem value="workshopAdmin">Workshop Admin</SelectItem>
+                  <SelectItem value="worker">Worker</SelectItem>
+                  <SelectItem value="superadmin">Super Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setIsOpen(false)}>
+          <Button
+            variant="outline"
+            onClick={() => setIsOpen(false)}
+            disabled={loading}
+          >
             Cancel
           </Button>
-          <Button onClick={onSave}>Save changes</Button>
+          <Button onClick={handleSave} disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "Save changes"
+            )}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

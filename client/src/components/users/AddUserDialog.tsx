@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import toast from "react-hot-toast";
 
 interface AddUserDialogProps {
   onAddUser: (userData: Partial<User>) => Promise<void>;
@@ -69,7 +70,7 @@ export const AddUserDialog: React.FC<AddUserDialogProps> = ({ onAddUser }) => {
         isActive: true,
       });
     } catch (error) {
-      console.error("Error adding user:", error);
+      toast.error("Error adding user");
     } finally {
       setIsSubmitting(false);
     }
