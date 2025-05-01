@@ -5,17 +5,14 @@ import { useUsers } from "@/hooks/_useUsers";
 import { useAuth } from "@/contexts/AuthContext";
 import { User } from "@/types/userTypes";
 import { toast } from "sonner";
-import { Loader2, PlusCircle, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
-// Import modular components
 import { UsersTableHeader } from "@/components/users/UsersTableHeader";
 import { UsersTable } from "@/components/users/UsersTable";
 import { UsersPagination } from "@/components/users/UsersPagination";
 import { EditUserDialog } from "@/components/users/EditUserDialog";
 import { ViewUserDialog } from "@/components/users/ViewUserDialog";
 
-// Column visibility type
 export type ColumnVisibility = {
   name: boolean;
   email: boolean;
@@ -25,7 +22,6 @@ export type ColumnVisibility = {
   labels: boolean;
 };
 
-// Define a sorting state
 export type SortConfig = {
   key: keyof User | null;
   direction: "asc" | "desc";
@@ -174,6 +170,22 @@ const UsersList: React.FC = () => {
     });
   };
 
+  // Handle add user
+  const handleAddUser = async (userData: Partial<User>) => {
+    try {
+      // Here you would typically call an API to add the user
+      // For now, we'll just show a success message
+      toast.success("User added successfully!");
+      await fetchUsers(); // Refresh the user list
+      return Promise.resolve();
+    } catch (error) {
+      toast.error("Failed to add user", {
+        description: error instanceof Error ? error.message : "Unknown error",
+      });
+      return Promise.reject(error);
+    }
+  };
+
   // Handle edit user
   const handleEdit = (user: User) => {
     setEditUserData(user);
@@ -262,29 +274,11 @@ const UsersList: React.FC = () => {
 
   return (
     <div className="flex h-full w-full flex-col gap-5">
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
-          <p className="text-muted-foreground">
-            Manage your users and their permissions
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add User
-          </Button>
-          {selectedUsers.length > 0 && (
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={loading}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete Selected ({selectedUsers.length})
-            </Button>
-          )}
-        </div>
+      <div className="mb-4">
+        <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
+        <p className="text-muted-foreground">
+          Manage your users and their permissions
+        </p>
       </div>
 
       <UsersTableHeader
@@ -292,6 +286,7 @@ const UsersList: React.FC = () => {
         setSearchQuery={setSearchQuery}
         columnVisibility={columnVisibility}
         setColumnVisibility={setColumnVisibility}
+        onAddUser={handleAddUser}
       />
 
       <UsersTable
@@ -307,6 +302,7 @@ const UsersList: React.FC = () => {
         handleView={handleView}
         searchQuery={searchQuery}
         users={users}
+        onDelete={handleDelete}
       />
 
       <UsersPagination

@@ -1,6 +1,6 @@
 import React from "react";
 import { User } from "@/types/userTypes";
-import { ChevronsUpDown, Eye, Loader2, Pencil } from "lucide-react";
+import { ChevronsUpDown, Eye, Loader2, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -27,6 +27,7 @@ interface UsersTableProps {
   handleView: (user: User) => void;
   searchQuery: string;
   users: User[];
+  onDelete: () => void;
 }
 
 export const UsersTable: React.FC<UsersTableProps> = ({
@@ -42,15 +43,16 @@ export const UsersTable: React.FC<UsersTableProps> = ({
   handleView,
   searchQuery,
   users,
+  onDelete,
 }) => {
   // Calculate the total number of visible columns (including checkbox and actions)
   const visibleColumnCount =
     Object.values(columnVisibility).filter(Boolean).length + 2;
 
   return (
-    <div className="rounded-md border shadow">
+    <div className="rounded-md border">
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-gray-50 dark:bg-gray-800">
           <TableRow>
             <TableHead className="w-12">
               <Checkbox
@@ -142,7 +144,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
               </TableHead>
             )}
             {columnVisibility.labels && <TableHead>Labels</TableHead>}
-            <TableHead className="w-16 text-right">Actions</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -243,6 +245,23 @@ export const UsersTable: React.FC<UsersTableProps> = ({
           )}
         </TableBody>
       </Table>
+
+      {selectedUsers.length > 0 && (
+        <div className="flex items-center justify-between border-t p-4">
+          <div className="text-sm text-muted-foreground">
+            {selectedUsers.length} users selected
+          </div>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={onDelete}
+            disabled={loading}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete Selected
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

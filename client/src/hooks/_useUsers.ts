@@ -15,7 +15,7 @@ export const useUsers = (): UseUsersReturn => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [openUserDialog, setOpenUserDialog] = useState(false);
 
-  // Fetching Users
+  // Fetching All Users
   const fetchUsers = useCallback(async () => {
     if (!currentUser) {
       setError("Authentication required");
@@ -31,7 +31,8 @@ export const useUsers = (): UseUsersReturn => {
         throw new Error("API key is missing");
       }
 
-      const response = await fetch(`${API_BASE_URL}/users`, {
+      // Initial fetch to get the first batch
+      const response = await fetch(`${API_BASE_URL}/users?take=50`, {
         headers: {
           "x-api-key": API_KEY,
           Authorization: `Bearer ${authToken}`,
@@ -44,9 +45,47 @@ export const useUsers = (): UseUsersReturn => {
         );
       }
 
-      const result: ApiResponse = await response.json();
-      const mappedUsers = (result.users || []).map(mapApiUserToFrontend);
-      setUsers(mappedUsers);
+      const initialResult: ApiResponse = await response.json();
+      let allUsers = (initialResult.users || []).map(mapApiUserToFrontend);
+
+      // Keep fetching until hasMore is false
+      let hasMore = initialResult.hasMore;
+      let offset = 50; // First skip will be 50
+
+      while (hasMore) {
+        const nextPageResponse = await fetch(
+          `${API_BASE_URL}/users?skip=${offset}&take=50`,
+          {
+            headers: {
+              "x-api-key": API_KEY,
+              Authorization: `Bearer ${authToken}`,
+            } as HeadersInit,
+          }
+        );
+
+        if (!nextPageResponse.ok) {
+          throw new Error(
+            `Failed to fetch users page: ${nextPageResponse.status}`
+          );
+        }
+
+        const nextPageResult: ApiResponse = await nextPageResponse.json();
+        const nextPageUsers = (nextPageResult.users || []).map(
+          mapApiUserToFrontend
+        );
+
+        allUsers = [...allUsers, ...nextPageUsers];
+        hasMore = nextPageResult.hasMore;
+        offset += 50;
+
+        // Safety check - if no users returned but hasMore is true, break to avoid infinite loop
+        if (nextPageUsers.length === 0) {
+          break;
+        }
+      }
+
+      console.log(`Fetched all ${allUsers.length} users successfully`);
+      setUsers(allUsers);
     } catch (error) {
       console.error("Error fetching users:", error);
       setError(
@@ -74,22 +113,43 @@ export const useUsers = (): UseUsersReturn => {
         throw new Error("API key is missing");
       }
 
-      const response = await fetch(`${API_BASE_URL}/users?type=worker`, {
-        headers: {
-          "x-api-key": API_KEY,
-          Authorization: `Bearer ${authToken}`,
-        } as HeadersInit,
-      });
+      // Fetch all workers using the same approach
+      let allWorkers: User[] = [];
+      let hasMore = true;
+      let offset = 0;
 
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch workers: ${response.status} ${response.statusText}`
+      while (hasMore) {
+        const response = await fetch(
+          `${API_BASE_URL}/users?type=worker&skip=${offset}&take=50`,
+          {
+            headers: {
+              "x-api-key": API_KEY,
+              Authorization: `Bearer ${authToken}`,
+            } as HeadersInit,
+          }
         );
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch workers: ${response.status} ${response.statusText}`
+          );
+        }
+
+        const result: ApiResponse = await response.json();
+        const mappedUsers = (result.users || []).map(mapApiUserToFrontend);
+
+        allWorkers = [...allWorkers, ...mappedUsers];
+        hasMore = result.hasMore;
+        offset += 50;
+
+        // Safety check
+        if (mappedUsers.length === 0) {
+          break;
+        }
       }
 
-      const result: ApiResponse = await response.json();
-      const mappedUsers = (result.users || []).map(mapApiUserToFrontend);
-      setUsers(mappedUsers);
+      console.log(`Fetched all ${allWorkers.length} workers successfully`);
+      setUsers(allWorkers);
     } catch (err) {
       console.error("Error fetching workers:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch workers");
@@ -147,8 +207,18 @@ export const useUsers = (): UseUsersReturn => {
         throw new Error(`Failed to edit user, status: ${response.status}`);
       }
 
-      // Refresh the user list
-      await fetchUsers();
+      // Update the user in the current state
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === userData.id
+            ? {
+                ...user,
+                ...userData,
+                fullName: `${firstName} ${lastName}`,
+              }
+            : user
+        )
+      );
     } catch (error) {
       console.error("Error editing user:", error);
       setError(error instanceof Error ? error.message : "Failed to edit user");
@@ -196,9 +266,13 @@ export const useUsers = (): UseUsersReturn => {
       // Wait for all deletions to complete
       await Promise.all(deletePromises);
 
-      // Clear selection and refresh the list
+      // Remove deleted users from the current state
+      setUsers((prevUsers) =>
+        prevUsers.filter((user) => !selectedUsers.includes(user.id))
+      );
+
+      // Clear selection
       setSelectedUsers([]);
-      await fetchUsers();
     } catch (error) {
       console.error("Error deleting users:", error);
       setError(

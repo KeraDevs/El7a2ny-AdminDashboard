@@ -3,6 +3,8 @@ import { Vehicle } from "./vehicleTypes";
 import { PhoneNumber } from "./workshopTypes";
 
 export interface ApiResponse {
+  total: boolean;
+  hasMore: boolean;
   users: ApiUser[];
   message?: string;
   status?: number;
