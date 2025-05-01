@@ -1,9 +1,9 @@
-const Cars: React.FC = () => {
+const Workshops: React.FC = () => {
   return (
     <div>
-      <h1>Cars Page</h1>
+      <h1>Workshops Page</h1>
     </div>
   );
 };
 
-export default Cars;
+export default Workshops;

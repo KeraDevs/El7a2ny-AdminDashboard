@@ -20,6 +20,7 @@ export type ColumnVisibility = {
   gender: boolean;
   userType: boolean;
   labels: boolean;
+  joinDate?: boolean;
 };
 
 export type SortConfig = {
@@ -53,6 +54,7 @@ const UsersList: React.FC = () => {
     gender: true,
     userType: true,
     labels: true,
+    joinDate: true,
   });
 
   const [sortConfig, setSortConfig] = useState<SortConfig>({

@@ -45,7 +45,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({
   users,
   onDelete,
 }) => {
-  // Calculate the total number of visible columns (including checkbox and actions)
   const visibleColumnCount =
     Object.values(columnVisibility).filter(Boolean).length + 2;
 
@@ -144,7 +143,23 @@ export const UsersTable: React.FC<UsersTableProps> = ({
               </TableHead>
             )}
             {columnVisibility.labels && <TableHead>Labels</TableHead>}
-            <TableHead className="text-right">Actions</TableHead>
+            {columnVisibility.joinDate && (
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => handleSort("createdAt")}
+              >
+                <div className="flex items-center gap-1">
+                  Join Date
+                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
+                  {sortConfig.key === "createdAt" && (
+                    <span className="ml-1">
+                      {sortConfig.direction === "asc" ? "↑" : "↓"}
+                    </span>
+                  )}
+                </div>
+              </TableHead>
+            )}
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -220,8 +235,14 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                     </div>
                   </TableCell>
                 )}
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
+                {/* Only display join date when visible */}
+                {columnVisibility.joinDate && (
+                  <TableCell>
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </TableCell>
+                )}
+                <TableCell>
+                  <div className="flex items-center gap-2">
                     <Button
                       variant="ghost"
                       size="icon"

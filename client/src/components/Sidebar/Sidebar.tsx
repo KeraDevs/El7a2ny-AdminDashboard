@@ -50,7 +50,7 @@ export const sidebarSections: SidebarSection[] = [
     name: "Workshops Management",
     icon: <Boxes className="h-4 w-4" />,
     subsections: [
-      { name: "Workshops List", href: "/workshops/list" },
+      { name: "Workshops List", href: "/workshops" },
       { name: "Workshop Profile", href: "/workshops/:id" },
       { name: "Cars", href: "/workshops/cars" },
       { name: "Labels", href: "/workshops/labels" },

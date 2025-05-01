@@ -103,6 +103,14 @@ export const UsersTableHeader: React.FC<UsersTableHeaderProps> = ({
             >
               Labels
             </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={columnVisibility.joinDate}
+              onCheckedChange={(value) =>
+                setColumnVisibility((prev) => ({ ...prev, joinDate: !!value }))
+              }
+            >
+              Join Date
+            </DropdownMenuCheckboxItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

@@ -52,7 +52,6 @@ const UserProfile = ({ params }: { params: { id: string } }) => {
       setError(null);
 
       try {
-        // Get the auth token
         const authToken = await currentUser.getIdToken();
 
         const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
@@ -62,7 +61,6 @@ const UserProfile = ({ params }: { params: { id: string } }) => {
           throw new Error("API configuration is missing");
         }
 
-        // Fetch user by ID
         const response = await fetch(`${API_BASE_URL}/users/${params.id}`, {
           headers: {
             "x-api-key": API_KEY,
@@ -82,7 +80,6 @@ const UserProfile = ({ params }: { params: { id: string } }) => {
           throw new Error("User not found");
         }
 
-        // Process the user data
         const userData: User = {
           id: result.user.id,
           email: result.user.email,
@@ -166,7 +163,6 @@ const UserProfile = ({ params }: { params: { id: string } }) => {
         throw new Error(`Failed to update user: ${response.status}`);
       }
 
-      // Update local state with the edited data
       setUser({
         ...user!,
         ...editData,

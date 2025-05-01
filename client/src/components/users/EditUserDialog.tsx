@@ -51,11 +51,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
     }
   };
 
-  useEffect(() => {
-    if (isOpen) {
-      toast("Dialog opened with userData");
-    }
-  }, [isOpen, userData]);
+  useEffect(() => {}, [isOpen, userData]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
