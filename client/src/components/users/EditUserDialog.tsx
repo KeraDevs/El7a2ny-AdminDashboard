@@ -21,10 +21,12 @@ import { toast } from "react-hot-toast";
 import {
   Loader2,
   Mail,
-  ShieldCheck,
+  Phone,
   UserCircle,
-  Users,
+  ShieldCheck,
   Coffee,
+  Users,
+  UserCog,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -139,18 +141,24 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
             >
               First Name
             </Label>
-            <Input
-              id="firstName"
-              value={userData.first_name || ""}
-              onChange={(e) =>
-                setUserData((prev) => ({
-                  ...prev,
-                  first_name: e.target.value,
-                }))
-              }
-              className="col-span-3"
-              disabled={loading}
-            />
+            <div className="col-span-3">
+              <div className="flex items-center gap-2 px-3 py-2 border rounded-md bg-emerald-50">
+                <UserCog className="h-4 w-4 text-emerald-600" />
+                <Input
+                  id="firstName"
+                  value={userData.first_name || ""}
+                  onChange={(e) =>
+                    setUserData((prev) => ({
+                      ...prev,
+                      first_name: e.target.value,
+                    }))
+                  }
+                  className="bg-transparent border-none focus-visible:ring-0 pl-0"
+                  disabled={loading}
+                  placeholder="First Name"
+                />
+              </div>
+            </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label
@@ -159,27 +167,33 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
             >
               Last Name
             </Label>
-            <Input
-              id="lastName"
-              value={userData.last_name || ""}
-              onChange={(e) =>
-                setUserData((prev) => ({
-                  ...prev,
-                  last_name: e.target.value,
-                }))
-              }
-              className="col-span-3"
-              disabled={loading}
-            />
+            <div className="col-span-3">
+              <div className="flex items-center gap-2 px-3 py-2 border rounded-md bg-indigo-50">
+                <UserCog className="h-4 w-4 text-indigo-600" />
+                <Input
+                  id="lastName"
+                  value={userData.last_name || ""}
+                  onChange={(e) =>
+                    setUserData((prev) => ({
+                      ...prev,
+                      last_name: e.target.value,
+                    }))
+                  }
+                  className="bg-transparent border-none focus-visible:ring-0 pl-0"
+                  disabled={loading}
+                  placeholder="Last Name"
+                />
+              </div>
+            </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="email" className="text-right text-sm font-medium">
               Email
             </Label>
             <div className="col-span-3">
-              <div className="flex items-center gap-2 px-3 py-2 border rounded-md bg-blue-50 text-blue-800">
-                <Mail className="h-4 w-4" />
-                <input
+              <div className="flex items-center gap-2 px-3 py-2 border rounded-md bg-blue-50">
+                <Mail className="h-4 w-4 text-blue-600" />
+                <Input
                   id="email"
                   value={userData.email || ""}
                   onChange={(e) =>
@@ -188,8 +202,9 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
                       email: e.target.value,
                     }))
                   }
-                  className="bg-transparent border-none outline-none w-full text-blue-800"
+                  className="bg-transparent border-none focus-visible:ring-0 pl-0 text-blue-800"
                   disabled={loading}
+                  placeholder="Email address"
                 />
               </div>
             </div>
@@ -198,18 +213,24 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
             <Label htmlFor="phone" className="text-right text-sm font-medium">
               Phone
             </Label>
-            <Input
-              id="phone"
-              value={userData.phone || ""}
-              onChange={(e) =>
-                setUserData((prev) => ({
-                  ...prev,
-                  phone: e.target.value,
-                }))
-              }
-              className="col-span-3"
-              disabled={loading}
-            />
+            <div className="col-span-3">
+              <div className="flex items-center gap-2 px-3 py-2 border rounded-md bg-orange-50">
+                <Phone className="h-4 w-4 text-orange-600" />
+                <Input
+                  id="phone"
+                  value={userData.phone || ""}
+                  onChange={(e) =>
+                    setUserData((prev) => ({
+                      ...prev,
+                      phone: e.target.value,
+                    }))
+                  }
+                  className="bg-transparent border-none focus-visible:ring-0 pl-0 text-orange-800"
+                  disabled={loading}
+                  placeholder="Phone number"
+                />
+              </div>
+            </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="gender" className="text-right text-sm font-medium">

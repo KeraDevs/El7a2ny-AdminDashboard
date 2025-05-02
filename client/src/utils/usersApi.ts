@@ -14,7 +14,7 @@ export const mapApiUserToFrontend = (apiUser: ApiUser): User => ({
     apiUser.profile_pic ||
     "https://w7.pngwing.com/pngs/340/946/png-transparent-avatar-user-computer-icons-software-developer-avatar-child-face-heroes-thumbnail.png",
   gender: apiUser.gender.toLowerCase() as "male" | "female",
-  userType: (apiUser.type.charAt(0).toUpperCase() + apiUser.type.slice(1)) as
+  userType: (apiUser.type.charAt(0) + apiUser.type.slice(1)) as
     | "customer"
     | "workshopAdmin"
     | "worker"

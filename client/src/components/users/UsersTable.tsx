@@ -1,6 +1,20 @@
 import React from "react";
 import { User } from "@/types/userTypes";
-import { ChevronsUpDown, Eye, Loader2, Pencil, Trash2 } from "lucide-react";
+import {
+  ChevronsUpDown,
+  CircleUser,
+  Coffee,
+  Eye,
+  Loader2,
+  Mail,
+  Pencil,
+  Phone,
+  Shield,
+  ShieldUser,
+  Trash2,
+  UserCog,
+  Wrench,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,6 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ColumnVisibility, SortConfig } from "@/app/(dashboard)/users/page";
+import { getGenderBadge, getUserTypeBadge } from "@/utils/usersStyles";
 
 interface UsersTableProps {
   loading: boolean;
@@ -47,57 +62,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({
 }) => {
   const visibleColumnCount =
     Object.values(columnVisibility).filter(Boolean).length + 2;
-
-  // Function to get user type badge with appropriate color
-  const getUserTypeBadge = (userType: string) => {
-    switch (userType) {
-      case "superadmin":
-        return (
-          <Badge className="bg-purple-100 text-purple-800 border-purple-300">
-            Super Admin
-          </Badge>
-        );
-      case "workshopAdmin":
-        return (
-          <Badge className="bg-blue-100 text-blue-800 border-blue-300">
-            Workshop Admin
-          </Badge>
-        );
-      case "worker":
-        return (
-          <Badge className="bg-green-100 text-green-800 border-green-300">
-            Worker
-          </Badge>
-        );
-      case "customer":
-        return (
-          <Badge className="bg-amber-100 text-amber-800 border-amber-300">
-            Customer
-          </Badge>
-        );
-      default:
-        return (
-          <Badge className="bg-gray-100 text-gray-800 border-gray-300 capitalize">
-            {userType}
-          </Badge>
-        );
-    }
-  };
-
-  // Function to get gender badge with appropriate color
-  const getGenderBadge = (gender: string) => {
-    return (
-      <Badge
-        className={
-          gender === "male"
-            ? "bg-sky-100 text-sky-800 border-sky-300"
-            : "bg-pink-100 text-pink-800 border-pink-300"
-        }
-      >
-        {gender === "male" ? "Male" : "Female"}
-      </Badge>
-    );
-  };
 
   return (
     <div className="rounded-md border">
@@ -210,7 +174,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                 </div>
               </TableHead>
             )}
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -265,16 +229,26 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                 )}
                 {columnVisibility.email && (
                   <TableCell>
-                    <span className="text-blue-600 dark:text-blue-400 hover:underline">
+                    <a
+                      href={`mailto:${user.email}`}
+                      className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline w-fit"
+                    >
+                      <Mail className="h-3.5 w-3.5" />
                       {user.email}
-                    </span>
+                    </a>
                   </TableCell>
                 )}
                 {columnVisibility.phone && (
                   <TableCell>
-                    <code className="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md text-xs font-mono">
-                      {user.phone}
-                    </code>
+                    <a
+                      href={`tel:${user.phone}`}
+                      className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:underline w-fit"
+                    >
+                      <Phone className="h-3.5 w-3.5" />
+                      <code className="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md text-xs font-mono">
+                        {user.phone}
+                      </code>
+                    </a>
                   </TableCell>
                 )}
                 {columnVisibility.gender && (
@@ -309,8 +283,8 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                     {new Date(user.createdAt).toLocaleDateString()}
                   </TableCell>
                 )}
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
+                <TableCell>
+                  <div className="flex gap-2">
                     <Button
                       variant="ghost"
                       size="icon"
