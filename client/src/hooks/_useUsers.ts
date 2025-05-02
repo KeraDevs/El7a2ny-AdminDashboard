@@ -184,7 +184,7 @@ export const useUsers = (): UseUsersReturn => {
         national_id: userData.nationalNumber,
         phone: userData.phone,
         gender: userData.gender?.toLowerCase(),
-        type: userData.userType?.toLowerCase(),
+        type: userData.userType,
       };
 
       const response = await fetch(`${API_BASE_URL}/users/${userData.id}`, {

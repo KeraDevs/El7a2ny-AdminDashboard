@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { User } from "@/types/userTypes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +61,8 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
   };
 
   const getUserTypeIcon = (userType: string | undefined) => {
+    if (!userType) return <UserCircle className="h-4 w-4 text-gray-600" />;
+
     switch (userType) {
       case "superadmin":
         return <ShieldCheck className="h-4 w-4 text-purple-600" />;
@@ -76,6 +78,8 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
   };
 
   const getUserTypeBgColor = (userType: string | undefined) => {
+    if (!userType) return "bg-gray-50 border-gray-200";
+
     switch (userType) {
       case "superadmin":
         return "bg-purple-50 border-purple-200";
@@ -98,6 +102,23 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
         return "bg-pink-50 border-pink-200";
       default:
         return "bg-gray-50 border-gray-200";
+    }
+  };
+
+  const formatUserTypeDisplay = (userType: string | undefined) => {
+    if (!userType) return "Select user type";
+
+    switch (userType) {
+      case "workshopAdmin":
+        return "Workshop Admin";
+      case "superadmin":
+        return "Super Admin";
+      case "customer":
+        return "Customer";
+      case "worker":
+        return "Worker";
+      default:
+        return userType;
     }
   };
 
@@ -196,8 +217,6 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
             </Label>
             <div className="col-span-3">
               <Select
-                key={`gender-${userData.id}`}
-                defaultValue={userData.gender}
                 value={userData.gender}
                 onValueChange={(value) =>
                   setUserData((prev) => ({
@@ -251,8 +270,6 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
             </Label>
             <div className="col-span-3">
               <Select
-                key={`userType-${userData.id}`}
-                defaultValue={userData.userType}
                 value={userData.userType}
                 onValueChange={(value) =>
                   setUserData((prev) => ({
@@ -273,13 +290,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
                   <SelectValue>
                     <div className="flex items-center gap-2">
                       {getUserTypeIcon(userData.userType)}
-                      <span className="capitalize">
-                        {userData.userType === "workshopAdmin"
-                          ? "workshopAdmin"
-                          : userData.userType === "superadmin"
-                          ? "Super Admin"
-                          : userData.userType || "Select user type"}
-                      </span>
+                      <span>{formatUserTypeDisplay(userData.userType)}</span>
                     </div>
                   </SelectValue>
                 </SelectTrigger>
