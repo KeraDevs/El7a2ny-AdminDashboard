@@ -240,6 +240,7 @@ export const useUsers = (): UseUsersReturn => {
       }
 
       const deletePromises = selectedUsers.map(async (userId) => {
+        // Use the specified API endpoint
         const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
           method: "DELETE",
           headers: {
@@ -257,13 +258,20 @@ export const useUsers = (): UseUsersReturn => {
 
       await Promise.all(deletePromises);
 
+      // Update the local state to remove deleted users
       setUsers((prevUsers) =>
         prevUsers.filter((user) => !selectedUsers.includes(user.id))
       );
 
+      // Clear selection after successful deletion
       setSelectedUsers([]);
+
+      toast.success(`Successfully deleted ${selectedUsers.length} user(s)`);
     } catch (error) {
-      toast.error("Error deleting users:");
+      toast.error(
+        "Error deleting users: " +
+          (error instanceof Error ? error.message : "Unknown error")
+      );
       setError(
         error instanceof Error ? error.message : "Failed to delete users"
       );
