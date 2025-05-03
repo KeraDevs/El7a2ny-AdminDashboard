@@ -1,7 +1,7 @@
 import { Key } from "react";
 
 export interface Vehicle {
-  id: Key | null | undefined;
+  id?: string;
   brand_id: string;
   model: string;
   year: number;
