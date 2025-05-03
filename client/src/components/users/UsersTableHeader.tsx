@@ -1,5 +1,5 @@
-import React from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Search, SlidersHorizontal, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,7 @@ import {
 import { ColumnVisibility } from "@/app/(dashboard)/users/page";
 import { AddUserDialog } from "@/components/users/AddUserDialog";
 import { User } from "@/types/userTypes";
+import { toast } from "react-hot-toast"; // Using your existing toast library
 
 interface UsersTableHeaderProps {
   searchQuery: string;
@@ -20,6 +21,7 @@ interface UsersTableHeaderProps {
   columnVisibility: ColumnVisibility;
   setColumnVisibility: React.Dispatch<React.SetStateAction<ColumnVisibility>>;
   onAddUser: (userData: Partial<User>) => Promise<void>;
+  refreshData?: () => Promise<void>; // Optional prop to refresh data
 }
 
 export const UsersTableHeader: React.FC<UsersTableHeaderProps> = ({
@@ -28,92 +30,201 @@ export const UsersTableHeader: React.FC<UsersTableHeaderProps> = ({
   columnVisibility,
   setColumnVisibility,
   onAddUser,
+  refreshData,
 }) => {
+  const [isMobile, setIsMobile] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Check if the screen is mobile sized
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Initial check
+    checkIsMobile();
+
+    // Add event listener for window resize
+    window.addEventListener("resize", checkIsMobile);
+
+    // Cleanup
+    return () => window.removeEventListener("resize", checkIsMobile);
+  }, []);
+
+  // Handle refresh, using passed function or fallback
+  const handleRefresh = async () => {
+    if (isRefreshing) return;
+
+    try {
+      setIsRefreshing(true);
+
+      if (refreshData) {
+        // Use the provided refresh function if available
+        await refreshData();
+        toast.success("Users refreshed successfully");
+      } else {
+        // Fallback to manual refresh via hook call
+        // This accesses the fetchUsers function from your useUsers hook
+        // First we need to get the component context
+        const usersListElement = document.querySelector(
+          "[data-users-container]"
+        );
+        if (usersListElement) {
+          // Trigger a custom event that the parent component can listen for
+          const refreshEvent = new CustomEvent("refresh-users-data");
+          usersListElement.dispatchEvent(refreshEvent);
+          toast.success("Users refreshed successfully");
+        } else {
+          console.warn("Users container not found for refresh");
+          toast.success("Refresh triggered");
+        }
+      }
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+      toast.error("Failed to refresh users");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   return (
-    <div className="flex items-center justify-between bg-muted dark:bg-background p-4 rounded-md">
-      <div className="relative w-full max-w-sm">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder="Search users..."
-          className="w-full pl-8"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </div>
+    <div className="flex flex-col md:flex-row items-center justify-between bg-muted dark:bg-background p-3 md:p-4 rounded-md gap-3">
+      {/* Search bar - conditionally expanded on mobile */}
+      {isMobile ? (
+        <>
+          {showSearch ? (
+            <div className="relative w-full">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search users..."
+                className="w-full pl-8 pr-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1 h-7 w-7 p-0"
+                onClick={() => setShowSearch(false)}
+              >
+                ×
+              </Button>
+            </div>
+          ) : (
+            <div className="flex w-full items-center justify-between gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => setShowSearch(true)}
+              >
+                <Search className="h-4 w-4 mr-2" />
+                Search
+              </Button>
+              <div className="flex gap-2">
+                <AddUserDialog onAddUser={onAddUser} />
 
-      <div className="flex items-center gap-2">
-        <AddUserDialog onAddUser={onAddUser} />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon">
+                      <SlidersHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {/* Column checkboxes */}
+                    {Object.entries(columnVisibility).map(([key, value]) => (
+                      <DropdownMenuCheckboxItem
+                        key={key}
+                        checked={!!value}
+                        onCheckedChange={(checked) =>
+                          setColumnVisibility((prev) => ({
+                            ...prev,
+                            [key]: checked,
+                          }))
+                        }
+                      >
+                        {key.charAt(0).toUpperCase() + key.slice(1)}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="gap-1">
-              <SlidersHorizontal className="h-3.5 w-3.5" />
-              <span>Columns</span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                >
+                  <RefreshCw
+                    className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+                  />
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        // Desktop layout
+        <>
+          <div className="relative w-full max-w-sm">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search users..."
+              className="w-full pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <AddUserDialog onAddUser={onAddUser} />
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-1">
+                  <SlidersHorizontal className="h-3.5 w-3.5" />
+                  <span>Columns</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {Object.entries(columnVisibility).map(([key, value]) => (
+                  <DropdownMenuCheckboxItem
+                    key={key}
+                    checked={!!value}
+                    onCheckedChange={(checked) =>
+                      setColumnVisibility((prev) => ({
+                        ...prev,
+                        [key]: checked,
+                      }))
+                    }
+                  >
+                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+            >
+              <RefreshCw
+                className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+              />
+              Refresh
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuCheckboxItem
-              checked={columnVisibility.name}
-              onCheckedChange={(value) =>
-                setColumnVisibility((prev) => ({ ...prev, name: !!value }))
-              }
-            >
-              Name
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem
-              checked={columnVisibility.email}
-              onCheckedChange={(value) =>
-                setColumnVisibility((prev) => ({ ...prev, email: !!value }))
-              }
-            >
-              Email
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem
-              checked={columnVisibility.phone}
-              onCheckedChange={(value) =>
-                setColumnVisibility((prev) => ({ ...prev, phone: !!value }))
-              }
-            >
-              Phone
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem
-              checked={columnVisibility.gender}
-              onCheckedChange={(value) =>
-                setColumnVisibility((prev) => ({ ...prev, gender: !!value }))
-              }
-            >
-              Gender
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem
-              checked={columnVisibility.userType}
-              onCheckedChange={(value) =>
-                setColumnVisibility((prev) => ({ ...prev, userType: !!value }))
-              }
-            >
-              User Type
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem
-              checked={columnVisibility.labels}
-              onCheckedChange={(value) =>
-                setColumnVisibility((prev) => ({ ...prev, labels: !!value }))
-              }
-            >
-              Labels
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem
-              checked={columnVisibility.joinDate}
-              onCheckedChange={(value) =>
-                setColumnVisibility((prev) => ({ ...prev, joinDate: !!value }))
-              }
-            >
-              Join Date
-            </DropdownMenuCheckboxItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

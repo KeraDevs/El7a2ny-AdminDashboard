@@ -263,6 +263,7 @@ const UsersList: React.FC = () => {
         columnVisibility={columnVisibility}
         setColumnVisibility={setColumnVisibility}
         onAddUser={handleAddUser}
+        refreshData={fetchUsers}
       />
 
       <UsersTable
