@@ -30,13 +30,7 @@ import {
 import { getUserTypeBadge, getGenderBadge } from "@/utils/usersStyles";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-
-interface ViewUserDialogProps {
-  isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  userData: User | null;
-  onEdit: () => void;
-}
+import { ViewUserDialogProps } from "@/types/userTypes";
 
 export const ViewUserDialog: React.FC<ViewUserDialogProps> = ({
   isOpen,

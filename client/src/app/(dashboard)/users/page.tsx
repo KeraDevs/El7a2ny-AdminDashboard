@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useUsers } from "@/hooks/_useUsers";
 import { useAuth } from "@/contexts/AuthContext";
 import { User } from "@/types/userTypes";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
 
 import { UsersTableHeader } from "@/components/users/UsersTableHeader";
@@ -70,18 +70,14 @@ const UsersList: React.FC = () => {
   useEffect(() => {
     if (isAuthorized && currentUser) {
       fetchUsers().catch((err) => {
-        toast.error("Failed to fetch users", {
-          description: err instanceof Error ? err.message : "Unknown error",
-        });
+        toast.error("Failed to fetch users");
       });
     }
   }, [isAuthorized, currentUser, fetchUsers]);
 
   useEffect(() => {
     if (error) {
-      toast.error("Error", {
-        description: error,
-      });
+      toast.error("Error");
     }
   }, [error]);
 
@@ -161,9 +157,7 @@ const UsersList: React.FC = () => {
       await fetchUsers();
       return Promise.resolve();
     } catch (error) {
-      toast.error("Failed to add user", {
-        description: error instanceof Error ? error.message : "Unknown error",
-      });
+      toast.error("Failed to add user");
       return Promise.reject(error);
     }
   };
@@ -184,9 +178,7 @@ const UsersList: React.FC = () => {
       toast.success("User updated successfully");
       setIsEditDialogOpen(false);
     } catch (error) {
-      toast.error("Failed to update user", {
-        description: error instanceof Error ? error.message : "Unknown error",
-      });
+      toast.error("Failed to update user");
     }
   };
 
@@ -197,9 +189,7 @@ const UsersList: React.FC = () => {
     }
 
     if (selectedUsers.length === 0) {
-      toast.error("No users selected", {
-        description: "Please select at least one user to delete",
-      });
+      toast.error("No users selected");
       return;
     }
 
@@ -212,9 +202,7 @@ const UsersList: React.FC = () => {
         await handleDeleteUsers();
         toast.success("Users deleted successfully");
       } catch (error) {
-        toast.error("Failed to delete users", {
-          description: error instanceof Error ? error.message : "Unknown error",
-        });
+        toast.error("Failed to delete users");
       }
     }
   };

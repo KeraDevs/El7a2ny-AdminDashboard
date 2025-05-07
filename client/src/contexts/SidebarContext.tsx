@@ -1,13 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-
-interface SidebarContextType {
-  isOpen: boolean;
-  toggleSidebar: () => void;
-  closeSidebar: () => void;
-  openSidebar: () => void;
-}
+import { SidebarContextType } from "@/types/navigation";
 
 const SidebarContext = createContext<SidebarContextType>({
   isOpen: true,

@@ -13,21 +13,8 @@ import { auth } from "@/firebase.config";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
+import { AuthContextValue } from "@/types/userTypes";
 type UserType = "workshopAdmin" | "superadmin" | "worker" | "customer";
-
-interface AuthContextValue {
-  currentUser: FirebaseUser | null;
-  userType: UserType | null;
-  userData: any;
-  loading: boolean;
-  error: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  googleSignIn: () => Promise<void>;
-  logOut: () => Promise<void>;
-  clearError: () => void;
-  isAuthorized: boolean;
-  authInitialized: boolean;
-}
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 

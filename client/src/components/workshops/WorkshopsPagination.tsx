@@ -1,5 +1,5 @@
 import React from "react";
-import { User } from "@/types/userTypes";
+import { Workshop } from "@/types/workshopTypes";
 import {
   Pagination,
   PaginationContent,
@@ -16,16 +16,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UsersPaginationProps } from "@/types/userTypes";
 
-export const UsersPagination: React.FC<UsersPaginationProps> = ({
+interface WorkshopsPaginationProps {
+  currentPage: number;
+  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
+  totalPages: number;
+  rowsPerPage: number;
+  setRowsPerPage: React.Dispatch<React.SetStateAction<number>>;
+  filteredWorkshops: Workshop[];
+  selectedWorkshops: string[];
+}
+
+export const WorkshopsPagination: React.FC<WorkshopsPaginationProps> = ({
   currentPage,
   setCurrentPage,
   totalPages,
   rowsPerPage,
   setRowsPerPage,
-  filteredUsers,
-  selectedUsers,
+  filteredWorkshops,
+  selectedWorkshops,
 }) => {
   return (
     <div className="flex items-center justify-between">
@@ -34,14 +43,14 @@ export const UsersPagination: React.FC<UsersPaginationProps> = ({
         <strong>
           {Math.min(
             rowsPerPage,
-            filteredUsers.length - (currentPage - 1) * rowsPerPage
+            filteredWorkshops.length - (currentPage - 1) * rowsPerPage
           )}
         </strong>{" "}
-        of <strong>{filteredUsers.length}</strong> users
-        {selectedUsers.length > 0 && (
+        of <strong>{filteredWorkshops.length}</strong> workshops
+        {selectedWorkshops.length > 0 && (
           <span>
             {" "}
-            (<strong>{selectedUsers.length}</strong> selected)
+            (<strong>{selectedWorkshops.length}</strong> selected)
           </span>
         )}
       </div>

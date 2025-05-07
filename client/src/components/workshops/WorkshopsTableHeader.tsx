@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Search, SlidersHorizontal, RefreshCw } from "lucide-react";
+import { Search, SlidersHorizontal, RefreshCw, Building } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,36 +10,50 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ColumnVisibility } from "@/app/(dashboard)/users/page";
-import { AddUserDialog } from "@/components/users/AddUserDialog";
-import { User } from "@/types/userTypes";
+import { WorkshopColumnVisibility, Workshop } from "@/types/workshopTypes";
+import { AddWorkshopDialog } from "./AddworkshopsDialog";
 import { toast } from "react-hot-toast";
-import { UsersTableHeaderProps } from "@/types/userTypes";
 
-export const UsersTableHeader: React.FC<UsersTableHeaderProps> = ({
+interface WorkshopsTableHeaderProps {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  columnVisibility: WorkshopColumnVisibility;
+  setColumnVisibility: React.Dispatch<
+    React.SetStateAction<WorkshopColumnVisibility>
+  >;
+  onAddWorkshop: (workshopData: Partial<Workshop>) => Promise<void>;
+  refreshData?: () => Promise<void>; // Optional prop to refresh data
+}
+
+export const WorkshopsTableHeader: React.FC<WorkshopsTableHeaderProps> = ({
   searchQuery,
   setSearchQuery,
   columnVisibility,
   setColumnVisibility,
-  onAddUser,
+  onAddWorkshop,
   refreshData,
 }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Check if the screen is mobile sized
   useEffect(() => {
     const checkIsMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
 
+    // Initial check
     checkIsMobile();
 
+    // Add event listener for window resize
     window.addEventListener("resize", checkIsMobile);
 
+    // Cleanup
     return () => window.removeEventListener("resize", checkIsMobile);
   }, []);
 
+  // Handle refresh, using passed function or fallback
   const handleRefresh = async () => {
     if (isRefreshing) return;
 
@@ -47,24 +61,27 @@ export const UsersTableHeader: React.FC<UsersTableHeaderProps> = ({
       setIsRefreshing(true);
 
       if (refreshData) {
+        // Use the provided refresh function if available
         await refreshData();
-        toast.success("Users refreshed successfully");
+        toast.success("Workshops refreshed successfully");
       } else {
-        const usersListElement = document.querySelector(
-          "[data-users-container]"
+        // Fallback to manual refresh
+        const workshopsListElement = document.querySelector(
+          "[data-workshops-container]"
         );
-        if (usersListElement) {
-          const refreshEvent = new CustomEvent("refresh-users-data");
-          usersListElement.dispatchEvent(refreshEvent);
-          toast.success("Users refreshed successfully");
+        if (workshopsListElement) {
+          // Trigger a custom event that the parent component can listen for
+          const refreshEvent = new CustomEvent("refresh-workshops-data");
+          workshopsListElement.dispatchEvent(refreshEvent);
+          toast.success("Workshops refreshed successfully");
         } else {
-          console.warn("Users container not found for refresh");
+          console.warn("Workshops container not found for refresh");
           toast.success("Refresh triggered");
         }
       }
     } catch (error) {
       console.error("Error refreshing data:", error);
-      toast.error("Failed to refresh users");
+      toast.error("Failed to refresh workshops");
     } finally {
       setIsRefreshing(false);
     }
@@ -80,7 +97,7 @@ export const UsersTableHeader: React.FC<UsersTableHeaderProps> = ({
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search users..."
+                placeholder="Search workshops..."
                 className="w-full pl-8 pr-8"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -107,7 +124,7 @@ export const UsersTableHeader: React.FC<UsersTableHeaderProps> = ({
                 Search
               </Button>
               <div className="flex gap-2">
-                <AddUserDialog onAddUser={onAddUser} />
+                <AddWorkshopDialog onAddWorkshop={onAddWorkshop} />
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -157,7 +174,7 @@ export const UsersTableHeader: React.FC<UsersTableHeaderProps> = ({
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search users..."
+              placeholder="Search workshops..."
               className="w-full pl-8"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -165,7 +182,7 @@ export const UsersTableHeader: React.FC<UsersTableHeaderProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <AddUserDialog onAddUser={onAddUser} />
+            <AddWorkshopDialog onAddWorkshop={onAddWorkshop} />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

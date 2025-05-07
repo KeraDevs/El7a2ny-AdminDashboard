@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { User } from "@/types/userTypes";
 import { API_KEY, API_BASE_URL } from "@/utils/config";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import {
   Loader2,
   PlusCircle,
@@ -41,10 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-interface AddUserDialogProps {
-  onAddUser: (userData: Partial<User>) => Promise<void>;
-}
+import { AddUserDialogProps } from "@/types/userTypes";
 
 export const AddUserDialog: React.FC<AddUserDialogProps> = ({ onAddUser }) => {
   const [isOpen, setIsOpen] = useState(false);

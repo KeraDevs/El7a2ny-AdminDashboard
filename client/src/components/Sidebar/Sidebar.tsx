@@ -23,12 +23,7 @@ import {
   UserCircle,
 } from "lucide-react";
 
-interface SidebarSection {
-  name: string;
-  icon: React.ReactNode;
-  href?: string;
-  subsections?: { name: string; href: string }[];
-}
+import { SidebarSection } from "@/types/navigation";
 
 export const sidebarSections: SidebarSection[] = [
   {
@@ -41,9 +36,7 @@ export const sidebarSections: SidebarSection[] = [
     icon: <Users className="h-4 w-4" />,
     subsections: [
       { name: "Users List", href: "/users" },
-      { name: "User Profile", href: "/users/:id" },
       { name: "Cars", href: "/users/cars" },
-      { name: "Labels", href: "/users/labels" },
     ],
   },
   {
@@ -51,9 +44,7 @@ export const sidebarSections: SidebarSection[] = [
     icon: <Boxes className="h-4 w-4" />,
     subsections: [
       { name: "Workshops List", href: "/workshops" },
-      { name: "Workshop Profile", href: "/workshops/:id" },
       { name: "Cars", href: "/workshops/cars" },
-      { name: "Labels", href: "/workshops/labels" },
     ],
   },
   {

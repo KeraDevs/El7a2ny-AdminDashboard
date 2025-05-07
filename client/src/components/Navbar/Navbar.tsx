@@ -34,7 +34,6 @@ const Navbar = () => {
       "/users": "Users List",
       "/users/:id": "User Profile",
       "/users/cars": "Cars",
-      "/users/labels": "Labels",
       "/workshops": "Workshops List",
       "/workshops/:id": "Workshop Profile",
       "/workshops/cars": "Workshop Cars",

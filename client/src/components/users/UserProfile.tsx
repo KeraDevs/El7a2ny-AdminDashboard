@@ -22,7 +22,7 @@ import {
   X,
   User as UserIcon,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -111,9 +111,7 @@ const UserProfile = ({ id }: { id: string }) => {
         const errorMessage =
           err instanceof Error ? err.message : "Unknown error occurred";
         setError(errorMessage);
-        toast.error("Failed to load user", {
-          description: errorMessage,
-        });
+        toast.error("Failed to load user");
       } finally {
         setLoading(false);
       }
@@ -175,9 +173,7 @@ const UserProfile = ({ id }: { id: string }) => {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
-      toast.error("Failed to update user", {
-        description: errorMessage,
-      });
+      toast.error("Failed to update user");
     } finally {
       setLoading(false);
     }

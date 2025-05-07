@@ -30,15 +30,7 @@ import {
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-
-interface EditUserDialogProps {
-  isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  userData: Partial<User>;
-  setUserData: React.Dispatch<React.SetStateAction<Partial<User>>>;
-  onSave: () => Promise<void>;
-  loading?: boolean;
-}
+import { EditUserDialogProps } from "@/types/userTypes";
 
 export const EditUserDialog: React.FC<EditUserDialogProps> = ({
   isOpen,

@@ -1,9 +1,5 @@
 import { useEffect, useState } from "react";
-
-interface SearchPaletteProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+import { SearchPaletteProps } from "@/types/navigation";
 
 const SearchPalette = ({ isOpen, onClose }: SearchPaletteProps) => {
   const [query, setQuery] = useState("");

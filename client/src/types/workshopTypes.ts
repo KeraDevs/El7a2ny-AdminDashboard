@@ -42,3 +42,35 @@ export interface PhoneNumber {
   is_primary: boolean;
   is_verified: boolean;
 }
+
+export type WorkshopColumnVisibility = {
+  name: boolean;
+  email: boolean;
+  address: boolean;
+  phone: boolean;
+  status: boolean;
+  ratings: boolean;
+  services: boolean;
+  createdDate?: boolean;
+};
+
+export type SortConfig = {
+  key: keyof Workshop | null;
+  direction: "asc" | "desc";
+};
+
+export interface WorkshopsTableProps {
+  loading: boolean;
+  paginatedWorkshops: Workshop[];
+  columnVisibility: WorkshopColumnVisibility;
+  sortConfig: SortConfig;
+  handleSort: (key: keyof Workshop) => void;
+  selectedWorkshops: string[];
+  handleSelectAll: (checked: boolean) => void;
+  handleSelectWorkshop: (workshopId: string) => void;
+  handleEdit: (workshop: Workshop) => void;
+  handleView: (workshop: Workshop) => void;
+  searchQuery: string;
+  workshops: Workshop[];
+  onDelete: () => void;
+}

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { Loader2, PencilIcon, CheckIcon, XIcon } from "lucide-react";
 import {
   updatePassword,
@@ -71,7 +71,7 @@ const AdminProfilePage = () => {
         email: userData.email || "",
         phone: userData.phone || "",
         gender: userData.gender || "male",
-        userType: "superadmin", // Always superadmin in this view
+        userType: "superadmin",
         profile_pic: userData.profile_pic || "",
       });
     }

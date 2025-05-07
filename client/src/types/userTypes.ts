@@ -1,3 +1,4 @@
+import { ColumnVisibility, SortConfig } from "@/app/(dashboard)/users/page";
 import { Vehicle } from "./vehicleTypes";
 export interface User {
   id: string;
@@ -41,4 +42,73 @@ export interface EditUserFormProps {
   onClose: () => void;
   loading?: boolean;
   error?: string | null;
+}
+
+export interface UsersTableProps {
+  loading: boolean;
+  paginatedUsers: User[];
+  columnVisibility: ColumnVisibility;
+  sortConfig: SortConfig;
+  handleSort: (key: keyof User) => void;
+  selectedUsers: string[];
+  handleSelectAll: (checked: boolean) => void;
+  handleSelectUser: (userId: string) => void;
+  handleEdit: (user: User) => void;
+  handleView: (user: User) => void;
+  searchQuery: string;
+  users: User[];
+  onDelete: () => void;
+}
+``;
+export interface UsersPaginationProps {
+  currentPage: number;
+  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
+  totalPages: number;
+  rowsPerPage: number;
+  setRowsPerPage: React.Dispatch<React.SetStateAction<number>>;
+  filteredUsers: User[];
+  selectedUsers: string[];
+}
+
+export interface AddUserDialogProps {
+  onAddUser: (userData: Partial<User>) => Promise<void>;
+}
+
+export interface EditUserDialogProps {
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  userData: Partial<User>;
+  setUserData: React.Dispatch<React.SetStateAction<Partial<User>>>;
+  onSave: () => Promise<void>;
+  loading?: boolean;
+}
+
+export interface AuthContextValue {
+  currentUser: any | null;
+  userType: "customer" | "workshopAdmin" | "worker" | "superadmin" | null;
+  userData: any;
+  loading: boolean;
+  error: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  googleSignIn: () => Promise<void>;
+  logOut: () => Promise<void>;
+  clearError: () => void;
+  isAuthorized: boolean;
+  authInitialized: boolean;
+}
+
+export interface UsersTableHeaderProps {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  columnVisibility: ColumnVisibility;
+  setColumnVisibility: React.Dispatch<React.SetStateAction<ColumnVisibility>>;
+  onAddUser: (userData: Partial<User>) => Promise<void>;
+  refreshData?: () => Promise<void>;
+}
+
+export interface ViewUserDialogProps {
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  userData: User | null;
+  onEdit: () => void;
 }

@@ -1,7 +1,7 @@
 import { User } from "./userTypes";
 import { Workshop } from "./workshopTypes";
 
-interface SelectionState<T> {
+export interface SelectionState<T> {
   selected: string[];
   loading: boolean;
   error: string | null;
@@ -9,7 +9,7 @@ interface SelectionState<T> {
   openDialog: boolean;
 }
 
-interface UseCrudReturn<T> extends SelectionState<T> {
+export interface UseCrudReturn<T> extends SelectionState<T> {
   fetchItems: () => Promise<void>;
   handleSelectAll: (checked: boolean) => void;
   handleSelect: (id: string) => void;
