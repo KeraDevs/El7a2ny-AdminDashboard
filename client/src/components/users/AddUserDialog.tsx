@@ -443,9 +443,6 @@ export const AddUserDialog: React.FC<AddUserDialogProps> = ({ onAddUser }) => {
       toast.error(
         error instanceof Error ? error.message : "Registration failed"
       );
-
-      // Note: We're not attempting to delete the Firebase user anymore
-      // as the deletion endpoint is not working properly
     } finally {
       setIsSubmitting(false);
     }
