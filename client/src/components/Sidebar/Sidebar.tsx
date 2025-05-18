@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSidebar } from "@/contexts/SidebarContext"; // Make sure this import is present
+import { useSidebar } from "@/contexts/SidebarContext";
 import {
   ChevronDown,
   LayoutDashboard,
@@ -17,8 +17,6 @@ import {
   MessageCircle,
   BarChart,
   Ticket,
-  Settings,
-  HelpCircle,
   LogOut,
   UserCircle,
 } from "lucide-react";
@@ -45,6 +43,7 @@ export const sidebarSections: SidebarSection[] = [
     subsections: [
       { name: "Workshops List", href: "/workshops" },
       { name: "Cars", href: "/workshops/cars" },
+      { name: "Service Types", href: "/workshops/services" },
     ],
   },
   {

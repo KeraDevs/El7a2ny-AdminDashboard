@@ -75,3 +75,20 @@ export interface WorkshopsTableProps {
   workshops: Workshop[];
   onDelete: () => void;
 }
+
+export type ColumnVisibility = {
+  name: boolean;
+  description: boolean;
+  category: boolean;
+  price: boolean;
+  percentage: boolean;
+  active: boolean;
+  createdAt: boolean;
+  email: boolean;
+  address: boolean;
+  phone: boolean;
+  status: boolean;
+  ratings: boolean;
+  services: boolean;
+  createdDate?: boolean;
+};
