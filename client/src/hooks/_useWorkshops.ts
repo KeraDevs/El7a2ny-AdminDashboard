@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { Workshop } from "@/types/workshopTypes";
+import { useState, useCallback, useEffect } from "react";
+import { Workshop, PhoneNumber } from "@/types/workshopTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   mapApiWorkshopToFrontend,
@@ -11,7 +11,7 @@ import { UseWorkshopsReturn } from "@/types/hookTypes";
 import toast from "react-hot-toast";
 
 export const useWorkshops = (): UseWorkshopsReturn => {
-  const { currentUser } = useAuth();
+  const { currentUser, userData } = useAuth();
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,6 +101,76 @@ export const useWorkshops = (): UseWorkshopsReturn => {
     }
   }, [currentUser]);
 
+  // Format workshop data for API submission
+  const formatWorkshopForApi = (workshopData: Partial<Workshop>) => {
+    // Set owner_id to current user if not specified
+    const ownerId = workshopData.ownerId || userData?.id;
+
+    if (!ownerId) {
+      throw new Error("Owner ID is required for workshop creation");
+    }
+
+    // Format phone numbers
+    const phoneNumbers =
+      workshopData.phoneNumbers && workshopData.phoneNumbers.length > 0
+        ? {
+            createMany: {
+              data: workshopData.phoneNumbers.map((phone: PhoneNumber) => ({
+                phone_number: phone.phone_number,
+                type: phone.type,
+                is_primary: phone.is_primary,
+              })),
+            },
+          }
+        : undefined;
+
+    // Format labels (if any)
+    const labels =
+      workshopData.labels && workshopData.labels.length > 0
+        ? {
+            create: workshopData.labels.map((label: string) => ({
+              label: {
+                create: {
+                  name: label,
+                },
+              },
+            })),
+          }
+        : undefined;
+
+    // Format operating hours (default is empty)
+    const operatingHours = {
+      createMany: {
+        data: [],
+      },
+    };
+
+    const latitude =
+      workshopData.latitude !== undefined && workshopData.latitude !== null
+        ? Number(workshopData.latitude)
+        : null;
+
+    const longitude =
+      workshopData.longitude !== undefined && workshopData.longitude !== null
+        ? Number(workshopData.longitude)
+        : null;
+    // Build the final API request payload
+    return {
+      name: workshopData.name || "",
+      owner_id: ownerId,
+      email: workshopData.email || "",
+      address: workshopData.address || "",
+      latitude: latitude,
+      longitude: longitude,
+      status: (workshopData.status || "open").toUpperCase(),
+      active_status: (workshopData.active_status || "pending").toUpperCase(),
+      phone_numbers: phoneNumbers,
+      operating_hours: operatingHours,
+      labels: labels,
+      services: workshopData.services || [],
+    };
+  };
+
   // Add Workshop
   const handleAddWorkShop = async (
     workshopData: Partial<Workshop>
@@ -117,7 +187,10 @@ export const useWorkshops = (): UseWorkshopsReturn => {
         throw new Error("API key is missing");
       }
 
-      const apiData = mapFrontendToApiWorkshop(workshopData);
+      // Format data for API
+      const apiData = formatWorkshopForApi(workshopData);
+
+      console.log("Sending workshop data:", JSON.stringify(apiData, null, 2));
 
       const response = await fetch(`${API_BASE_URL}/workshops`, {
         method: "POST",
@@ -130,16 +203,24 @@ export const useWorkshops = (): UseWorkshopsReturn => {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to add workshop, status: ${response.status}`);
+        let errorMessage;
+        try {
+          const errorResponse = await response.json();
+          errorMessage =
+            errorResponse.message ||
+            `Failed to add workshop (${response.status})`;
+        } catch (jsonError) {
+          errorMessage = `Failed to add workshop: ${response.status} ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
-      const result = await response.json();
-      const newWorkshop = mapApiWorkshopToFrontend(result.workshop);
-
-      setWorkshops((prevWorkshops) => [...prevWorkshops, newWorkshop]);
+      await fetchWorkshops();
       toast.success("Workshop added successfully");
     } catch (error) {
-      toast.error("Error adding workshop");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to add workshop"
+      );
       setError(
         error instanceof Error ? error.message : "Failed to add workshop"
       );
@@ -169,12 +250,60 @@ export const useWorkshops = (): UseWorkshopsReturn => {
         throw new Error("API key is missing");
       }
 
-      const apiData = mapFrontendToApiWorkshop(workshopData);
+      // Format API data
+      // For PATCH requests, we only include fields that have changed
+      const apiData = {
+        name: workshopData.name,
+        email: workshopData.email,
+        address: workshopData.address,
+        latitude: workshopData.latitude,
+        longitude: workshopData.longitude,
+        status: workshopData.status?.toUpperCase(),
+        active_status: workshopData.active_status?.toUpperCase(),
+        // Only include phone_numbers if they've been modified
+        ...(workshopData.phoneNumbers
+          ? {
+              phone_numbers: {
+                deleteMany: {},
+                createMany: {
+                  data: workshopData.phoneNumbers.map((phone) => ({
+                    phone_number: phone.phone_number,
+                    type: phone.type,
+                    is_primary: phone.is_primary,
+                  })),
+                },
+              },
+            }
+          : {}),
+        // Only include labels if they've been modified
+        ...(workshopData.labels
+          ? {
+              labels: {
+                deleteMany: {},
+                create: workshopData.labels.map((label) => ({
+                  label: {
+                    create: {
+                      name: label,
+                    },
+                  },
+                })),
+              },
+            }
+          : {}),
+        // Only include services if they've been modified
+        ...(workshopData.services ? { services: workshopData.services } : {}),
+      };
+
+      // Remove undefined fields
+      Object.keys(apiData).forEach(
+        (key) =>
+          (apiData as any)[key] === undefined && delete (apiData as any)[key]
+      );
 
       const response = await fetch(
         `${API_BASE_URL}/workshops/${workshopData.id}`,
         {
-          method: "PUT",
+          method: "PATCH",
           headers: {
             "Content-Type": "application/json",
             "x-api-key": API_KEY,
@@ -185,21 +314,25 @@ export const useWorkshops = (): UseWorkshopsReturn => {
       );
 
       if (!response.ok) {
-        throw new Error(`Failed to edit workshop, status: ${response.status}`);
+        let errorMessage;
+        try {
+          const errorResponse = await response.json();
+          errorMessage =
+            errorResponse.message ||
+            `Failed to update workshop (${response.status})`;
+        } catch (jsonError) {
+          errorMessage = `Failed to update workshop: ${response.status} ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
-      setWorkshops((prevWorkshops) =>
-        prevWorkshops.map((workshop) =>
-          workshop.id === workshopData.id
-            ? {
-                ...workshop,
-                ...workshopData,
-              }
-            : workshop
-        )
-      );
+      // Refresh workshops list
+      await fetchWorkshops();
+      toast.success("Workshop updated successfully");
     } catch (error) {
-      toast.error("Error editing workshop");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to edit workshop"
+      );
       setError(
         error instanceof Error ? error.message : "Failed to edit workshop"
       );
@@ -209,7 +342,7 @@ export const useWorkshops = (): UseWorkshopsReturn => {
     }
   };
 
-  // Delete Workshops
+  // Delete Workshops (actually deactivate)
   const handleDeleteWorkshops = async (): Promise<void> => {
     if (!currentUser) {
       throw new Error("Authentication required");
@@ -227,12 +360,14 @@ export const useWorkshops = (): UseWorkshopsReturn => {
         throw new Error("API key is missing");
       }
 
+      // Use deactivate endpoint instead of delete
       const deletePromises = selectedWorkshops.map(async (workshopId) => {
         const response = await fetch(
-          `${API_BASE_URL}/workshops/${workshopId}`,
+          `${API_BASE_URL}/workshops/${workshopId}/deactivate`,
           {
-            method: "DELETE",
+            method: "POST",
             headers: {
+              "Content-Type": "application/json",
               "x-api-key": API_KEY,
               Authorization: `Bearer ${authToken}`,
             } as HeadersInit,
@@ -241,33 +376,29 @@ export const useWorkshops = (): UseWorkshopsReturn => {
 
         if (!response.ok) {
           throw new Error(
-            `Failed to delete workshop ${workshopId}: ${response.status}`
+            `Failed to deactivate workshop ${workshopId}: ${response.status}`
           );
         }
       });
 
       await Promise.all(deletePromises);
 
-      // Update the local state to remove deleted workshops
-      setWorkshops((prevWorkshops) =>
-        prevWorkshops.filter(
-          (workshop) => !selectedWorkshops.includes(workshop.id)
-        )
-      );
-
-      // Clear selection after successful deletion
+      // Refresh workshops list
+      await fetchWorkshops();
       setSelectedWorkshops([]);
 
       toast.success(
-        `Successfully deleted ${selectedWorkshops.length} workshop(s)`
+        `Successfully deactivated ${selectedWorkshops.length} workshop(s)`
       );
     } catch (error) {
       toast.error(
-        "Error deleting workshops: " +
+        "Error deactivating workshops: " +
           (error instanceof Error ? error.message : "Unknown error")
       );
       setError(
-        error instanceof Error ? error.message : "Failed to delete workshops"
+        error instanceof Error
+          ? error.message
+          : "Failed to deactivate workshops"
       );
       throw error;
     } finally {

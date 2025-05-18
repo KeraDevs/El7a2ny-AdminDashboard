@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Workshop, PhoneNumber } from "@/types/workshopTypes";
+import { Workshop } from "@/types/workshopTypes";
 import { API_KEY, API_BASE_URL } from "@/utils/config";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "react-hot-toast";
@@ -12,15 +12,12 @@ import {
   User,
   MapPin,
   Plus,
-  Wrench,
-  Tag,
   X,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -37,8 +34,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AssignOwnerDialog } from "./AssignOwnerDialog";
 
 interface AddWorkshopDialogProps {
   onAddWorkshop: (workshopData: Partial<Workshop>) => Promise<void>;
@@ -50,12 +47,12 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
-  const [serviceInput, setServiceInput] = useState("");
-  const [labelInput, setLabelInput] = useState("");
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const { currentUser } = useAuth();
+  const [selectedOwnerId, setSelectedOwnerId] = useState<string | null>(null);
+  const [selectedOwnerName, setSelectedOwnerName] = useState<string>("");
+  const [ownerDialogOpen, setOwnerDialogOpen] = useState(false);
 
-  // Workshop data
+  // Workshop form data state
   const [formData, setFormData] = useState<Partial<Workshop>>({
     name: "",
     email: "",
@@ -70,17 +67,21 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
     ],
     latitude: null,
     longitude: null,
-    services: [],
-    labels: [],
     status: "open",
     active_status: "pending",
   });
+
+  // Handle owner selection from the dialog
+  const handleOwnerSelect = (userId: string, userName: string) => {
+    setSelectedOwnerId(userId);
+    setSelectedOwnerName(userName);
+    setOwnerDialogOpen(false);
+  };
 
   // Reset form when dialog closes
   useEffect(() => {
     if (!isOpen) {
       setActiveTab("basic");
-      setErrors({});
       setFormData({
         name: "",
         email: "",
@@ -95,28 +96,20 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
         ],
         latitude: null,
         longitude: null,
-        services: [],
-        labels: [],
         status: "open",
         active_status: "pending",
       });
+      setSelectedOwnerId(null);
+      setSelectedOwnerName("");
     }
   }, [isOpen]);
 
-  // Handle changes to workshop form data
+  // Handle changes to form inputs
   const handleInputChange = (field: keyof Workshop, value: any) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
-
-    // Clear error when user types
-    if (errors[field]) {
-      setErrors((prev) => ({
-        ...prev,
-        [field]: "",
-      }));
-    }
   };
 
   // Handle phone number input change
@@ -132,14 +125,6 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
         phoneNumbers: updatedPhones,
       };
     });
-
-    // Clear phone error
-    if (errors.phoneNumbers) {
-      setErrors((prev) => ({
-        ...prev,
-        phoneNumbers: "",
-      }));
-    }
   };
 
   // Add a new phone number field
@@ -189,118 +174,12 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
     });
   };
 
-  // Add a service
-  const handleAddService = () => {
-    if (serviceInput.trim()) {
-      setFormData((prev) => ({
-        ...prev,
-        services: [...(prev.services || []), serviceInput.trim()],
-      }));
-      setServiceInput("");
-    }
-  };
-
-  // Handle key press for service input
-  const handleServiceKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAddService();
-    }
-  };
-
-  // Remove a service
-  const handleRemoveService = (indexToRemove: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      services: prev.services?.filter((_, index) => index !== indexToRemove),
-    }));
-  };
-
-  // Add a label
-  const handleAddLabel = () => {
-    if (labelInput.trim()) {
-      setFormData((prev) => ({
-        ...prev,
-        labels: [...(prev.labels || []), labelInput.trim()],
-      }));
-      setLabelInput("");
-    }
-  };
-
-  // Handle key press for label input
-  const handleLabelKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAddLabel();
-    }
-  };
-
-  // Remove a label
-  const handleRemoveLabel = (indexToRemove: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      labels: prev.labels?.filter((_, index) => index !== indexToRemove),
-    }));
-  };
-
-  // Validate email format
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  // Validate phone number format
-  const validatePhone = (phone: string): boolean => {
-    const phoneRegex = /^\d{10,15}$/;
-    return phone === "" || phoneRegex.test(phone);
-  };
-
-  // Validate the form
-  const validateForm = (): boolean => {
-    const newErrors: { [key: string]: string } = {};
-    let isValid = true;
-
-    // Validate required fields
-    if (!formData.name) {
-      newErrors.name = "Workshop name is required";
-      isValid = false;
-    }
-
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-      isValid = false;
-    } else if (!validateEmail(formData.email)) {
-      newErrors.email = "Please enter a valid email";
-      isValid = false;
-    }
-
-    if (!formData.address) {
-      newErrors.address = "Address is required";
-      isValid = false;
-    }
-
-    // Validate phone numbers
-    const phoneNumbers = formData.phoneNumbers || [];
-    if (phoneNumbers.length === 0) {
-      newErrors.phoneNumbers = "At least one phone number is required";
-      isValid = false;
-    } else {
-      const invalidPhones = phoneNumbers.filter(
-        (phone) => !phone.phone_number || !validatePhone(phone.phone_number)
-      );
-      if (invalidPhones.length > 0) {
-        newErrors.phoneNumbers = "Please enter valid phone numbers";
-        isValid = false;
-      }
-    }
-
-    setErrors(newErrors);
-    return isValid;
-  };
-
-  // Submit the form
+  // Submit handler - simplified to match Swagger API
+  // Submit handler - simplified to match Swagger API
   const handleSubmit = async () => {
-    if (!validateForm()) {
+    if (!selectedOwnerId) {
+      toast.error("Workshop owner is required");
+      setActiveTab("basic");
       return;
     }
 
@@ -314,6 +193,52 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
     try {
       const authToken = await currentUser.getIdToken();
 
+      // Create the request payload matching the Swagger API schema
+      // UPDATED: Changed arrays to objects with nested createMany structure
+      const requestData = {
+        name: formData.name,
+        address: formData.address || "",
+        status: formData.status || "open",
+        owner_id: selectedOwnerId,
+        // Correct structure: object with createMany
+        phone_numbers: {
+          createMany: {
+            data:
+              formData.phoneNumbers?.map((phone) => ({
+                phone_number: phone.phone_number,
+                type: "MOBILE",
+                is_primary: phone.is_primary,
+              })) || [],
+          },
+        },
+        // Correct structure: object with createMany
+        operating_hours: {
+          createMany: {
+            data: [
+              {
+                day: "MONDAY",
+                open_time: "1970-01-01T09:00:00", // Added full ISO format with date
+                close_time: "1970-01-01T17:00:00",
+                is_closed: false,
+              },
+              {
+                day: "TUESDAY",
+                open_time: "1970-01-01T09:00:00",
+                close_time: "1970-01-01T17:00:00",
+                is_closed: false,
+              },
+            ],
+          },
+        },
+        latitude: formData.latitude || 0,
+        longitude: formData.longitude || 0,
+      };
+
+      console.log(
+        "Sending request data:",
+        JSON.stringify(requestData, null, 2)
+      );
+
       // Call the API to create the workshop
       const response = await fetch(`${API_BASE_URL}/workshops`, {
         method: "POST",
@@ -322,29 +247,44 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
           "x-api-key": API_KEY || "",
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          address: formData.address,
-          phone_numbers: formData.phoneNumbers,
-          latitude: formData.latitude,
-          longitude: formData.longitude,
-          services: formData.services,
-          labels: formData.labels,
-          status: formData.status,
-          active_status: formData.active_status,
-        }),
+        body: JSON.stringify(requestData),
       });
 
+      const responseText = await response.text();
+      console.log("API Response:", responseText);
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `Workshop creation failed: ${response.status}`
-        );
+        let errorMessage;
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage =
+            errorData.message || `Workshop creation failed: ${response.status}`;
+          console.error(
+            "Validation errors:",
+            errorData.errors || "No detailed errors"
+          );
+        } catch (e) {
+          errorMessage = `Workshop creation failed: ${response.status} - ${responseText}`;
+        }
+        throw new Error(errorMessage);
       }
 
-      // Call the parent handler
-      await onAddWorkshop(formData);
+      // Parse the response to get the created workshop
+      let createdWorkshop;
+      try {
+        createdWorkshop = JSON.parse(responseText);
+      } catch (e) {
+        console.warn("Could not parse response as JSON:", responseText);
+        // Include locally stored data for client-side use
+        createdWorkshop = {
+          ...formData,
+          owner_id: selectedOwnerId,
+          email: formData.email,
+        };
+      }
+
+      // Update the parent component with the new workshop
+      await onAddWorkshop(createdWorkshop);
 
       toast.success("Workshop added successfully");
       setIsOpen(false);
@@ -375,10 +315,9 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
-            <TabsTrigger value="services">Services</TabsTrigger>
-            <TabsTrigger value="additional">Additional Info</TabsTrigger>
+            <TabsTrigger value="location">Location</TabsTrigger>
           </TabsList>
 
           <TabsContent value="basic" className="space-y-4 py-4">
@@ -395,9 +334,6 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
                   required
                 />
               </div>
-              {errors.name && (
-                <p className="text-red-500 text-xs mt-1">{errors.name}</p>
-              )}
             </div>
 
             <div className="space-y-2">
@@ -414,8 +350,41 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
                   required
                 />
               </div>
-              {errors.email && (
-                <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+              <p className="text-xs text-muted-foreground">
+                Note: Email is stored locally and not sent to the API
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="owner">Workshop Owner *</Label>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-violet-50/50 flex-1">
+                  <User className="h-4 w-4 text-violet-500" />
+                  <div className="flex-1 overflow-hidden">
+                    {selectedOwnerId ? (
+                      <div className="text-sm font-medium">
+                        {selectedOwnerName}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground">
+                        No owner selected
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setOwnerDialogOpen(true)}
+                >
+                  {selectedOwnerId ? "Change" : "Select"}
+                </Button>
+              </div>
+              {!selectedOwnerId && (
+                <p className="text-amber-500 text-xs mt-1">
+                  A workshop owner is required
+                </p>
               )}
             </div>
 
@@ -432,9 +401,6 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
                   required
                 />
               </div>
-              {errors.address && (
-                <p className="text-red-500 text-xs mt-1">{errors.address}</p>
-              )}
             </div>
 
             <div className="space-y-2">
@@ -488,11 +454,6 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
                   </div>
                 </div>
               ))}
-              {errors.phoneNumbers && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.phoneNumbers}
-                </p>
-              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -506,9 +467,9 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="busy">Busy</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
+                    <SelectItem value="Open">Open</SelectItem>
+                    <SelectItem value="Busy">Busy</SelectItem>
+                    <SelectItem value="Closed">Closed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -534,58 +495,7 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
             </div>
           </TabsContent>
 
-          <TabsContent value="services" className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="services">Services</Label>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 flex-1 border rounded-md px-3 py-2 bg-indigo-50/50">
-                  <Wrench className="h-4 w-4 text-indigo-500" />
-                  <Input
-                    id="services"
-                    value={serviceInput}
-                    onChange={(e) => setServiceInput(e.target.value)}
-                    onKeyDown={handleServiceKeyDown}
-                    className="border-none bg-transparent focus-visible:ring-0 p-0"
-                    placeholder="Add service and press Enter"
-                  />
-                </div>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={handleAddService}
-                >
-                  Add
-                </Button>
-              </div>
-
-              {formData.services && formData.services.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {formData.services.map((service, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="flex items-center gap-1 bg-indigo-50 text-indigo-700"
-                    >
-                      <Wrench className="h-3 w-3" />
-                      {service}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-4 w-4 p-0 ml-1 hover:bg-transparent text-indigo-500 hover:text-indigo-700"
-                        onClick={() => handleRemoveService(index)}
-                      >
-                        &times;
-                      </Button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="additional" className="space-y-4 py-4">
+          <TabsContent value="location" className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="latitude">Latitude</Label>
@@ -621,54 +531,6 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
                 />
               </div>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="labels">Labels</Label>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 flex-1 border rounded-md px-3 py-2 bg-gray-50/50">
-                  <Tag className="h-4 w-4 text-gray-500" />
-                  <Input
-                    id="labels"
-                    value={labelInput}
-                    onChange={(e) => setLabelInput(e.target.value)}
-                    onKeyDown={handleLabelKeyDown}
-                    className="border-none bg-transparent focus-visible:ring-0 p-0"
-                    placeholder="Add label and press Enter"
-                  />
-                </div>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={handleAddLabel}
-                >
-                  Add
-                </Button>
-              </div>
-
-              {formData.labels && formData.labels.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {formData.labels.map((label, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="flex items-center gap-1"
-                    >
-                      {label}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-4 w-4 p-0 ml-1 hover:bg-transparent"
-                        onClick={() => handleRemoveLabel(index)}
-                      >
-                        &times;
-                      </Button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
           </TabsContent>
         </Tabs>
 
@@ -690,6 +552,12 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
               "Create Workshop"
             )}
           </Button>
+          <AssignOwnerDialog
+            open={ownerDialogOpen}
+            onOpenChange={setOwnerDialogOpen}
+            onSelect={handleOwnerSelect}
+            currentOwnerId={selectedOwnerId || undefined}
+          />
         </DialogFooter>
       </DialogContent>
     </Dialog>

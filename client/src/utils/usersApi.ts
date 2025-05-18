@@ -37,7 +37,7 @@ export const mapApiUserToFrontend = (apiUser: ApiUser): User => ({
         turbo: apiUser.vehicle.turbo,
       }
     : {
-        id: null,
+        id: undefined,
         brand_id: "",
         model: "",
         year: new Date().getFullYear(),

@@ -20,6 +20,7 @@ export interface Workshop {
   ratings: number;
   totalReviews: number;
   labels: string[];
+  owner_id: string;
 }
 
 export interface WorkshopFormProps {

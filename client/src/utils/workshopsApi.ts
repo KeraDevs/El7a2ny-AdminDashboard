@@ -31,6 +31,7 @@ export const mapApiWorkshopToFrontend = (
   ratings: 10,
   totalReviews: 20,
   labels: apiWorkshop.labels || [],
+  owner_id: apiWorkshop.owner_id,
 });
 
 export const mapFrontendToApiWorkshop = (workshop: Partial<Workshop>) => ({

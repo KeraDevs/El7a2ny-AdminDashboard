@@ -33,7 +33,7 @@ export const useUsers = (): UseUsersReturn => {
       }
 
       // Initial fetch to get the first batch
-      const response = await fetch(`${API_BASE_URL}/users?take=50`, {
+      const response = await fetch(`${API_BASE_URL}/users`, {
         headers: {
           "x-api-key": API_KEY,
           Authorization: `Bearer ${authToken}`,
@@ -46,11 +46,11 @@ export const useUsers = (): UseUsersReturn => {
         );
       }
 
-      const initialResult: ApiResponse = await response.json();
-      let allUsers = (initialResult.users || []).map(mapApiUserToFrontend);
+      const Result: ApiResponse = await response.json();
+      let allUsers = (Result.users || []).map(mapApiUserToFrontend);
 
       // Keep fetching until hasMore is false
-      let hasMore = initialResult.hasMore;
+      let hasMore = Result.hasMore;
       let offset = 50; // First skip will be 50
 
       while (hasMore) {

@@ -1,50 +1,34 @@
 "use client";
 
-import {
-  ReactElement,
-  ReactNode,
-  ReactPortal,
-  JSXElementConstructor,
-  useState,
-} from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import {
-  CheckCircle,
-  Clock,
-  Filter,
-  Search,
-  AlertCircle,
-  Calendar,
-  WrenchIcon,
-  Car,
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import RequestsHeader from "@/components/requests/RequestHeader";
+import RequestsStats from "@/components/requests/RequestsStats";
+import RequestsFilters from "@/components/requests/RequestsFilter";
+import RequestsTable from "@/components/requests/requestsTable";
+import AssignWorkshopDialog from "@/components/requests/AssignWorkshopDialog";
+import RequestDetailsDialog from "@/components/requests/RequestDetailsDialog";
 
-const mockRequests = [
+// Types
+export interface ServiceRequest {
+  id: string;
+  customerName: string;
+  vehicle: string;
+  service: string;
+  status: "pending" | "in-progress" | "completed" | "cancelled";
+  date: string;
+  workshop: string;
+  urgency: "high" | "normal" | "low";
+  workshopId?: string;
+}
+
+export interface Workshop {
+  id: string;
+  name: string;
+  location: string;
+  rating: number;
+}
+
+const mockRequests: ServiceRequest[] = [
   {
     id: "REQ-1234",
     customerName: "Ahmed Hassan",
@@ -54,6 +38,7 @@ const mockRequests = [
     date: "2025-05-01",
     workshop: "Cairo Auto Center",
     urgency: "normal",
+    workshopId: "w1",
   },
   {
     id: "REQ-1235",
@@ -64,6 +49,7 @@ const mockRequests = [
     date: "2025-05-01",
     workshop: "Elite Motors",
     urgency: "high",
+    workshopId: "w2",
   },
   {
     id: "REQ-1236",
@@ -74,6 +60,7 @@ const mockRequests = [
     date: "2025-04-30",
     workshop: "AutoFix Workshop",
     urgency: "normal",
+    workshopId: "w3",
   },
   {
     id: "REQ-1237",
@@ -84,6 +71,7 @@ const mockRequests = [
     date: "2025-05-02",
     workshop: "Cairo Auto Center",
     urgency: "low",
+    workshopId: "w1",
   },
   {
     id: "REQ-1238",
@@ -94,315 +82,145 @@ const mockRequests = [
     date: "2025-04-29",
     workshop: "Elite Motors",
     urgency: "high",
+    workshopId: "w2",
+  },
+];
+
+// Sample workshops data
+const mockWorkshops: Workshop[] = [
+  { id: "w1", name: "Cairo Auto Center", location: "Cairo", rating: 4.8 },
+  { id: "w2", name: "Elite Motors", location: "Alexandria", rating: 4.5 },
+  { id: "w3", name: "AutoFix Workshop", location: "Giza", rating: 4.2 },
+  { id: "w4", name: "Premium Auto Care", location: "Cairo", rating: 4.9 },
+  {
+    id: "w5",
+    name: "Express Mechanics",
+    location: "Sharm El Sheikh",
+    rating: 4.0,
   },
 ];
 
 const RequestsPage = () => {
-  const [filter, setFilter] = useState("all");
+  const [requests, setRequests] = useState<ServiceRequest[]>(mockRequests);
+  const [workshops, setWorkshops] = useState<Workshop[]>(mockWorkshops);
+  const [filteredRequests, setFilteredRequests] =
+    useState<ServiceRequest[]>(requests);
+  const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredRequests = mockRequests.filter((request) => {
-    // Filter by status
-    if (filter !== "all" && request.status !== filter) return false;
+  // Dialog states
+  const [selectedRequest, setSelectedRequest] = useState<ServiceRequest | null>(
+    null
+  );
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isAssignOpen, setIsAssignOpen] = useState(false);
 
-    // Search functionality
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      return (
-        request.customerName.toLowerCase().includes(searchLower) ||
-        request.vehicle.toLowerCase().includes(searchLower) ||
-        request.service.toLowerCase().includes(searchLower) ||
-        request.id.toLowerCase().includes(searchLower)
-      );
-    }
+  // Filter requests based on status and search term
+  useEffect(() => {
+    const filtered = requests.filter((request) => {
+      // Filter by status
+      if (statusFilter !== "all" && request.status !== statusFilter)
+        return false;
 
-    return true;
-  });
+      // Search functionality
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        return (
+          request.customerName.toLowerCase().includes(searchLower) ||
+          request.vehicle.toLowerCase().includes(searchLower) ||
+          request.service.toLowerCase().includes(searchLower) ||
+          request.id.toLowerCase().includes(searchLower)
+        );
+      }
 
-  const getStatusBadge = (
-    status:
-      | string
-      | number
-      | bigint
-      | boolean
-      | ReactElement<unknown, string | JSXElementConstructor<any>>
-      | Iterable<ReactNode>
-      | Promise<
-          | string
-          | number
-          | bigint
-          | boolean
-          | ReactPortal
-          | ReactElement<unknown, string | JSXElementConstructor<any>>
-          | Iterable<ReactNode>
-          | null
-          | undefined
-        >
-      | null
-      | undefined
-  ) => {
-    switch (status) {
-      case "pending":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-yellow-100 text-yellow-800 border-yellow-300"
-          >
-            <Clock className="mr-1 h-3 w-3" /> Pending
-          </Badge>
-        );
-      case "in-progress":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-blue-100 text-blue-800 border-blue-300"
-          >
-            <WrenchIcon className="mr-1 h-3 w-3" /> In Progress
-          </Badge>
-        );
-      case "completed":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-green-100 text-green-800 border-green-300"
-          >
-            <CheckCircle className="mr-1 h-3 w-3" /> Completed
-          </Badge>
-        );
-      case "cancelled":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-red-100 text-red-800 border-red-300"
-          >
-            <AlertCircle className="mr-1 h-3 w-3" /> Cancelled
-          </Badge>
-        );
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
+      return true;
+    });
+
+    setFilteredRequests(filtered);
+  }, [requests, statusFilter, searchTerm]);
+
+  // Calculate statistics
+  const stats = {
+    total: requests.length,
+    pending: requests.filter((r) => r.status === "pending").length,
+    inProgress: requests.filter((r) => r.status === "in-progress").length,
+    completed: requests.filter((r) => r.status === "completed").length,
   };
 
-  const getUrgencyBadge = (
-    urgency:
-      | string
-      | number
-      | bigint
-      | boolean
-      | ReactElement<unknown, string | JSXElementConstructor<any>>
-      | Iterable<ReactNode>
-      | Promise<
-          | string
-          | number
-          | bigint
-          | boolean
-          | ReactPortal
-          | ReactElement<unknown, string | JSXElementConstructor<any>>
-          | Iterable<ReactNode>
-          | null
-          | undefined
-        >
-      | null
-      | undefined
-  ) => {
-    switch (urgency) {
-      case "high":
-        return (
-          <Badge className="bg-red-100 text-red-800 border-red-300">High</Badge>
-        );
-      case "normal":
-        return (
-          <Badge className="bg-blue-100 text-blue-800 border-blue-300">
-            Normal
-          </Badge>
-        );
-      case "low":
-        return (
-          <Badge className="bg-green-100 text-green-800 border-green-300">
-            Low
-          </Badge>
-        );
-      default:
-        return <Badge>{urgency}</Badge>;
-    }
+  // View request details
+  const handleViewRequest = (request: ServiceRequest) => {
+    setSelectedRequest(request);
+    setIsDetailsOpen(true);
   };
 
-  // Calculate stats
-  const totalRequests = mockRequests.length;
-  const pendingRequests = mockRequests.filter(
-    (r) => r.status === "pending"
-  ).length;
-  const inProgressRequests = mockRequests.filter(
-    (r) => r.status === "in-progress"
-  ).length;
-  const completedRequests = mockRequests.filter(
-    (r) => r.status === "completed"
-  ).length;
+  // Edit request
+  const handleEditRequest = (request: ServiceRequest) => {
+    setSelectedRequest(request);
+    // Implement edit functionality
+    console.log("Edit request:", request);
+  };
+
+  // Assign workshop
+  const handleAssignWorkshop = (request: ServiceRequest) => {
+    setSelectedRequest(request);
+    setIsAssignOpen(true);
+  };
+
+  // Save workshop assignment
+  const saveWorkshopAssignment = (requestId: string, workshopId: string) => {
+    const updatedRequests = requests.map((req) =>
+      req.id === requestId
+        ? {
+            ...req,
+            workshopId,
+            workshop:
+              workshops.find((w) => w.id === workshopId)?.name || req.workshop,
+          }
+        : req
+    );
+
+    setRequests(updatedRequests);
+    setIsAssignOpen(false);
+  };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Service Requests</h1>
-        <p className="text-muted-foreground">
-          Manage and track all maintenance requests across workshops
-        </p>
-      </div>
+      <RequestsHeader />
 
-      {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Requests
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{totalRequests}</div>
-          </CardContent>
-        </Card>
+      <RequestsStats stats={stats} />
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{pendingRequests}</div>
-          </CardContent>
-        </Card>
+      <RequestsFilters
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+      />
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{inProgressRequests}</div>
-          </CardContent>
-        </Card>
+      <RequestsTable
+        requests={filteredRequests}
+        totalRequests={requests.length}
+        onView={handleViewRequest}
+        onEdit={handleEditRequest}
+        onAssign={handleAssignWorkshop}
+      />
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Completed</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{completedRequests}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filter and Search */}
-      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-        <div className="flex items-center space-x-2">
-          <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-[180px]">
-              <Filter className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Requests</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="in-progress">In Progress</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline">Today</Button>
-          <Button variant="outline">This Week</Button>
-        </div>
-        <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search requests..."
-            className="pl-8 w-full md:w-[300px]"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+      {selectedRequest && (
+        <>
+          <RequestDetailsDialog
+            request={selectedRequest}
+            isOpen={isDetailsOpen}
+            onClose={() => setIsDetailsOpen(false)}
           />
-        </div>
-      </div>
 
-      {/* Requests Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Service Requests</CardTitle>
-          <CardDescription>
-            View and manage all car maintenance requests
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Request ID</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Vehicle</TableHead>
-                <TableHead>Service</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Workshop</TableHead>
-                <TableHead>Urgency</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredRequests.map((request) => (
-                <TableRow key={request.id}>
-                  <TableCell className="font-medium">{request.id}</TableCell>
-                  <TableCell>{request.customerName}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Car className="h-4 w-4" />
-                      {request.vehicle}
-                    </div>
-                  </TableCell>
-                  <TableCell>{request.service}</TableCell>
-                  <TableCell>{getStatusBadge(request.status)}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      {new Date(request.date).toLocaleDateString()}
-                    </div>
-                  </TableCell>
-                  <TableCell>{request.workshop}</TableCell>
-                  <TableCell>{getUrgencyBadge(request.urgency)}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline">
-                        View
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        Edit
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filteredRequests.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={9}
-                    className="text-center py-6 text-muted-foreground"
-                  >
-                    No requests found
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-        <CardFooter className="flex items-center justify-between border-t p-4">
-          <div className="text-sm text-muted-foreground">
-            Showing {filteredRequests.length} of {totalRequests} requests
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" disabled>
-              Previous
-            </Button>
-            <Button variant="outline" size="sm">
-              Next
-            </Button>
-          </div>
-        </CardFooter>
-      </Card>
+          <AssignWorkshopDialog
+            request={selectedRequest}
+            workshops={workshops}
+            isOpen={isAssignOpen}
+            onClose={() => setIsAssignOpen(false)}
+            onSave={saveWorkshopAssignment}
+          />
+        </>
+      )}
     </div>
   );
 };
