@@ -54,11 +54,13 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
     setError(null);
 
     try {
+      console.log("Fetching service types...");
       const authToken = await currentUser.getIdToken();
       if (!API_KEY) {
         throw new Error("API key is missing");
       }
 
+      // Using the correct endpoint from Swagger: GET /services/types
       const response = await fetch(`${API_BASE_URL}/services/types`, {
         headers: {
           "x-api-key": API_KEY,
@@ -74,8 +76,26 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
 
       const result = await response.json();
       console.log("Fetched service types:", result);
-      setServiceTypes(result.types || []);
+
+      // Handle the specific response format from the API
+      if (result.serviceTypes && Array.isArray(result.serviceTypes)) {
+        // Format detected in console: { serviceTypes: Array(10), total: 36, hasMore: true }
+        console.log(
+          `Found ${result.serviceTypes.length} service types out of total: ${result.total}`
+        );
+        setServiceTypes(result.serviceTypes);
+      } else if (result.types && Array.isArray(result.types)) {
+        // Alternative format with "types" property
+        setServiceTypes(result.types);
+      } else if (Array.isArray(result)) {
+        // Direct array response
+        setServiceTypes(result);
+      } else {
+        console.warn("Unexpected response format:", result);
+        setServiceTypes([]);
+      }
     } catch (error) {
+      console.error("Error fetching service types:", error);
       toast.error("Error fetching service types!");
       setError(
         error instanceof Error ? error.message : "Failed to fetch service types"
@@ -103,6 +123,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
           throw new Error("API key is missing");
         }
 
+        // Using the correct endpoint from Swagger: GET /services/types/{id}
         const response = await fetch(`${API_BASE_URL}/services/types/${id}`, {
           headers: {
             "x-api-key": API_KEY,
@@ -117,8 +138,9 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
         }
 
         const result = await response.json();
-        return result.type;
+        return result.type || result; // Handle both response formats
       } catch (error) {
+        console.error("Error fetching service type:", error);
         toast.error("Error fetching service type!");
         setError(
           error instanceof Error
@@ -150,6 +172,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
           throw new Error("API key is missing");
         }
 
+        // Using the correct endpoint from Swagger: GET /services/types/category/{category}
         const response = await fetch(
           `${API_BASE_URL}/services/types/category/${category}`,
           {
@@ -169,6 +192,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
         const result = await response.json();
         setServiceTypes(result.types || []);
       } catch (error) {
+        console.error("Error fetching service types by category:", error);
         toast.error("Error fetching service types by category!");
         setError(
           error instanceof Error
@@ -191,6 +215,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
       }
 
       try {
+        console.log("Adding service type:", serviceTypeData);
         setLoading(true);
         const authToken = await currentUser.getIdToken();
 
@@ -198,6 +223,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
           throw new Error("API key is missing");
         }
 
+        // Using the correct endpoint from Swagger: POST /services/types
         const response = await fetch(`${API_BASE_URL}/services/types`, {
           method: "POST",
           headers: {
@@ -208,16 +234,27 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
           body: JSON.stringify(serviceTypeData),
         });
 
+        const responseText = await response.text();
+        console.log("Add service type API response:", responseText);
+
         if (!response.ok) {
-          throw new Error(
-            `Failed to add service type, status: ${response.status}`
-          );
+          let errorMessage;
+          try {
+            const errorData = JSON.parse(responseText);
+            errorMessage =
+              errorData.message ||
+              `Failed to add service type: ${response.status}`;
+          } catch (e) {
+            errorMessage = `Failed to add service type: ${response.status} - ${responseText}`;
+          }
+          throw new Error(errorMessage);
         }
 
         // Refresh the service types list
         await fetchServiceTypes();
         toast.success("Service type added successfully");
       } catch (error) {
+        console.error("Error adding service type:", error);
         toast.error("Error adding service type");
         setError(
           error instanceof Error ? error.message : "Failed to add service type"
@@ -242,6 +279,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
       }
 
       try {
+        console.log("Editing service type:", serviceTypeData);
         setLoading(true);
         const authToken = await currentUser.getIdToken();
 
@@ -249,6 +287,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
           throw new Error("API key is missing");
         }
 
+        // Using the correct endpoint from Swagger: PATCH /services/types/{id}
         const response = await fetch(
           `${API_BASE_URL}/services/types/${serviceTypeData.id}`,
           {
@@ -279,6 +318,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
 
         toast.success("Service type updated successfully");
       } catch (error) {
+        console.error("Error editing service type:", error);
         toast.error("Error editing service type");
         setError(
           error instanceof Error ? error.message : "Failed to edit service type"
@@ -299,6 +339,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
       }
 
       try {
+        console.log("Setting percentage for service type:", id, percentage);
         setLoading(true);
         const authToken = await currentUser.getIdToken();
 
@@ -306,6 +347,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
           throw new Error("API key is missing");
         }
 
+        // Using the correct endpoint from Swagger: PATCH /service-types/{id}/percentage
         const response = await fetch(
           `${API_BASE_URL}/service-types/${id}/percentage`,
           {
@@ -328,12 +370,15 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
         // Update the service types array with the updated percentage
         setServiceTypes((prevServiceTypes) =>
           prevServiceTypes.map((serviceType) =>
-            serviceType.id === id ? { ...serviceType, percentage } : serviceType
+            serviceType.id === id
+              ? { ...serviceType, percentageModifier: percentage }
+              : serviceType
           )
         );
 
         toast.success("Percentage updated successfully");
       } catch (error) {
+        console.error("Error setting percentage:", error);
         toast.error("Error setting percentage");
         setError(
           error instanceof Error ? error.message : "Failed to set percentage"
@@ -358,6 +403,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
       }
 
       try {
+        console.log("Deleting service types:", serviceTypeIds);
         setLoading(true);
         const authToken = await currentUser.getIdToken();
 
@@ -365,6 +411,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
           throw new Error("API key is missing");
         }
 
+        // Using the correct endpoint from Swagger: DELETE /services/types/{id}
         const deletePromises = serviceTypeIds.map(async (serviceTypeId) => {
           const response = await fetch(
             `${API_BASE_URL}/services/types/${serviceTypeId}`,
@@ -402,6 +449,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
           `Successfully deleted ${serviceTypeIds.length} service type(s)`
         );
       } catch (error) {
+        console.error("Error deleting service types:", error);
         toast.error(
           "Error deleting service types: " +
             (error instanceof Error ? error.message : "Unknown error")

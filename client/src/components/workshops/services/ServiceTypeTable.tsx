@@ -49,7 +49,7 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
 
   // Get category badge
   const getCategoryBadge = (category: string) => {
-    switch (category) {
+    switch (category?.toLowerCase()) {
       case "maintenance":
         return (
           <Badge
@@ -92,14 +92,16 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
             variant="outline"
             className="bg-gray-100 text-gray-800 border-gray-300"
           >
-            {category}
+            {category || "Unknown"}
           </Badge>
         );
     }
   };
 
   // Format duration to hours and minutes
-  const formatDuration = (minutes: number) => {
+  const formatDuration = (minutes: number | undefined) => {
+    if (minutes === undefined || minutes === null) return "N/A";
+
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
 
@@ -108,6 +110,12 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
     }
 
     return `${mins}m`;
+  };
+
+  // Safe formatting for prices
+  const formatPrice = (price: number | undefined) => {
+    if (price === undefined || price === null) return "N/A";
+    return price.toFixed(2);
   };
 
   return (
@@ -303,7 +311,7 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
                       className="max-w-[250px] truncate"
                       title={serviceType.description}
                     >
-                      {serviceType.description}
+                      {serviceType.description || "No description"}
                     </div>
                   </TableCell>
                 )}
@@ -312,7 +320,7 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
                     <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
                       <DollarSign className="h-3.5 w-3.5" />
                       <span className="font-mono">
-                        {serviceType.basePrice.toFixed(2)}
+                        {formatPrice(serviceType.basePrice)}
                       </span>
                     </div>
                   </TableCell>
@@ -334,7 +342,7 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
                 )}
                 {columnVisibility.isActive && (
                   <TableCell>
-                    {serviceType.isActive ? (
+                    {serviceType.isActive !== false ? (
                       <Badge
                         variant="outline"
                         className="bg-green-100 text-green-800 border-green-300"
@@ -353,7 +361,9 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
                 )}
                 {columnVisibility.createdAt && (
                   <TableCell>
-                    {new Date(serviceType.createdAt).toLocaleDateString()}
+                    {serviceType.createdAt
+                      ? new Date(serviceType.createdAt).toLocaleDateString()
+                      : "N/A"}
                   </TableCell>
                 )}
                 <TableCell>

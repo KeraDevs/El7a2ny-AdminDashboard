@@ -35,19 +35,24 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { AddServiceTypeDialogProps } from "@/types/serviceTypes";
+
+interface AddServiceTypeDialogProps {
+  onAddServiceType: (serviceTypeData: Partial<ServiceType>) => Promise<void>;
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  onSuccess?: () => Promise<void>;
+}
 
 export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
+  onAddServiceType,
   isOpen,
   setIsOpen,
-  onAddServiceType,
   onSuccess,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
   const { currentUser } = useAuth();
 
-  // Form data state
   const [formData, setFormData] = useState<Partial<ServiceType>>({
     name: "",
     description: "",
@@ -146,12 +151,6 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add Service Type
-        </Button>
-      </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Add New Service Type</DialogTitle>

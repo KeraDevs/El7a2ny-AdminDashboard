@@ -8,8 +8,8 @@ import { Loader2 } from "lucide-react";
 
 import { ServiceTypesTableHeader } from "@/components/workshops/services/ServiceTypeHeader";
 import { ServiceTypesTable } from "@/components/workshops/services/ServiceTypeTable";
-import { ServiceTypesPagination } from "@/components/workshops/services/ServiceTypePagination";
-import { EditServiceTypeDialog } from "@/components/workshops/services/EditServiceTypeDialog";
+import ServiceTypesPagination from "@/components/workshops/services/ServiceTypePagination";
+import EditServiceTypeDialog from "@/components/workshops/services/EditServiceTypeDialog";
 import ViewServiceTypeDialog from "@/components/workshops/services/ViewServiceTypeDialog";
 import DeleteServiceTypeDialog from "@/components/workshops/services/DeleteServiceTypeDialog";
 import SetPercentageDialog from "@/components/workshops/services/SetPercecntageDialog";
@@ -66,21 +66,32 @@ const ServiceTypesList: React.FC = () => {
   const [isSetPercentageDialogOpen, setIsSetPercentageDialogOpen] =
     useState(false);
 
+  // Initial data load when component mounts
   useEffect(() => {
     if (isAuthorized && currentUser) {
+      console.log("Authorized, fetching service types");
       fetchServiceTypes().catch((err) => {
+        console.error("Error fetching service types:", err);
         toast.error("Failed to fetch service types");
       });
     }
   }, [isAuthorized, currentUser, fetchServiceTypes]);
 
+  // Make sure table re-renders when serviceTypes changes
+  useEffect(() => {
+    console.log(`ServiceTypes updated: ${serviceTypes.length} items`);
+  }, [serviceTypes]);
+
+  // Display any errors from the API
   useEffect(() => {
     if (error) {
       toast.error(error);
     }
   }, [error]);
 
+  // Apply sorting to the service types
   const sortedServiceTypes = useMemo(() => {
+    console.log("Sorting service types:", serviceTypes.length);
     const serviceTypesCopy = [...serviceTypes];
     if (sortConfig.key) {
       serviceTypesCopy.sort((a, b) => {
@@ -111,6 +122,7 @@ const ServiceTypesList: React.FC = () => {
     return serviceTypesCopy;
   }, [serviceTypes, sortConfig]);
 
+  // Filter service types based on search query
   const filteredServiceTypes = useMemo(() => {
     if (!searchQuery) return sortedServiceTypes;
 
@@ -129,6 +141,7 @@ const ServiceTypesList: React.FC = () => {
     });
   }, [sortedServiceTypes, searchQuery]);
 
+  // Get current page of service types
   const paginatedServiceTypes = useMemo(() => {
     const startIndex = (currentPage - 1) * rowsPerPage;
     return filteredServiceTypes.slice(startIndex, startIndex + rowsPerPage);
@@ -136,6 +149,7 @@ const ServiceTypesList: React.FC = () => {
 
   const totalPages = Math.ceil(filteredServiceTypes.length / rowsPerPage);
 
+  // Handle sorting
   const handleSort = (key: keyof ServiceType) => {
     setSortConfig((prevConfig) => {
       if (prevConfig.key === key) {
@@ -148,51 +162,76 @@ const ServiceTypesList: React.FC = () => {
     });
   };
 
+  // Handle edit button click
   const handleEdit = (serviceType: ServiceType) => {
+    console.log("Editing service type:", serviceType);
     setEditServiceTypeData(serviceType);
     setIsEditDialogOpen(true);
   };
 
+  // Handle view button click
   const handleView = (serviceType: ServiceType) => {
+    console.log("Viewing service type:", serviceType);
     setViewServiceTypeData(serviceType);
     setIsViewDialogOpen(true);
   };
 
+  // Handle edit save
   const handleSaveEdit = async () => {
     try {
       await handleEditServiceType(editServiceTypeData);
       toast.success("Service type updated successfully");
       setIsEditDialogOpen(false);
     } catch (error) {
+      console.error("Failed to update service type:", error);
       toast.error("Failed to update service type");
     }
   };
 
+  // Handle delete
   const handleDelete = async () => {
     try {
+      console.log("Deleting service types:", selectedServiceTypes);
       await handleDeleteServiceTypes(selectedServiceTypes);
-      toast.success("Service types deleted successfully");
+      toast.success(
+        selectedServiceTypes.length > 1
+          ? "Service types deleted successfully"
+          : "Service type deleted successfully"
+      );
       setIsDeleteDialogOpen(false);
     } catch (error) {
+      console.error("Failed to delete service types:", error);
       toast.error("Failed to delete service types");
     }
   };
 
+  // Handle percentage update
   const handlePercentageUpdate = async (percentage: number) => {
     try {
-      // If you want to update percentage for multiple service types, call handleSetPercentage for each ID
+      console.log(
+        "Updating percentage for service types:",
+        selectedServiceTypes,
+        percentage
+      );
+      // Update percentage for all selected service types
       await Promise.all(
         selectedServiceTypes.map((id) =>
           handleSetPercentage(id, Number(percentage.toFixed(2)))
         )
       );
-      toast.success("Percentage modifier updated successfully");
+      toast.success(
+        selectedServiceTypes.length > 1
+          ? "Percentage modifiers updated successfully"
+          : "Percentage modifier updated successfully"
+      );
       setIsSetPercentageDialogOpen(false);
     } catch (error) {
+      console.error("Failed to update percentage modifier:", error);
       toast.error("Failed to update percentage modifier");
     }
   };
 
+  // Check if authenticated
   if (authLoading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -221,6 +260,12 @@ const ServiceTypesList: React.FC = () => {
       </div>
     );
   }
+
+  console.log(
+    "Rendering ServiceTypesList with",
+    serviceTypes.length,
+    "service types"
+  );
 
   return (
     <div className="flex h-full w-full flex-col gap-5">
@@ -270,6 +315,7 @@ const ServiceTypesList: React.FC = () => {
         selectedServiceTypes={selectedServiceTypes}
       />
 
+      {/* Edit Dialog */}
       <EditServiceTypeDialog
         isOpen={isEditDialogOpen}
         setIsOpen={setIsEditDialogOpen}
@@ -279,6 +325,7 @@ const ServiceTypesList: React.FC = () => {
         onSuccess={fetchServiceTypes}
       />
 
+      {/* View Dialog */}
       <ViewServiceTypeDialog
         isOpen={isViewDialogOpen}
         setIsOpen={setIsViewDialogOpen}
@@ -291,6 +338,7 @@ const ServiceTypesList: React.FC = () => {
         }}
       />
 
+      {/* Delete Dialog */}
       <DeleteServiceTypeDialog
         isOpen={isDeleteDialogOpen}
         setIsOpen={setIsDeleteDialogOpen}
@@ -299,6 +347,7 @@ const ServiceTypesList: React.FC = () => {
         ServiceTypes={serviceTypes}
       />
 
+      {/* Set Percentage Dialog */}
       <SetPercentageDialog
         isOpen={isSetPercentageDialogOpen}
         setIsOpen={setIsSetPercentageDialogOpen}

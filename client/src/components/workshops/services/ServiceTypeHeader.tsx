@@ -17,7 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ServiceTypeColumnVisibility } from "@/types/serviceTypes";
+import { ServiceTypeColumnVisibility, ServiceType } from "@/types/serviceTypes";
 import { AddServiceTypeDialog } from "./AddServiceTypeDialog";
 import { toast } from "react-hot-toast";
 
@@ -51,6 +51,7 @@ export const ServiceTypesTableHeader: React.FC<
   const [isMobile, setIsMobile] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   // Check if the screen is mobile sized
   useEffect(() => {
@@ -126,15 +127,10 @@ export const ServiceTypesTableHeader: React.FC<
                 Search
               </Button>
               <div className="flex gap-2">
-                <AddServiceTypeDialog
-                  onAddServiceType={onAddServiceType}
-                  isOpen={false}
-                  setIsOpen={function (
-                    value: React.SetStateAction<boolean>
-                  ): void {
-                    throw new Error("Function not implemented.");
-                  }}
-                />
+                <Button onClick={() => setAddDialogOpen(true)} size="sm">
+                  <PlusCircle className="h-4 w-4 mr-1" />
+                  Add
+                </Button>
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -192,13 +188,10 @@ export const ServiceTypesTableHeader: React.FC<
           </div>
 
           <div className="flex items-center gap-2">
-            <AddServiceTypeDialog
-              onAddServiceType={onAddServiceType}
-              isOpen={false}
-              setIsOpen={function (value: React.SetStateAction<boolean>): void {
-                throw new Error("Function not implemented.");
-              }}
-            />
+            <Button onClick={() => setAddDialogOpen(true)}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Service Type
+            </Button>
 
             {selectedServiceTypes.length > 0 && (
               <>
@@ -262,6 +255,14 @@ export const ServiceTypesTableHeader: React.FC<
           </div>
         </>
       )}
+
+      {/* Add Service Type Dialog */}
+      <AddServiceTypeDialog
+        isOpen={addDialogOpen}
+        setIsOpen={setAddDialogOpen}
+        onAddServiceType={onAddServiceType}
+        onSuccess={refreshData}
+      />
     </div>
   );
 };

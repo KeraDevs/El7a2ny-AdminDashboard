@@ -1,4 +1,5 @@
 import React from "react";
+import { ServiceType } from "@/types/serviceTypes";
 import {
   Dialog,
   DialogContent,
@@ -11,20 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Calendar, Wrench, Tag, Info, Clock } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-
-// Define the ServiceType interface
-interface ServiceType {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  duration: number; // in minutes
-  category: string;
-  tags: string[];
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface ViewServiceTypeDialogProps {
   isOpen: boolean;
@@ -41,7 +28,6 @@ const ViewServiceTypeDialog: React.FC<ViewServiceTypeDialogProps> = ({
 }) => {
   if (!serviceType) return null;
 
-  // Format price to currency
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -49,7 +35,6 @@ const ViewServiceTypeDialog: React.FC<ViewServiceTypeDialogProps> = ({
     }).format(price);
   };
 
-  // Format duration to hours and minutes
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -98,7 +83,7 @@ const ViewServiceTypeDialog: React.FC<ViewServiceTypeDialogProps> = ({
               <div>
                 <h4 className="text-sm font-medium">Description</h4>
                 <p className="text-sm text-muted-foreground">
-                  {serviceType.description}
+                  {serviceType.description || "No description provided"}
                 </p>
               </div>
             </div>
@@ -107,10 +92,16 @@ const ViewServiceTypeDialog: React.FC<ViewServiceTypeDialogProps> = ({
             <div className="flex items-start gap-2">
               <Tag className="h-4 w-4 text-green-500 mt-0.5" />
               <div>
-                <h4 className="text-sm font-medium">Price</h4>
+                <h4 className="text-sm font-medium">Base Price</h4>
                 <p className="text-sm font-semibold">
-                  {formatPrice(serviceType.price)}
+                  {formatPrice(serviceType.basePrice || 0)}
                 </p>
+                {serviceType.percentageModifier &&
+                  serviceType.percentageModifier !== 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      With {serviceType.percentageModifier}% modifier
+                    </p>
+                  )}
               </div>
             </div>
 
@@ -120,7 +111,7 @@ const ViewServiceTypeDialog: React.FC<ViewServiceTypeDialogProps> = ({
               <div>
                 <h4 className="text-sm font-medium">Duration</h4>
                 <p className="text-sm">
-                  {formatDuration(serviceType.duration)}
+                  {formatDuration(serviceType.estimatedDuration || 0)}
                 </p>
               </div>
             </div>
@@ -130,25 +121,32 @@ const ViewServiceTypeDialog: React.FC<ViewServiceTypeDialogProps> = ({
               <Wrench className="h-4 w-4 text-indigo-500 mt-0.5" />
               <div>
                 <h4 className="text-sm font-medium">Category</h4>
-                <p className="text-sm">{serviceType.category}</p>
+                <p className="text-sm capitalize">{serviceType.category}</p>
               </div>
             </div>
 
-            {/* Tags */}
+            {/* Compatible Vehicle Types */}
             <div className="flex items-start gap-2">
               <Tag className="h-4 w-4 text-purple-500 mt-0.5" />
               <div>
-                <h4 className="text-sm font-medium">Tags</h4>
+                <h4 className="text-sm font-medium">Compatible Vehicles</h4>
                 <div className="flex flex-wrap gap-1.5 mt-1">
-                  {serviceType.tags && serviceType.tags.length > 0 ? (
-                    serviceType.tags.map((tag, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))
+                  {serviceType.compatibleVehicleTypes &&
+                  serviceType.compatibleVehicleTypes.length > 0 ? (
+                    serviceType.compatibleVehicleTypes.map(
+                      (vehicleType, index) => (
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className="text-xs capitalize"
+                        >
+                          {vehicleType}
+                        </Badge>
+                      )
+                    )
                   ) : (
                     <span className="text-sm text-muted-foreground">
-                      No tags
+                      All vehicle types
                     </span>
                   )}
                 </div>
