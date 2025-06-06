@@ -64,7 +64,10 @@ export const sidebarSections: SidebarSection[] = [
   {
     name: "Wallets",
     icon: <Wallet className="h-4 w-4" />,
-    href: "/wallets",
+    subsections: [
+      { name: "Users", href: "/wallets/users" },
+      { name: "Workshops", href: "/wallets/workshops" },
+    ],
   },
   {
     name: "Chats",
