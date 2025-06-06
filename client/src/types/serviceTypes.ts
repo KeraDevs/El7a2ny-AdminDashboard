@@ -1,78 +1,45 @@
+// serviceTypes.ts - Complete Rewrite
+// This file defines the expected structure of service types from the API
+
+export interface ServiceTypePercentage {
+  id: string;
+  service_type_id: string;
+  percentage: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ServiceType {
-  percentage: any;
+  isActive: any;
   id: string;
   name: string;
-  description: string;
-  basePrice: number;
-  percentageModifier?: number;
-  category: "maintenance" | "repair" | "inspection" | "custom";
-  estimatedDuration: number; 
-  createdAt: string;
-  updatedAt: string;
-  isActive: boolean;
-  requiresSpecialist?: boolean;
-  compatibleVehicleTypes?: string[];
-  price: number;
-  duration: number;
-  tags: string[];
+  name_ar?: string;
+  description?: string;
+  description_ar?: string;
+  service_category: string;
+  created_at: string;
+  updated_at: string;
+  service_types_percentage?: ServiceTypePercentage;
 }
 
-export interface ServiceTypeDialogProps {
-  isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  onSuccess?: () => Promise<void>;
-}
-
-export interface AddServiceTypeDialogProps extends ServiceTypeDialogProps {
-  onAddServiceType: (serviceTypeData: Partial<ServiceType>) => Promise<void>;\
-  isOpen: boolean;
-setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-export interface EditServiceTypeDialogProps extends ServiceTypeDialogProps {
-  serviceTypeData: Partial<ServiceType>;
-  setServiceTypeData: React.Dispatch<
-    React.SetStateAction<Partial<ServiceType>>
-  >;
-  onSave: () => Promise<void>;
-  loading?: boolean;
-}
-
-export interface ViewServiceTypeDialogProps extends ServiceTypeDialogProps {
-  serviceTypeData: ServiceType | null;
-  onEdit: () => void;
-}
-
-export interface DeleteServiceTypeDialogProps extends ServiceTypeDialogProps {
-  serviceTypeIds: string[];
-  onDelete: () => Promise<void>;
-  loading?: boolean;
-  ServiceTypes: ServiceType[];
-}
-
-export interface SetPercentageDialogProps extends ServiceTypeDialogProps {
-  serviceTypeIds: string[];
-  onSetPercentage: (percentage: number) => Promise<void>;
-  loading?: boolean;
-  ServiceTypes: ServiceType[];
-
-}
-
+// Column visibility settings for service types table
 export interface ServiceTypeColumnVisibility {
+  basePrice: any;
   name: boolean;
-  description: boolean;
-  basePrice: boolean;
-  category: boolean;
-  estimatedDuration: boolean;
-  createdAt?: boolean;
-  isActive: boolean;
+  description?: boolean;
+  percentage?: boolean;
+  category?: boolean;
+  created_at?: boolean;
+  updated_at?: boolean;
 }
 
+// Sort configuration for service types
 export interface SortConfig {
   key: keyof ServiceType | null;
   direction: "asc" | "desc";
 }
 
+// Props interface for the ServiceTypesTable component
 export interface ServiceTypesTableProps {
   loading: boolean;
   paginatedServiceTypes: ServiceType[];
@@ -90,30 +57,79 @@ export interface ServiceTypesTableProps {
   onSetPercentage: () => void;
 }
 
-// For hook to manage service types
-export interface UseServiceTypesReturn {
+// API response structure for service types
+export interface ServiceTypesResponse {
   serviceTypes: ServiceType[];
-  selectedServiceTypes: string[];
-  loading: boolean;
-  error: string | null;
-  editingServiceType: ServiceType | null;
-  openServiceTypeDialog: boolean;
-  fetchServiceTypes: () => Promise<void>;
-  handleAddServiceType: (
-    serviceTypeData: Partial<ServiceType>
-  ) => Promise<void>;
-  handleEditServiceType: (
-    serviceTypeData: Partial<ServiceType>
-  ) => Promise<void>;
-  handleDeleteServiceTypes: () => Promise<void>;
-  handleSetPercentage: (percentage: number) => Promise<void>;
-  handleSelectAll: (checked: boolean) => void;
-  handleSelectServiceType: (serviceTypeId: string) => void;
-  setEditingServiceType: React.Dispatch<
-    React.SetStateAction<ServiceType | null>
-  >;
-  setOpenServiceTypeDialog: React.Dispatch<React.SetStateAction<boolean>>;
-  setError: React.Dispatch<React.SetStateAction<string | null>>;
+  total: number;
+  hasMore: boolean;
 }
 
-export default ServiceType;
+// New service type submission data structure
+export interface CreateServiceTypeData {
+  name: string;
+  name_ar?: string;
+  description?: string;
+  description_ar?: string;
+  service_category: string;
+}
+
+// Update service type data structure
+export interface UpdateServiceTypeData {
+  name?: string;
+  name_ar?: string;
+  description?: string;
+  description_ar?: string;
+  service_category?: string;
+}
+
+// Set percentage request data structure
+export interface SetPercentageData {
+  percentage: number;
+}
+
+// Props interface for the EditServiceTypeDialog component
+export interface EditServiceTypeDialogProps {
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  serviceTypeData: Partial<ServiceType>;
+  setServiceTypeData: React.Dispatch<
+    React.SetStateAction<Partial<ServiceType>>
+  >;
+  onSave: () => Promise<void>;
+  loading?: boolean;
+  onSuccess?: () => Promise<void>;
+}
+
+// Props interface for the AddServiceTypeDialog component
+export interface AddServiceTypeDialogProps {
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  onAddServiceType: (serviceTypeData: CreateServiceTypeData) => Promise<void>;
+  onSuccess?: () => Promise<void>;
+}
+
+// Props interface for the ViewServiceTypeDialog component
+export interface ViewServiceTypeDialogProps {
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  serviceType: ServiceType | null;
+  onEdit: () => void;
+}
+
+// Props interface for the DeleteServiceTypeDialog component
+export interface DeleteServiceTypeDialogProps {
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  serviceTypeIds: string[];
+  ServiceTypes: ServiceType[];
+  onDelete: () => Promise<void>;
+}
+
+// Props interface for the SetPercentageDialog component
+export interface SetPercentageDialogProps {
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  serviceTypeIds: string[];
+  ServiceTypes: ServiceType[];
+  onSetPercentage: (percentage: number) => Promise<void>;
+}

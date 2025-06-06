@@ -111,7 +111,7 @@ const SetPercentageDialog: React.FC<SetPercentageDialogProps> = ({
                   {new Intl.NumberFormat("en-US", {
                     style: "currency",
                     currency: "EGP",
-                  }).format(singleServiceType.basePrice || 0)}
+                  }).format(singleServiceType.price || 0)}
                 </div>
               </div>
             </div>
@@ -164,25 +164,14 @@ const SetPercentageDialog: React.FC<SetPercentageDialogProps> = ({
               singleServiceType && (
                 <div className="mt-4 p-3 bg-muted rounded-md">
                   <p className="text-sm text-muted-foreground">
-                    New calculated price:
+                    New percentage:
                   </p>
-                  <p className="text-base font-medium">
-                    {new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: "EGP",
-                    }).format(
-                      (singleServiceType.basePrice || 0) *
-                        (1 + Number(percentage) / 100)
-                    )}
-                  </p>
+                  <p className="text-base font-medium">{percentage}%</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    (Base price{" "}
-                    {singleServiceType.basePrice
-                      ? `${singleServiceType.basePrice} EGP`
-                      : "not set"}
-                    {Number(percentage) !== 0
-                      ? ` with ${percentage}% modifier)`
-                      : ")"}
+                    (Current percentage:{" "}
+                    {singleServiceType.service_types_percentage?.percentage ||
+                      "0"}
+                    %)
                   </p>
                 </div>
               )}

@@ -47,8 +47,9 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
   const visibleColumnCount =
     Object.values(columnVisibility).filter(Boolean).length + 2;
 
-  // Get category badge
+  // Get category badge - updated to match API response format
   const getCategoryBadge = (category: string) => {
+    // API returns service_category field rather than category
     switch (category?.toLowerCase()) {
       case "maintenance":
         return (
@@ -68,22 +69,31 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
             <Wrench className="h-3.5 w-3.5 mr-1" /> Repair
           </Badge>
         );
-      case "inspection":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-green-100 text-green-800 border-green-300"
-          >
-            <FileText className="h-3.5 w-3.5 mr-1" /> Inspection
-          </Badge>
-        );
-      case "custom":
+      case "tuning":
         return (
           <Badge
             variant="outline"
             className="bg-purple-100 text-purple-800 border-purple-300"
           >
-            <Tag className="h-3.5 w-3.5 mr-1" /> Custom
+            <Wrench className="h-3.5 w-3.5 mr-1" /> Tuning
+          </Badge>
+        );
+      case "emergency":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-red-100 text-red-800 border-red-300"
+          >
+            <FileText className="h-3.5 w-3.5 mr-1" /> Emergency
+          </Badge>
+        );
+      case "check_car_services":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-green-100 text-green-800 border-green-300"
+          >
+            <FileText className="h-3.5 w-3.5 mr-1" /> Check Car Services
           </Badge>
         );
       default:
@@ -167,7 +177,7 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
             {columnVisibility.basePrice && (
               <TableHead
                 className="cursor-pointer"
-                onClick={() => handleSort("basePrice")}
+                onClick={() => handleSort("base_price")}
               >
                 <div className="flex items-center gap-1">
                   Base Price
@@ -296,10 +306,10 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
                         <Wrench className="h-4 w-4" />
                       </div>
                       {serviceType.name}
-                      {(serviceType.percentageModifier ?? 0) > 0 && (
+                      {serviceType.service_types_percentage?.percentage && (
                         <Badge variant="secondary" className="ml-2">
-                          <PercentIcon className="h-3 w-3 mr-1" />+
-                          {serviceType.percentageModifier ?? 0}%
+                          <PercentIcon className="h-3 w-3 mr-1" />
+                          {serviceType.service_types_percentage.percentage}%
                         </Badge>
                       )}
                     </div>
@@ -320,14 +330,17 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
                     <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
                       <DollarSign className="h-3.5 w-3.5" />
                       <span className="font-mono">
-                        {formatPrice(serviceType.basePrice)}
+                        {/* API doesn't provide basePrice, using placeholder for now */}
+                        {serviceType.service_types_percentage?.percentage ||
+                          "N/A"}
+                        %
                       </span>
                     </div>
                   </TableCell>
                 )}
                 {columnVisibility.category && (
                   <TableCell>
-                    {getCategoryBadge(serviceType.category)}
+                    {getCategoryBadge(serviceType.service_category)}
                   </TableCell>
                 )}
                 {columnVisibility.estimatedDuration && (
@@ -335,34 +348,27 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
                     <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
                       <Clock className="h-3.5 w-3.5" />
                       <span>
-                        {formatDuration(serviceType.estimatedDuration)}
+                        {/* API doesn't provide duration, using placeholder */}
+                        N/A
                       </span>
                     </div>
                   </TableCell>
                 )}
                 {columnVisibility.isActive && (
                   <TableCell>
-                    {serviceType.isActive !== false ? (
-                      <Badge
-                        variant="outline"
-                        className="bg-green-100 text-green-800 border-green-300"
-                      >
-                        <CheckCircle className="h-3.5 w-3.5 mr-1" /> Active
-                      </Badge>
-                    ) : (
-                      <Badge
-                        variant="outline"
-                        className="bg-red-100 text-red-800 border-red-300"
-                      >
-                        <XCircle className="h-3.5 w-3.5 mr-1" /> Inactive
-                      </Badge>
-                    )}
+                    {/* API doesn't provide active status, assuming all are active */}
+                    <Badge
+                      variant="outline"
+                      className="bg-green-100 text-green-800 border-green-300"
+                    >
+                      <CheckCircle className="h-3.5 w-3.5 mr-1" /> Active
+                    </Badge>
                   </TableCell>
                 )}
                 {columnVisibility.createdAt && (
                   <TableCell>
-                    {serviceType.createdAt
-                      ? new Date(serviceType.createdAt).toLocaleDateString()
+                    {serviceType.created_at
+                      ? new Date(serviceType.created_at).toLocaleDateString()
                       : "N/A"}
                   </TableCell>
                 )}

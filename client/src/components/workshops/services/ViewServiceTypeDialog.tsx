@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Edit, Calendar, Wrench, Tag, Info, Clock } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
+// Updated interface to match the actual data structure
 interface ViewServiceTypeDialogProps {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -28,6 +29,7 @@ const ViewServiceTypeDialog: React.FC<ViewServiceTypeDialogProps> = ({
 }) => {
   if (!serviceType) return null;
 
+  // Format price to currency
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -35,6 +37,7 @@ const ViewServiceTypeDialog: React.FC<ViewServiceTypeDialogProps> = ({
     }).format(price);
   };
 
+  // Format duration to hours and minutes
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -92,16 +95,10 @@ const ViewServiceTypeDialog: React.FC<ViewServiceTypeDialogProps> = ({
             <div className="flex items-start gap-2">
               <Tag className="h-4 w-4 text-green-500 mt-0.5" />
               <div>
-                <h4 className="text-sm font-medium">Base Price</h4>
+                <h4 className="text-sm font-medium">Percentage</h4>
                 <p className="text-sm font-semibold">
-                  {formatPrice(serviceType.basePrice || 0)}
+                  {serviceType.service_types_percentage?.percentage || "0"}%
                 </p>
-                {serviceType.percentageModifier &&
-                  serviceType.percentageModifier !== 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      With {serviceType.percentageModifier}% modifier
-                    </p>
-                  )}
               </div>
             </div>
 
@@ -109,9 +106,9 @@ const ViewServiceTypeDialog: React.FC<ViewServiceTypeDialogProps> = ({
             <div className="flex items-start gap-2">
               <Clock className="h-4 w-4 text-amber-500 mt-0.5" />
               <div>
-                <h4 className="text-sm font-medium">Duration</h4>
+                <h4 className="text-sm font-medium">Last Updated</h4>
                 <p className="text-sm">
-                  {formatDuration(serviceType.estimatedDuration || 0)}
+                  {new Date(serviceType.updated_at).toLocaleDateString()}
                 </p>
               </div>
             </div>
@@ -121,33 +118,27 @@ const ViewServiceTypeDialog: React.FC<ViewServiceTypeDialogProps> = ({
               <Wrench className="h-4 w-4 text-indigo-500 mt-0.5" />
               <div>
                 <h4 className="text-sm font-medium">Category</h4>
-                <p className="text-sm capitalize">{serviceType.category}</p>
+                <p className="text-sm capitalize">
+                  {serviceType.service_category}
+                </p>
               </div>
             </div>
 
-            {/* Compatible Vehicle Types */}
+            {/* Languages */}
             <div className="flex items-start gap-2">
               <Tag className="h-4 w-4 text-purple-500 mt-0.5" />
               <div>
-                <h4 className="text-sm font-medium">Compatible Vehicles</h4>
+                <h4 className="text-sm font-medium">Languages</h4>
                 <div className="flex flex-wrap gap-1.5 mt-1">
-                  {serviceType.compatibleVehicleTypes &&
-                  serviceType.compatibleVehicleTypes.length > 0 ? (
-                    serviceType.compatibleVehicleTypes.map(
-                      (vehicleType, index) => (
-                        <Badge
-                          key={index}
-                          variant="outline"
-                          className="text-xs capitalize"
-                        >
-                          {vehicleType}
-                        </Badge>
-                      )
-                    )
-                  ) : (
-                    <span className="text-sm text-muted-foreground">
-                      All vehicle types
-                    </span>
+                  {serviceType.name_ar && (
+                    <Badge variant="outline" className="text-xs">
+                      Arabic Name: {serviceType.name_ar}
+                    </Badge>
+                  )}
+                  {serviceType.description_ar && (
+                    <Badge variant="outline" className="text-xs">
+                      Arabic Description Available
+                    </Badge>
                   )}
                 </div>
               </div>
@@ -159,7 +150,7 @@ const ViewServiceTypeDialog: React.FC<ViewServiceTypeDialogProps> = ({
               <div>
                 <h4 className="text-sm font-medium">Created</h4>
                 <p className="text-sm">
-                  {new Date(serviceType.createdAt).toLocaleDateString(
+                  {new Date(serviceType.created_at).toLocaleDateString(
                     undefined,
                     {
                       year: "numeric",

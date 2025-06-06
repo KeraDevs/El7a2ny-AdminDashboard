@@ -7,11 +7,11 @@ import { Workshop } from "@/types/workshopTypes";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
 
-import { WorkshopsTableHeader } from "@/components/workshops/WorkshopsTableHeader";
-import { WorkshopsTable } from "@/components/workshops/WorkShopsTable";
-import { WorkshopsPagination } from "@/components/workshops/WorkshopsPagination";
-import { EditWorkshopDialog } from "@/components/workshops/EditWorkshopDialog";
-import { ViewWorkshopDialog } from "@/components/workshops/ViewWorkshopDialog";
+import { WorkshopsTableHeader } from "@/components/workshops/workshops/WorkshopsTableHeader";
+import { WorkshopsTable } from "@/components/workshops/workshops/WorkShopsTable";
+import { WorkshopsPagination } from "@/components/workshops/workshops/WorkshopsPagination";
+import { EditWorkshopDialog } from "@/components/workshops/workshops/EditWorkshopDialog";
+import { ViewWorkshopDialog } from "@/components/workshops/workshops/ViewWorkshopDialog";
 import { ColumnVisibility } from "@/types/workshopTypes";
 import { SortConfig } from "@/types/workshopTypes";
 

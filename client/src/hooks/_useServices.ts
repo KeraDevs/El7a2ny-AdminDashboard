@@ -1,5 +1,11 @@
 import { useState, useCallback } from "react";
-import { ServiceType } from "@/types/serviceTypes";
+import {
+  ServiceType,
+  ServiceTypesResponse,
+  CreateServiceTypeData,
+  UpdateServiceTypeData,
+  SetPercentageData,
+} from "@/types/serviceTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_KEY, API_BASE_URL } from "@/utils/config";
 import toast from "react-hot-toast";
@@ -15,7 +21,7 @@ export interface UseServiceTypesReturn {
   fetchServiceTypeById: (id: string) => Promise<ServiceType | null>;
   fetchServiceTypesByCategory: (category: string) => Promise<void>;
   handleAddServiceType: (
-    serviceTypeData: Partial<ServiceType>
+    serviceTypeData: CreateServiceTypeData
   ) => Promise<void>;
   handleEditServiceType: (
     serviceTypeData: Partial<ServiceType>
@@ -43,7 +49,9 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
     useState<ServiceType | null>(null);
   const [openServiceTypeDialog, setOpenServiceTypeDialog] = useState(false);
 
-  // Fetch all service types
+  /**
+   * Fetch all service types from the API
+   */
   const fetchServiceTypes = useCallback(async () => {
     if (!currentUser) {
       setError("Authentication required");
@@ -60,7 +68,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
         throw new Error("API key is missing");
       }
 
-      // Using the correct endpoint from Swagger: GET /services/types
+      // Get all service types
       const response = await fetch(`${API_BASE_URL}/services/types`, {
         headers: {
           "x-api-key": API_KEY,
@@ -79,7 +87,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
 
       // Handle the specific response format from the API
       if (result.serviceTypes && Array.isArray(result.serviceTypes)) {
-        // Format detected in console: { serviceTypes: Array(10), total: 36, hasMore: true }
+        // Format: { serviceTypes: Array(10), total: 36, hasMore: true }
         console.log(
           `Found ${result.serviceTypes.length} service types out of total: ${result.total}`
         );
@@ -106,7 +114,9 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
     }
   }, [currentUser]);
 
-  // Fetch service type by ID
+  /**
+   * Fetch a service type by ID
+   */
   const fetchServiceTypeById = useCallback(
     async (id: string): Promise<ServiceType | null> => {
       if (!currentUser) {
@@ -123,7 +133,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
           throw new Error("API key is missing");
         }
 
-        // Using the correct endpoint from Swagger: GET /services/types/{id}
+        // Get specific service type
         const response = await fetch(`${API_BASE_URL}/services/types/${id}`, {
           headers: {
             "x-api-key": API_KEY,
@@ -138,7 +148,8 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
         }
 
         const result = await response.json();
-        return result.type || result; // Handle both response formats
+        // The API might return the service type directly or nested in a property
+        return result.type || result || null;
       } catch (error) {
         console.error("Error fetching service type:", error);
         toast.error("Error fetching service type!");
@@ -155,7 +166,9 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
     [currentUser]
   );
 
-  // Fetch service types by category
+  /**
+   * Fetch service types by category
+   */
   const fetchServiceTypesByCategory = useCallback(
     async (category: string) => {
       if (!currentUser) {
@@ -172,7 +185,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
           throw new Error("API key is missing");
         }
 
-        // Using the correct endpoint from Swagger: GET /services/types/category/{category}
+        // Get service types by category
         const response = await fetch(
           `${API_BASE_URL}/services/types/category/${category}`,
           {
@@ -190,7 +203,17 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
         }
 
         const result = await response.json();
-        setServiceTypes(result.types || []);
+        // The API might return serviceTypes or types property
+        if (result.serviceTypes && Array.isArray(result.serviceTypes)) {
+          setServiceTypes(result.serviceTypes);
+        } else if (result.types && Array.isArray(result.types)) {
+          setServiceTypes(result.types);
+        } else if (Array.isArray(result)) {
+          setServiceTypes(result);
+        } else {
+          console.warn("Unexpected response format:", result);
+          setServiceTypes([]);
+        }
       } catch (error) {
         console.error("Error fetching service types by category:", error);
         toast.error("Error fetching service types by category!");
@@ -207,9 +230,11 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
     [currentUser]
   );
 
-  // Add service type
+  /**
+   * Add a new service type
+   */
   const handleAddServiceType = useCallback(
-    async (serviceTypeData: Partial<ServiceType>): Promise<void> => {
+    async (serviceTypeData: CreateServiceTypeData): Promise<void> => {
       if (!currentUser) {
         throw new Error("Authentication required");
       }
@@ -223,7 +248,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
           throw new Error("API key is missing");
         }
 
-        // Using the correct endpoint from Swagger: POST /services/types
+        // Create service type
         const response = await fetch(`${API_BASE_URL}/services/types`, {
           method: "POST",
           headers: {
@@ -267,7 +292,9 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
     [currentUser, fetchServiceTypes]
   );
 
-  // Edit service type
+  /**
+   * Edit a service type
+   */
   const handleEditServiceType = useCallback(
     async (serviceTypeData: Partial<ServiceType>): Promise<void> => {
       if (!serviceTypeData.id) {
@@ -287,7 +314,23 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
           throw new Error("API key is missing");
         }
 
-        // Using the correct endpoint from Swagger: PATCH /services/types/{id}
+        // Create update data object with only the fields that can be updated
+        const updateData: UpdateServiceTypeData = {
+          name: serviceTypeData.name,
+          name_ar: serviceTypeData.name_ar,
+          description: serviceTypeData.description,
+          description_ar: serviceTypeData.description_ar,
+          service_category: serviceTypeData.service_category,
+        };
+
+        // Clean undefined values from the update data
+        Object.keys(updateData).forEach((key) => {
+          if (updateData[key as keyof UpdateServiceTypeData] === undefined) {
+            delete updateData[key as keyof UpdateServiceTypeData];
+          }
+        });
+
+        // Update service type
         const response = await fetch(
           `${API_BASE_URL}/services/types/${serviceTypeData.id}`,
           {
@@ -297,7 +340,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
               "x-api-key": API_KEY,
               Authorization: `Bearer ${authToken}`,
             } as HeadersInit,
-            body: JSON.stringify(serviceTypeData),
+            body: JSON.stringify(updateData),
           }
         );
 
@@ -331,7 +374,9 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
     [currentUser]
   );
 
-  // Set percentage for service type
+  /**
+   * Set percentage for a service type
+   */
   const handleSetPercentage = useCallback(
     async (id: string, percentage: number): Promise<void> => {
       if (!currentUser) {
@@ -347,7 +392,11 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
           throw new Error("API key is missing");
         }
 
-        // Using the correct endpoint from Swagger: PATCH /service-types/{id}/percentage
+        const percentageData: SetPercentageData = {
+          percentage: percentage,
+        };
+
+        // Update service type percentage
         const response = await fetch(
           `${API_BASE_URL}/service-types/${id}/percentage`,
           {
@@ -357,7 +406,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
               "x-api-key": API_KEY,
               Authorization: `Bearer ${authToken}`,
             } as HeadersInit,
-            body: JSON.stringify({ percentage }),
+            body: JSON.stringify(percentageData),
           }
         );
 
@@ -369,11 +418,30 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
 
         // Update the service types array with the updated percentage
         setServiceTypes((prevServiceTypes) =>
-          prevServiceTypes.map((serviceType) =>
-            serviceType.id === id
-              ? { ...serviceType, percentageModifier: percentage }
-              : serviceType
-          )
+          prevServiceTypes.map((serviceType) => {
+            if (serviceType.id === id) {
+              const updatedServiceType = { ...serviceType };
+
+              // Create or update service_types_percentage
+              if (updatedServiceType.service_types_percentage) {
+                updatedServiceType.service_types_percentage = {
+                  ...updatedServiceType.service_types_percentage,
+                  percentage: percentage.toString(),
+                };
+              } else {
+                updatedServiceType.service_types_percentage = {
+                  id: "", // Will be replaced by real ID
+                  service_type_id: id,
+                  percentage: percentage.toString(),
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                };
+              }
+
+              return updatedServiceType;
+            }
+            return serviceType;
+          })
         );
 
         toast.success("Percentage updated successfully");
@@ -391,7 +459,9 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
     [currentUser]
   );
 
-  // Delete service types
+  /**
+   * Delete service types
+   */
   const handleDeleteServiceTypes = useCallback(
     async (serviceTypeIds: string[]): Promise<void> => {
       if (!currentUser) {
@@ -411,7 +481,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
           throw new Error("API key is missing");
         }
 
-        // Using the correct endpoint from Swagger: DELETE /services/types/{id}
+        // Delete each service type
         const deletePromises = serviceTypeIds.map(async (serviceTypeId) => {
           const response = await fetch(
             `${API_BASE_URL}/services/types/${serviceTypeId}`,
@@ -467,7 +537,9 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
     [currentUser]
   );
 
-  // Handle select all service types
+  /**
+   * Select all service types
+   */
   const handleSelectAll = useCallback(
     (checked: boolean) => {
       setSelectedServiceTypes(
@@ -477,7 +549,9 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
     [serviceTypes]
   );
 
-  // Handle select individual service type
+  /**
+   * Select or deselect a service type
+   */
   const handleSelectServiceType = useCallback((serviceTypeId: string) => {
     setSelectedServiceTypes((prev) =>
       prev.includes(serviceTypeId)
