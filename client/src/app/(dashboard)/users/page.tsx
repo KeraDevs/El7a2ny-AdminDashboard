@@ -340,7 +340,7 @@ const UsersList: React.FC = () => {
   }
   return (
     <div
-      className="container mx-auto p-6 space-y-6 overflow-y-auto"
+      className="container mx-auto p-4 space-y-4 overflow-y-auto"
       style={{ scrollbarGutter: "stable" }}
     >
       <motion.div
@@ -357,27 +357,22 @@ const UsersList: React.FC = () => {
           </p>
         </div>
       </motion.div>
-
-      <UsersStats users={users} />
-
+      <UsersStats users={users} />{" "}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
         className="space-y-4"
       >
-        <CardContent className="p-0">
-          <div className="p-6 pb-0">
-            <UsersTableHeader
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              columnVisibility={columnVisibility}
-              setColumnVisibility={setColumnVisibility}
-              onAddUser={handleAddUser}
-              refreshData={fetchUsers}
-            />
-          </div>
-
+        <Card className="overflow-hidden">
+          <UsersTableHeader
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            columnVisibility={columnVisibility}
+            setColumnVisibility={setColumnVisibility}
+            onAddUser={handleAddUser}
+            refreshData={fetchUsers}
+          />
           <UsersTable
             loading={loading}
             paginatedUsers={paginatedUsers}
@@ -392,9 +387,8 @@ const UsersList: React.FC = () => {
             searchQuery={searchQuery}
             users={users}
             onDelete={handleDelete}
-          />
-
-          <div className="p-6 pt-0">
+          />{" "}
+          <div className="p-4 pt-0">
             <UsersPagination
               currentPage={currentPage}
               setCurrentPage={setCurrentPage}
@@ -405,9 +399,8 @@ const UsersList: React.FC = () => {
               selectedUsers={selectedUsers}
             />
           </div>
-        </CardContent>
+        </Card>
       </motion.div>
-
       <EditUserDialog
         isOpen={isEditDialogOpen}
         setIsOpen={setIsEditDialogOpen}
@@ -415,7 +408,6 @@ const UsersList: React.FC = () => {
         setUserData={setEditUserData}
         onSave={handleSaveEdit}
       />
-
       <ViewUserDialog
         isOpen={isViewDialogOpen}
         setIsOpen={setIsViewDialogOpen}

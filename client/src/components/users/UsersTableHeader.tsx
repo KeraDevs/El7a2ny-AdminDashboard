@@ -69,9 +69,8 @@ export const UsersTableHeader: React.FC<UsersTableHeaderProps> = ({
       setIsRefreshing(false);
     }
   };
-
   return (
-    <div className="flex flex-col md:flex-row items-center justify-between bg-gradient-to-r from-muted/50 to-muted dark:from-background/50 dark:to-background p-4 border-b border-border/50">
+    <div className="flex flex-col md:flex-row items-center justify-between p-4 border-b border-border/50">
       {/* Search bar - conditionally expanded on mobile */}
       {isMobile ? (
         <>
