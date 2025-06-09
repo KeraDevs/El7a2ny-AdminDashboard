@@ -75,7 +75,7 @@ const RequestDetailsDialog = ({
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Workshop:</span>
               <span className="text-sm flex items-center gap-1">
-                <Building className="h-4 w-4" />{" "}
+                <Building className="h-4 w-4" />
                 {request.workshop || "Not assigned"}
               </span>
             </div>

@@ -107,7 +107,7 @@ const SetPercentageDialog: React.FC<SetPercentageDialogProps> = ({
                   {singleServiceType.name}
                 </h3>
                 <div className="text-sm text-muted-foreground">
-                  Base Price:{" "}
+                  Base Price:
                   {new Intl.NumberFormat("en-US", {
                     style: "currency",
                     currency: "EGP",
@@ -168,7 +168,7 @@ const SetPercentageDialog: React.FC<SetPercentageDialogProps> = ({
                   </p>
                   <p className="text-base font-medium">{percentage}%</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    (Current percentage:{" "}
+                    (Current percentage:
                     {singleServiceType.service_types_percentage?.percentage ||
                       "0"}
                     %)

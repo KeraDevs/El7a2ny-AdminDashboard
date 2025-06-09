@@ -41,11 +41,10 @@ export const UsersTable: React.FC<UsersTableProps> = ({
 }) => {
   const visibleColumnCount =
     Object.values(columnVisibility).filter(Boolean).length + 2;
-
   return (
     <div className="rounded-md border">
       <Table>
-        <TableHeader className="bg-gray-50 dark:bg-gray-800">
+        <TableHeader className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700">
           <TableRow>
             <TableHead className="w-12">
               <Checkbox
@@ -188,7 +187,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
             paginatedUsers.map((user) => (
               <TableRow
                 key={user.id}
-                className="hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 dark:hover:from-gray-800/50 dark:hover:to-gray-700/50 transition-all duration-200"
               >
                 <TableCell>
                   <Checkbox
@@ -199,10 +198,12 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                 {columnVisibility.name && (
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm shadow-md">
                         {user.fullName.charAt(0)}
                       </div>
-                      {user.fullName}
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {user.fullName}
+                      </span>
                     </div>
                   </TableCell>
                 )}
@@ -210,7 +211,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                   <TableCell>
                     <a
                       href={`mailto:${user.email}`}
-                      className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline w-fit"
+                      className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline w-fit transition-colors duration-200"
                     >
                       <Mail className="h-3.5 w-3.5" />
                       {user.email}
@@ -221,10 +222,10 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                   <TableCell>
                     <a
                       href={`tel:${user.phone}`}
-                      className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:underline w-fit"
+                      className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:underline w-fit transition-colors duration-200"
                     >
                       <Phone className="h-3.5 w-3.5" />
-                      <code className="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md text-xs font-mono">
+                      <code className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 px-2 py-0.5 rounded-md text-xs font-mono border border-gray-200 dark:border-gray-600">
                         {user.phone}
                       </code>
                     </a>
@@ -268,7 +269,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                       variant="ghost"
                       size="icon"
                       onClick={() => handleEdit(user)}
-                      className="hover:bg-blue-100 hover:text-blue-800"
+                      className="hover:bg-gradient-to-br hover:from-blue-100 hover:to-blue-200 hover:text-blue-800 transition-all duration-200"
                     >
                       <Pencil className="h-4 w-4" />
                       <span className="sr-only">Edit</span>
@@ -277,7 +278,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                       variant="ghost"
                       size="icon"
                       onClick={() => handleView(user)}
-                      className="hover:bg-green-100 hover:text-green-800"
+                      className="hover:bg-gradient-to-br hover:from-green-100 hover:to-green-200 hover:text-green-800 transition-all duration-200"
                     >
                       <Eye className="h-4 w-4" />
                       <span className="sr-only">View</span>
@@ -289,22 +290,26 @@ export const UsersTable: React.FC<UsersTableProps> = ({
           )}
         </TableBody>
       </Table>
-
       {selectedUsers.length > 0 && (
-        <div className="flex items-center justify-between border-t p-4">
-          <div className="text-sm text-muted-foreground">
-            {selectedUsers.length} users selected
+        <div className="w-full bg-gray-100 dark:bg-gray-800 border-t">
+          <div className="flex items-center justify-between p-4">
+            <div className="text-sm text-muted-foreground">
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                {selectedUsers.length}
+              </span>
+              users selected
+            </div>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={onDelete}
+              disabled={loading}
+              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 transition-all duration-200"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Selected
+            </Button>
           </div>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={onDelete}
-            disabled={loading}
-            className="transition-all hover:bg-red-600"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete Selected
-          </Button>
         </div>
       )}
     </div>

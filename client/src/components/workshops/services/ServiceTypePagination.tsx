@@ -39,17 +39,16 @@ export const ServiceTypesPagination: React.FC<ServiceTypesPaginationProps> = ({
   return (
     <div className="flex items-center justify-between">
       <div className="text-sm text-muted-foreground">
-        Showing{" "}
+        Showing
         <strong>
           {Math.min(
             rowsPerPage,
             filteredServiceTypes.length - (currentPage - 1) * rowsPerPage
           )}
-        </strong>{" "}
+        </strong>
         of <strong>{filteredServiceTypes.length}</strong> service types
         {selectedServiceTypes.length > 0 && (
           <span>
-            {" "}
             (<strong>{selectedServiceTypes.length}</strong> selected)
           </span>
         )}

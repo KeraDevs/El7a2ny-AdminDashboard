@@ -1,17 +1,120 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import { motion } from "framer-motion";
 import { useUsers } from "@/hooks/_useUsers";
 import { useAuth } from "@/contexts/AuthContext";
 import { User } from "@/types/userTypes";
 import { toast } from "react-hot-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Users, UserPlus, Settings, TrendingUp } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { IconRefresh, IconFilter } from "@tabler/icons-react";
 
 import { UsersTableHeader } from "@/components/users/UsersTableHeader";
 import { UsersTable } from "@/components/users/UsersTable";
 import { UsersPagination } from "@/components/users/UsersPagination";
 import { EditUserDialog } from "@/components/users/EditUserDialog";
 import { ViewUserDialog } from "@/components/users/ViewUserDialog";
+
+// Users Statistics Component
+const UsersStats = ({ users }: { users: User[] }) => {
+  const totalUsers = users.length;
+  const activeUsers = users.filter((u) => u.userType === "customer").length;
+  const adminUsers = users.filter(
+    (u) => u.userType === "superadmin" || u.userType === "workshopAdmin"
+  ).length;
+  const recentUsers = users.filter((u) => {
+    const joinDate = new Date(u.createdAt || Date.now());
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    return joinDate > thirtyDaysAgo;
+  }).length;
+
+  const stats = [
+    {
+      title: "Total Users",
+      value: totalUsers.toString(),
+      icon: Users,
+      description: "All registered users",
+      trend: "+12.5%",
+      color: "from-blue-500 to-blue-600",
+      bgColor: "from-blue-50 to-blue-100",
+    },
+    {
+      title: "Active Customers",
+      value: activeUsers.toString(),
+      icon: UserPlus,
+      description: "Customer accounts",
+      trend: "+8.2%",
+      color: "from-green-500 to-green-600",
+      bgColor: "from-green-50 to-green-100",
+    },
+    {
+      title: "Admin Users",
+      value: adminUsers.toString(),
+      icon: Settings,
+      description: "Admin accounts",
+      trend: "+2.1%",
+      color: "from-purple-500 to-purple-600",
+      bgColor: "from-purple-50 to-purple-100",
+    },
+    {
+      title: "Recent Joins",
+      value: recentUsers.toString(),
+      icon: TrendingUp,
+      description: "Last 30 days",
+      trend: "+15.3%",
+      color: "from-orange-500 to-orange-600",
+      bgColor: "from-orange-50 to-orange-100",
+    },
+  ];
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+      {stats.map((stat, index) => (
+        <motion.div
+          key={stat.title}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.1 }}
+        >
+          <Card
+            className={`border-0 shadow-md bg-gradient-to-br ${stat.bgColor} hover:shadow-lg transition-all duration-300`}
+          >
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {stat.title}
+              </CardTitle>
+              <stat.icon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div
+                className={`text-2xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}
+              >
+                {stat.value}
+              </div>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-muted-foreground">
+                  {stat.description}
+                </p>
+                <span className="text-xs text-green-600 font-medium">
+                  {stat.trend}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
 
 export type ColumnVisibility = {
   name: boolean;
@@ -235,50 +338,75 @@ const UsersList: React.FC = () => {
       </div>
     );
   }
-
   return (
-    <div className="flex h-full w-full flex-col gap-5">
-      <div className="mb-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
-        <p className="text-muted-foreground">
-          Manage your users and their permissions
-        </p>
-      </div>
+    <div
+      className="container mx-auto p-6 space-y-6 overflow-y-auto"
+      style={{ scrollbarGutter: "stable" }}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
+      >
+        <div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+            Users Management
+          </h1>
+          <p className="text-muted-foreground">
+            Manage your users and their permissions
+          </p>
+        </div>
+      </motion.div>
 
-      <UsersTableHeader
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        columnVisibility={columnVisibility}
-        setColumnVisibility={setColumnVisibility}
-        onAddUser={handleAddUser}
-        refreshData={fetchUsers}
-      />
+      <UsersStats users={users} />
 
-      <UsersTable
-        loading={loading}
-        paginatedUsers={paginatedUsers}
-        columnVisibility={columnVisibility}
-        sortConfig={sortConfig}
-        handleSort={handleSort}
-        selectedUsers={selectedUsers}
-        handleSelectAll={handleSelectAll}
-        handleSelectUser={handleSelectUser}
-        handleEdit={handleEdit}
-        handleView={handleView}
-        searchQuery={searchQuery}
-        users={users}
-        onDelete={handleDelete}
-      />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="space-y-4"
+      >
+        <CardContent className="p-0">
+          <div className="p-6 pb-0">
+            <UsersTableHeader
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              columnVisibility={columnVisibility}
+              setColumnVisibility={setColumnVisibility}
+              onAddUser={handleAddUser}
+              refreshData={fetchUsers}
+            />
+          </div>
 
-      <UsersPagination
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-        totalPages={totalPages}
-        rowsPerPage={rowsPerPage}
-        setRowsPerPage={setRowsPerPage}
-        filteredUsers={filteredUsers}
-        selectedUsers={selectedUsers}
-      />
+          <UsersTable
+            loading={loading}
+            paginatedUsers={paginatedUsers}
+            columnVisibility={columnVisibility}
+            sortConfig={sortConfig}
+            handleSort={handleSort}
+            selectedUsers={selectedUsers}
+            handleSelectAll={handleSelectAll}
+            handleSelectUser={handleSelectUser}
+            handleEdit={handleEdit}
+            handleView={handleView}
+            searchQuery={searchQuery}
+            users={users}
+            onDelete={handleDelete}
+          />
+
+          <div className="p-6 pt-0">
+            <UsersPagination
+              currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
+              totalPages={totalPages}
+              rowsPerPage={rowsPerPage}
+              setRowsPerPage={setRowsPerPage}
+              filteredUsers={filteredUsers}
+              selectedUsers={selectedUsers}
+            />
+          </div>
+        </CardContent>
+      </motion.div>
 
       <EditUserDialog
         isOpen={isEditDialogOpen}

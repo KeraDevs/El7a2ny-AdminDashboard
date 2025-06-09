@@ -82,7 +82,7 @@ const mockWorkshops: Workshop[] = [
     name: "Auto Tech Workshop",
     email: "info@autotech.com",
     phone: "+20 100 123 4567",
-    walletBalance: 152500.00,
+    walletBalance: 152500.0,
     status: "active" as const,
     lastTransaction: "2024-01-15",
     location: "New Cairo",
@@ -93,7 +93,7 @@ const mockWorkshops: Workshop[] = [
     name: "Speed Garage",
     email: "contact@speedgarage.com",
     phone: "+20 101 234 5678",
-    walletBalance: 88500.50,
+    walletBalance: 88500.5,
     status: "active" as const,
     lastTransaction: "2024-01-14",
     location: "Nasr City",
@@ -104,7 +104,7 @@ const mockWorkshops: Workshop[] = [
     name: "Quick Fix",
     email: "admin@quickfix.com",
     phone: "+20 102 345 6789",
-    walletBalance: 0.00,
+    walletBalance: 0.0,
     status: "inactive" as const,
     lastTransaction: "2024-01-10",
     location: "Heliopolis",
@@ -144,9 +144,13 @@ interface WalletDialogProps {
 
 // Wallet Statistics Component
 const WalletStats = ({ workshops }: { workshops: Workshop[] }) => {
-  const totalBalance = workshops.reduce((sum, workshop) => sum + workshop.walletBalance, 0);
-  const activeWorkshops = workshops.filter(w => w.status === "active").length;
-  const averageBalance = workshops.length > 0 ? totalBalance / workshops.length : 0;
+  const totalBalance = workshops.reduce(
+    (sum, workshop) => sum + workshop.walletBalance,
+    0
+  );
+  const activeWorkshops = workshops.filter((w) => w.status === "active").length;
+  const averageBalance =
+    workshops.length > 0 ? totalBalance / workshops.length : 0;
   const stats = [
     {
       title: "Total Workshop Balance",
@@ -184,8 +188,11 @@ const WalletStats = ({ workshops }: { workshops: Workshop[] }) => {
           key={stat.title}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}        >
-          <Card className={`border-0 shadow-md bg-gradient-to-br ${stat.bgColor} hover:shadow-lg transition-all duration-300`}>
+          transition={{ delay: index * 0.1 }}
+        >
+          <Card
+            className={`border-0 shadow-md bg-gradient-to-br ${stat.bgColor} hover:shadow-lg transition-all duration-300`}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
@@ -193,7 +200,9 @@ const WalletStats = ({ workshops }: { workshops: Workshop[] }) => {
               <stat.icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
+              <div
+                className={`text-2xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}
+              >
                 {stat.value}
               </div>
               <div className="flex items-center justify-between mt-1">
@@ -213,7 +222,13 @@ const WalletStats = ({ workshops }: { workshops: Workshop[] }) => {
 };
 
 // Wallet Dialog Component
-const WalletDialog = ({ workshop, open, onOpenChange, type, onSubmit }: WalletDialogProps) => {
+const WalletDialog = ({
+  workshop,
+  open,
+  onOpenChange,
+  type,
+  onSubmit,
+}: WalletDialogProps) => {
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
 
@@ -229,7 +244,8 @@ const WalletDialog = ({ workshop, open, onOpenChange, type, onSubmit }: WalletDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">        <DialogHeader>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {type === "add" ? (
               <IconPlus className="h-5 w-5 text-green-600" />
@@ -239,9 +255,13 @@ const WalletDialog = ({ workshop, open, onOpenChange, type, onSubmit }: WalletDi
             {type === "add" ? "Add" : "Transfer"} Funds - {workshop?.name}
           </DialogTitle>
           <DialogDescription>
-            Current balance: <span className="font-semibold">{workshop?.walletBalance.toLocaleString()} EGP</span>
+            Current balance:
+            <span className="font-semibold">
+              {workshop?.walletBalance.toLocaleString()} EGP
+            </span>
           </DialogDescription>
-        </DialogHeader>        <div className="grid gap-4 py-4">
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label htmlFor="amount">Amount (EGP)</Label>
             <Input
@@ -263,34 +283,59 @@ const WalletDialog = ({ workshop, open, onOpenChange, type, onSubmit }: WalletDi
               <SelectContent>
                 {type === "add" ? (
                   <>
-                    <SelectItem value="service_payment">Service Payment Received</SelectItem>
+                    <SelectItem value="service_payment">
+                      Service Payment Received
+                    </SelectItem>
                     <SelectItem value="bonus">Performance Bonus</SelectItem>
-                    <SelectItem value="refund_correction">Refund Correction</SelectItem>
-                    <SelectItem value="commission_credit">Commission Credit</SelectItem>
-                    <SelectItem value="manual_adjustment">Manual Adjustment</SelectItem>
-                    <SelectItem value="government_subsidy">Government Subsidy</SelectItem>
+                    <SelectItem value="refund_correction">
+                      Refund Correction
+                    </SelectItem>
+                    <SelectItem value="commission_credit">
+                      Commission Credit
+                    </SelectItem>
+                    <SelectItem value="manual_adjustment">
+                      Manual Adjustment
+                    </SelectItem>
+                    <SelectItem value="government_subsidy">
+                      Government Subsidy
+                    </SelectItem>
                   </>
                 ) : (
                   <>
-                    <SelectItem value="transfer_to_bank">Transfer to Bank Account</SelectItem>
-                    <SelectItem value="transfer_to_owner">Transfer to Owner Account</SelectItem>
-                    <SelectItem value="penalty_deduction">Penalty Deduction</SelectItem>
+                    <SelectItem value="transfer_to_bank">
+                      Transfer to Bank Account
+                    </SelectItem>
+                    <SelectItem value="transfer_to_owner">
+                      Transfer to Owner Account
+                    </SelectItem>
+                    <SelectItem value="penalty_deduction">
+                      Penalty Deduction
+                    </SelectItem>
                     <SelectItem value="tax_payment">Tax Payment</SelectItem>
-                    <SelectItem value="commission_deduction">Commission Deduction</SelectItem>
-                    <SelectItem value="transfer_other">Transfer to Other Workshop</SelectItem>
+                    <SelectItem value="commission_deduction">
+                      Commission Deduction
+                    </SelectItem>
+                    <SelectItem value="transfer_other">
+                      Transfer to Other Workshop
+                    </SelectItem>
                   </>
                 )}
               </SelectContent>
             </Select>
           </div>
-        </div>        <DialogFooter>
+        </div>
+        <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={handleSubmit}
             disabled={!amount || !reason}
-            className={type === "add" ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
+            className={
+              type === "add"
+                ? "bg-green-600 hover:bg-green-700"
+                : "bg-blue-600 hover:bg-blue-700"
+            }
           >
             {type === "add" ? "Add Funds" : "Transfer Funds"}
           </Button>
@@ -304,20 +349,23 @@ export default function WorkshopWalletsPage() {
   const [workshops, setWorkshops] = useState<Workshop[]>(mockWorkshops);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop | null>(null);
+  const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop | null>(
+    null
+  );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState<"add" | "transfer">("add");
 
   // Filter workshops based on search and status
   const filteredWorkshops = workshops.filter((workshop) => {
-    const matchesSearch = 
+    const matchesSearch =
       workshop.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       workshop.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       workshop.owner.toLowerCase().includes(searchQuery.toLowerCase()) ||
       workshop.location.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || workshop.status === statusFilter;
-    
+
+    const matchesStatus =
+      statusFilter === "all" || workshop.status === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
   const handleWalletAction = (workshop: Workshop, type: "add" | "transfer") => {
@@ -328,23 +376,30 @@ export default function WorkshopWalletsPage() {
   const handleWalletSubmit = (amount: number, reason: string) => {
     if (!selectedWorkshop) return;
 
-    setWorkshops(prev => prev.map(workshop => {
-      if (workshop.id === selectedWorkshop.id) {
-        const newBalance = dialogType === "add" 
-          ? workshop.walletBalance + amount 
-          : Math.max(0, workshop.walletBalance - amount);
-        
-        return {
-          ...workshop,
-          walletBalance: newBalance,
-          lastTransaction: new Date().toISOString().split('T')[0],
-        };
-      }
-      return workshop;
-    }));
+    setWorkshops((prev) =>
+      prev.map((workshop) => {
+        if (workshop.id === selectedWorkshop.id) {
+          const newBalance =
+            dialogType === "add"
+              ? workshop.walletBalance + amount
+              : Math.max(0, workshop.walletBalance - amount);
+
+          return {
+            ...workshop,
+            walletBalance: newBalance,
+            lastTransaction: new Date().toISOString().split("T")[0],
+          };
+        }
+        return workshop;
+      })
+    );
 
     // Here you would typically make an API call to update the workshop's wallet
-    console.log(`${dialogType === "add" ? "Added" : "Transferred"} ${amount} EGP ${dialogType === "add" ? "to" : "from"} ${selectedWorkshop.name} wallet. Reason: ${reason}`);
+    console.log(
+      `${dialogType === "add" ? "Added" : "Transferred"} ${amount} EGP ${
+        dialogType === "add" ? "to" : "from"
+      } ${selectedWorkshop.name} wallet. Reason: ${reason}`
+    );
   };
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -432,7 +487,8 @@ export default function WorkshopWalletsPage() {
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>                  {filteredWorkshops.map((workshop, index) => (
+                <TableBody>
+                  {filteredWorkshops.map((workshop, index) => (
                     <motion.tr
                       key={workshop.id}
                       initial={{ opacity: 0, x: -20 }}
@@ -456,7 +512,8 @@ export default function WorkshopWalletsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">{workshop.phone}</div>
-                      </TableCell>                      <TableCell>
+                      </TableCell>
+                      <TableCell>
                         <div className="font-semibold text-lg bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                           {workshop.walletBalance.toLocaleString()} EGP
                         </div>
@@ -467,7 +524,9 @@ export default function WorkshopWalletsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm">{workshop.lastTransaction}</div>
+                        <div className="text-sm">
+                          {workshop.lastTransaction}
+                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
@@ -478,13 +537,18 @@ export default function WorkshopWalletsPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                              onClick={() => handleWalletAction(workshop, "add")}
+                              onClick={() =>
+                                handleWalletAction(workshop, "add")
+                              }
                               className="text-green-600"
                             >
                               <IconPlus className="mr-2 h-4 w-4" />
                               Add Funds
-                            </DropdownMenuItem>                            <DropdownMenuItem
-                              onClick={() => handleWalletAction(workshop, "transfer")}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleWalletAction(workshop, "transfer")
+                              }
                               className="text-blue-600"
                             >
                               <IconMinus className="mr-2 h-4 w-4" />

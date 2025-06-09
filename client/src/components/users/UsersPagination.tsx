@@ -30,17 +30,16 @@ export const UsersPagination: React.FC<UsersPaginationProps> = ({
   return (
     <div className="flex items-center justify-between">
       <div className="text-sm text-muted-foreground">
-        Showing{" "}
+        Showing
         <strong>
           {Math.min(
             rowsPerPage,
             filteredUsers.length - (currentPage - 1) * rowsPerPage
           )}
-        </strong>{" "}
+        </strong>
         of <strong>{filteredUsers.length}</strong> users
         {selectedUsers.length > 0 && (
           <span>
-            {" "}
             (<strong>{selectedUsers.length}</strong> selected)
           </span>
         )}

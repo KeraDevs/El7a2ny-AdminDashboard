@@ -71,7 +71,7 @@ export const UsersTableHeader: React.FC<UsersTableHeaderProps> = ({
   };
 
   return (
-    <div className="flex flex-col md:flex-row items-center justify-between bg-muted dark:bg-background p-3 md:p-4 rounded-md gap-3">
+    <div className="flex flex-col md:flex-row items-center justify-between bg-gradient-to-r from-muted/50 to-muted dark:from-background/50 dark:to-background p-4 border-b border-border/50">
       {/* Search bar - conditionally expanded on mobile */}
       {isMobile ? (
         <>
@@ -81,7 +81,7 @@ export const UsersTableHeader: React.FC<UsersTableHeaderProps> = ({
               <Input
                 type="search"
                 placeholder="Search users..."
-                className="w-full pl-8 pr-8"
+                className="w-full pl-8 pr-8 bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 border-gray-200 dark:border-gray-700"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 autoFocus
@@ -89,18 +89,18 @@ export const UsersTableHeader: React.FC<UsersTableHeaderProps> = ({
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute right-1 top-1 h-7 w-7 p-0"
+                className="absolute right-1 top-1 h-7 w-7 p-0 hover:bg-red-100 hover:text-red-600"
                 onClick={() => setShowSearch(false)}
               >
                 ×
               </Button>
             </div>
           ) : (
-            <div className="flex w-full items-center justify-between gap-2">
+            <div className="flex w-full items-center justify-between">
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1"
+                className="flex-1 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-blue-200 text-blue-700"
                 onClick={() => setShowSearch(true)}
               >
                 <Search className="h-4 w-4 mr-2" />
@@ -158,18 +158,19 @@ export const UsersTableHeader: React.FC<UsersTableHeaderProps> = ({
             <Input
               type="search"
               placeholder="Search users..."
-              className="w-full pl-8"
+              className="w-full pl-8 bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 border-gray-200 dark:border-gray-700 focus:border-blue-400 focus:ring-blue-400"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-
           <div className="flex items-center gap-2">
             <AddUserDialog onAddUser={onAddUser} />
-
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-1">
+                <Button
+                  variant="outline"
+                  className="gap-1 bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border-purple-200 text-purple-700"
+                >
                   <SlidersHorizontal className="h-3.5 w-3.5" />
                   <span>Columns</span>
                 </Button>
@@ -193,11 +194,11 @@ export const UsersTableHeader: React.FC<UsersTableHeaderProps> = ({
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-
             <Button
               variant="outline"
               onClick={handleRefresh}
               disabled={isRefreshing}
+              className="bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 border-green-200 text-green-700 disabled:opacity-50"
             >
               <RefreshCw
                 className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}

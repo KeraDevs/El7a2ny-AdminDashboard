@@ -48,10 +48,10 @@ export const useUsers = (): UseUsersReturn => {
 
       const Result: ApiResponse = await response.json();
       let allUsers = (Result.users || []).map(mapApiUserToFrontend);
+      console.log("Fetched initial users:", allUsers);
 
-      // Keep fetching until hasMore is false
       let hasMore = Result.hasMore;
-      let offset = 50; // First skip will be 50
+      let offset = 50;
 
       while (hasMore) {
         const nextPageResponse = await fetch(

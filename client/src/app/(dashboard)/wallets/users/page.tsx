@@ -62,7 +62,7 @@ const mockUsers = [
     name: "Ahmed Mohamed",
     email: "ahmed.mohamed@example.com",
     phone: "+20 100 123 4567",
-    walletBalance: 1250.00,
+    walletBalance: 1250.0,
     status: "active",
     lastTransaction: "2024-01-15",
   },
@@ -71,7 +71,7 @@ const mockUsers = [
     name: "Sara Hassan",
     email: "sara.hassan@example.com",
     phone: "+20 101 234 5678",
-    walletBalance: 850.50,
+    walletBalance: 850.5,
     status: "active",
     lastTransaction: "2024-01-14",
   },
@@ -80,7 +80,7 @@ const mockUsers = [
     name: "Mohamed Ali",
     email: "mohamed.ali@example.com",
     phone: "+20 102 345 6789",
-    walletBalance: 0.00,
+    walletBalance: 0.0,
     status: "inactive",
     lastTransaction: "2024-01-10",
   },
@@ -118,11 +118,17 @@ interface WalletDialogProps {
   user: User | null;
   isOpen: boolean;
   onClose: () => void;
-  type: 'add' | 'remove';
+  type: "add" | "remove";
   onConfirm: (amount: number, reason: string) => void;
 }
 
-function WalletDialog({ user, isOpen, onClose, type, onConfirm }: WalletDialogProps) {
+function WalletDialog({
+  user,
+  isOpen,
+  onClose,
+  type,
+  onConfirm,
+}: WalletDialogProps) {
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
 
@@ -141,15 +147,16 @@ function WalletDialog({ user, isOpen, onClose, type, onConfirm }: WalletDialogPr
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {type === 'add' ? (
+            {type === "add" ? (
               <IconPlus className="h-5 w-5 text-green-500" />
             ) : (
               <IconMinus className="h-5 w-5 text-red-500" />
             )}
-            {type === 'add' ? 'Add Balance' : 'Remove Balance'}
+            {type === "add" ? "Add Balance" : "Remove Balance"}
           </DialogTitle>
           <DialogDescription>
-            {type === 'add' ? 'Add money to' : 'Remove money from'} {user?.name}'s wallet
+            {type === "add" ? "Add money to" : "Remove money from"} {user?.name}
+            's wallet
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -176,7 +183,7 @@ function WalletDialog({ user, isOpen, onClose, type, onConfirm }: WalletDialogPr
                 <SelectValue placeholder="Select reason" />
               </SelectTrigger>
               <SelectContent>
-                {type === 'add' ? (
+                {type === "add" ? (
                   <>
                     <SelectItem value="refund">Refund</SelectItem>
                     <SelectItem value="bonus">Bonus</SelectItem>
@@ -198,7 +205,9 @@ function WalletDialog({ user, isOpen, onClose, type, onConfirm }: WalletDialogPr
           {user && (
             <div className="bg-muted/30 p-3 rounded-lg">
               <p className="text-sm text-muted-foreground">Current Balance</p>
-              <p className="text-lg font-semibold">EGP {user.walletBalance.toFixed(2)}</p>
+              <p className="text-lg font-semibold">
+                EGP {user.walletBalance.toFixed(2)}
+              </p>
             </div>
           )}
         </div>
@@ -206,12 +215,16 @@ function WalletDialog({ user, isOpen, onClose, type, onConfirm }: WalletDialogPr
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            onClick={handleSubmit}
             disabled={!amount || !reason}
-            className={type === 'add' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+            className={
+              type === "add"
+                ? "bg-green-600 hover:bg-green-700"
+                : "bg-red-600 hover:bg-red-700"
+            }
           >
-            {type === 'add' ? 'Add Balance' : 'Remove Balance'}
+            {type === "add" ? "Add Balance" : "Remove Balance"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -221,7 +234,7 @@ function WalletDialog({ user, isOpen, onClose, type, onConfirm }: WalletDialogPr
 
 function WalletStats({ users }: { users: User[] }) {
   const totalBalance = users.reduce((sum, user) => sum + user.walletBalance, 0);
-  const activeUsers = users.filter(user => user.status === 'active').length;
+  const activeUsers = users.filter((user) => user.status === "active").length;
   const avgBalance = totalBalance / users.length;
 
   return (
@@ -301,17 +314,19 @@ export default function UsersWalletPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogType, setDialogType] = useState<'add' | 'remove'>('add');
+  const [dialogType, setDialogType] = useState<"add" | "remove">("add");
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.phone.includes(searchTerm);
-    const matchesStatus = statusFilter === "all" || user.status === statusFilter;
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.phone.includes(searchTerm);
+    const matchesStatus =
+      statusFilter === "all" || user.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const handleWalletAction = (user: User, type: 'add' | 'remove') => {
+  const handleWalletAction = (user: User, type: "add" | "remove") => {
     setSelectedUser(user);
     setDialogType(type);
     setDialogOpen(true);
@@ -319,15 +334,16 @@ export default function UsersWalletPage() {
 
   const handleWalletUpdate = (amount: number, reason: string) => {
     if (selectedUser) {
-      setUsers(prevUsers => 
-        prevUsers.map(user => 
-          user.id === selectedUser.id 
-            ? { 
-                ...user, 
-                walletBalance: dialogType === 'add' 
-                  ? user.walletBalance + amount 
-                  : Math.max(0, user.walletBalance - amount),
-                lastTransaction: new Date().toISOString().split('T')[0]
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === selectedUser.id
+            ? {
+                ...user,
+                walletBalance:
+                  dialogType === "add"
+                    ? user.walletBalance + amount
+                    : Math.max(0, user.walletBalance - amount),
+                lastTransaction: new Date().toISOString().split("T")[0],
               }
             : user
         )
@@ -419,7 +435,9 @@ export default function UsersWalletPage() {
                     <TableCell>
                       <div>
                         <p className="font-medium">{user.name}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {user.email}
+                        </p>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -434,22 +452,30 @@ export default function UsersWalletPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge 
-                        variant={user.status === 'active' ? 'default' : 'secondary'}
-                        className={user.status === 'active' ? 'bg-green-100 text-green-800 hover:bg-green-200' : ''}
+                      <Badge
+                        variant={
+                          user.status === "active" ? "default" : "secondary"
+                        }
+                        className={
+                          user.status === "active"
+                            ? "bg-green-100 text-green-800 hover:bg-green-200"
+                            : ""
+                        }
                       >
                         {user.status}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <p className="text-sm text-muted-foreground">{user.lastTransaction}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {user.lastTransaction}
+                      </p>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleWalletAction(user, 'add')}
+                          onClick={() => handleWalletAction(user, "add")}
                           className="hover:bg-green-50 hover:border-green-200 hover:text-green-700"
                         >
                           <IconPlus className="h-4 w-4 mr-1" />
@@ -458,7 +484,7 @@ export default function UsersWalletPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleWalletAction(user, 'remove')}
+                          onClick={() => handleWalletAction(user, "remove")}
                           className="hover:bg-red-50 hover:border-red-200 hover:text-red-700"
                           disabled={user.walletBalance === 0}
                         >

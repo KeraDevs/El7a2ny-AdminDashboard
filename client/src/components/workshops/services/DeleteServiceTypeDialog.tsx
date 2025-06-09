@@ -86,7 +86,7 @@ const DeleteServiceTypeDialog: React.FC<DeleteServiceTypeDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="text-destructive flex items-center gap-2">
             <AlertTriangle className="h-5 w-5" />
-            Delete{" "}
+            Delete
             {isSingleDelete
               ? "Service Type"
               : `${serviceTypeIds.length} Service Types`}
@@ -102,7 +102,7 @@ const DeleteServiceTypeDialog: React.FC<DeleteServiceTypeDialogProps> = ({
           <div className="bg-destructive/10 p-4 rounded-md text-sm">
             <p className="font-medium text-destructive mb-2">Warning:</p>
             <p>
-              Deleting{" "}
+              Deleting
               {isSingleDelete ? "this service type" : "these service types"} may
               affect existing customer records, appointments, and reports that
               reference {isSingleDelete ? "this service." : "these services."}
@@ -167,7 +167,7 @@ const DeleteServiceTypeDialog: React.FC<DeleteServiceTypeDialogProps> = ({
             ) : (
               <>
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete{" "}
+                Delete
                 {isSingleDelete
                   ? "Service"
                   : `${serviceTypeIds.length} Services`}

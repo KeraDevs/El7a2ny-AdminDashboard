@@ -39,17 +39,16 @@ export const WorkshopsPagination: React.FC<WorkshopsPaginationProps> = ({
   return (
     <div className="flex items-center justify-between">
       <div className="text-sm text-muted-foreground">
-        Showing{" "}
+        Showing
         <strong>
           {Math.min(
             rowsPerPage,
             filteredWorkshops.length - (currentPage - 1) * rowsPerPage
           )}
-        </strong>{" "}
+        </strong>
         of <strong>{filteredWorkshops.length}</strong> workshops
         {selectedWorkshops.length > 0 && (
           <span>
-            {" "}
             (<strong>{selectedWorkshops.length}</strong> selected)
           </span>
         )}

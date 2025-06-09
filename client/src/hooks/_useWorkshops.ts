@@ -54,9 +54,8 @@ export const useWorkshops = (): UseWorkshopsReturn => {
         mapApiWorkshopToFrontend
       );
 
-      // Keep fetching until hasMore is false
       let hasMore = initialResult.hasMore;
-      let offset = 50; // First skip will be 50
+      let offset = 50;
 
       while (hasMore) {
         const nextPageResponse = await fetch(

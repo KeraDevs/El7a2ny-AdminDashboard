@@ -454,7 +454,7 @@ const UserProfile = ({ id }: { id: string }) => {
                         Joined Date
                       </h4>
                       <p className="text-sm">
-                        {new Date(user.createdAt).toLocaleDateString()}{" "}
+                        {new Date(user.createdAt).toLocaleDateString()}
                         (Non-editable)
                       </p>
                     </div>
