@@ -19,6 +19,7 @@ import {
   IconSettings,
 } from "@tabler/icons-react";
 import { FaWrench } from "react-icons/fa";
+import { useAuth } from "@/contexts/AuthContext";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -239,12 +240,36 @@ function StatsCard({
   );
 }
 
+// Function to get greeting based on time of day
+function getGreeting() {
+  const hour = new Date().getHours();
+
+  if (hour < 12) {
+    return "Good Morning";
+  } else if (hour < 17) {
+    return "Good Afternoon";
+  } else {
+    return "Good Evening";
+  }
+}
+
 export default function DashboardPage() {
   const [isLoaded, setIsLoaded] = useState(false);
+  const { userData } = useAuth();
 
   useEffect(() => {
     setIsLoaded(true);
   }, []);
+
+  // Get user's first name
+  const getFirstName = () => {
+    if (userData?.first_name) {
+      return userData.first_name;
+    } else if (userData?.fullName) {
+      return userData.fullName.split(" ")[0];
+    }
+    return "Admin";
+  };
 
   const stats = [
     {
@@ -317,12 +342,13 @@ export default function DashboardPage() {
         transition={{ duration: 0.5 }}
         className="flex items-start justify-between"
       >
+        {" "}
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">
             Dashboard
           </h1>
           <p className="text-muted-foreground">
-            Welcome to your El7a2ny admin dashboard
+            {getGreeting()}, {getFirstName()}! Welcome to Admin dashboard
           </p>
         </div>
         <DynamicTime />
