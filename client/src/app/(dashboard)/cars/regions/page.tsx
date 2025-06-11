@@ -107,7 +107,6 @@ const CarRegionsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: "created_at",
     direction: "desc",
@@ -118,15 +117,19 @@ const CarRegionsPage: React.FC = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<CarRegion | null>(null);
-
   const {
     regions,
+    selectedRegions,
     loading,
     error,
     fetchRegions,
     handleDeleteRegions,
+    handleDeleteSingle,
     handleAddRegion,
     handleEditRegion,
+    handleSelectAll,
+    handleSelectRegion,
+    setSelectedRegions,
   } = useCarRegions();
 
   // Auto-load regions on mount
@@ -180,22 +183,6 @@ const CarRegionsPage: React.FC = () => {
     }));
   };
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedRegions(currentRegions.map((region) => region.id));
-    } else {
-      setSelectedRegions([]);
-    }
-  };
-
-  const handleSelectRegion = (regionId: string) => {
-    setSelectedRegions((prev) =>
-      prev.includes(regionId)
-        ? prev.filter((id) => id !== regionId)
-        : [...prev, regionId]
-    );
-  };
-
   const handleEdit = (region: CarRegion) => {
     setSelectedRegion(region);
     setIsEditDialogOpen(true);
@@ -217,19 +204,6 @@ const CarRegionsPage: React.FC = () => {
       toast.success(`${selectedRegions.length} region(s) deleted successfully`);
     } catch (error) {
       toast.error("Failed to delete regions");
-    }
-  };
-
-  const handleDeleteSingle = async (regionId: string) => {
-    try {
-      // For single delete, we'll need to implement this in the hook or handle it differently
-      // For now, let's use the existing multi-delete but set selected regions first
-      setSelectedRegions([regionId]);
-      await handleDeleteRegions();
-      setSelectedRegions([]);
-      toast.success("Region deleted successfully");
-    } catch (error) {
-      toast.error("Failed to delete region");
     }
   };
 
@@ -346,7 +320,6 @@ const CarRegionsPage: React.FC = () => {
             onSelectRegion={handleSelectRegion}
             onEdit={handleEdit}
             onView={handleView}
-            onDelete={handleDeleteSelected}
             onDeleteSingle={handleDeleteSingle}
             onSort={handleSort}
             sortConfig={sortConfig}

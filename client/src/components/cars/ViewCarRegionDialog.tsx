@@ -127,7 +127,7 @@ export const ViewCarRegionDialog: React.FC<ViewCarRegionDialogProps> = ({
 
               <InfoRow icon={MapPin} label="Region ID" value={region.id} />
             </div>
-          </div>{" "}
+          </div>
           {/* Associated Brands Section */}
           {region.brand_regions && region.brand_regions.length > 0 && (
             <div className="border-t pt-4">
@@ -163,7 +163,7 @@ export const ViewCarRegionDialog: React.FC<ViewCarRegionDialogProps> = ({
                             {brandRegion.brand.name}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Added{" "}
+                            Added
                             {format(
                               new Date(brandRegion.created_at),
                               "MMM dd, yyyy"
@@ -171,9 +171,6 @@ export const ViewCarRegionDialog: React.FC<ViewCarRegionDialogProps> = ({
                           </p>
                         </div>
                       </div>
-                      <Badge variant="outline" className="text-xs">
-                        Active
-                      </Badge>
                     </div>
                   ))}
                 </div>

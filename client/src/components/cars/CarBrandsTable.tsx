@@ -14,20 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  ChevronDown,
-  ChevronUp,
-  MoreHorizontal,
-  Eye,
-  Edit,
-  Trash2,
-} from "lucide-react";
+import { ChevronDown, ChevronUp, Eye, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 
 interface CarBrandsTableProps {
@@ -37,7 +24,6 @@ interface CarBrandsTableProps {
   onSelectBrand: (brandId: string) => void;
   onEdit: (brand: CarBrand) => void;
   onView: (brand: CarBrand) => void;
-  onDelete: () => void;
   onDeleteSingle: (brandId: string) => void;
   columnVisibility: CarBrandColumnVisibility;
   onSort: (column: keyof CarBrand) => void;
@@ -52,7 +38,6 @@ export const CarBrandsTable: React.FC<CarBrandsTableProps> = ({
   onSelectBrand,
   onEdit,
   onView,
-  onDelete,
   onDeleteSingle,
   columnVisibility,
   onSort,
@@ -95,12 +80,12 @@ export const CarBrandsTable: React.FC<CarBrandsTableProps> = ({
             <TableRow>
               <TableHead className="w-12">
                 <Checkbox disabled />
-              </TableHead>
+              </TableHead>{" "}
               {columnVisibility.name && <TableHead>Name</TableHead>}
               {columnVisibility.regionsCount && <TableHead>Regions</TableHead>}
               {columnVisibility.regions && <TableHead>Region List</TableHead>}
               {columnVisibility.createdAt && <TableHead>Created</TableHead>}
-              <TableHead className="w-24">Actions</TableHead>
+              <TableHead className="w-32">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -130,7 +115,7 @@ export const CarBrandsTable: React.FC<CarBrandsTableProps> = ({
                   </TableCell>
                 )}
                 <TableCell>
-                  <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
+                  <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
                 </TableCell>
               </TableRow>
             ))}
@@ -200,11 +185,9 @@ export const CarBrandsTable: React.FC<CarBrandsTableProps> = ({
                       onCheckedChange={() => onSelectBrand(brand.id)}
                     />
                   </TableCell>
-
                   {columnVisibility.name && (
                     <TableCell className="font-medium">{brand.name}</TableCell>
                   )}
-
                   {columnVisibility.regionsCount && (
                     <TableCell>
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
@@ -213,7 +196,6 @@ export const CarBrandsTable: React.FC<CarBrandsTableProps> = ({
                       </span>
                     </TableCell>
                   )}
-
                   {columnVisibility.regions && (
                     <TableCell
                       className="max-w-xs truncate"
@@ -222,39 +204,38 @@ export const CarBrandsTable: React.FC<CarBrandsTableProps> = ({
                       {regionNames}
                     </TableCell>
                   )}
-
                   {columnVisibility.createdAt && (
                     <TableCell className="text-muted-foreground">
                       {format(new Date(brand.created_at), "MMM dd, yyyy")}
                     </TableCell>
-                  )}
-
+                  )}{" "}
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onView(brand)}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          View
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onEdit(brand)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => onDeleteSingle(brand.id)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onView(brand)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEdit(brand)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onDeleteSingle(brand.id)}
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               );

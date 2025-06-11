@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2, Plus, AlertCircle, MapPin } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AddCarBrandDialogProps, CarRegion } from "@/types/carTypes";
+import { AddCarBrandDialogProps } from "@/types/carTypes";
 import { useCarRegions } from "@/hooks/_useCarRegions";
 
 export const AddCarBrandDialog: React.FC<AddCarBrandDialogProps> = ({

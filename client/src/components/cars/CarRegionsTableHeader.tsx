@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Search, Download, Trash2, RefreshCw, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,7 +64,7 @@ export const CarRegionsTableHeader: React.FC<CarRegionsTableHeaderProps> = ({
             className={`h-4 w-4 ${loading ? "animate-spin" : ""} sm:mr-1`}
           />
           <span className="hidden sm:inline">Refresh</span>
-        </Button>{" "}
+        </Button>
         {/* Export Button */}
         {onExport && (
           <Button variant="outline" size="sm" onClick={onExport}>

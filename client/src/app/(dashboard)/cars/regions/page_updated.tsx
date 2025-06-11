@@ -7,15 +7,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { CarRegion } from "@/types/carTypes";
 import { toast } from "react-hot-toast";
 import { Loader2, MapPin, Plus, Settings, TrendingUp } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { IconRefresh } from "@tabler/icons-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 
 import { CarRegionsTableHeader } from "@/components/cars/CarRegionsTableHeader";
 import { CarRegionsTable } from "@/components/cars/CarRegionsTable";
@@ -131,6 +124,7 @@ const CarRegionsList: React.FC = () => {
     handleSelectAll,
     handleSelectRegion,
     handleDeleteRegions,
+    handleDeleteSingle,
     handleEditRegion,
     handleAddRegion,
     setSelectedRegions,
@@ -144,7 +138,6 @@ const CarRegionsList: React.FC = () => {
     key: null,
     direction: "asc",
   });
-
   // Dialog states
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -153,6 +146,12 @@ const CarRegionsList: React.FC = () => {
     useState<CarRegion | null>(null);
   const [selectedRegionForView, setSelectedRegionForView] =
     useState<CarRegion | null>(null);
+
+  // Confirmation dialog states
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isBulkDeleteConfirmOpen, setIsBulkDeleteConfirmOpen] = useState(false);
+  const [regionToDelete, setRegionToDelete] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Fetch regions on component mount
   useEffect(() => {
@@ -234,32 +233,52 @@ const CarRegionsList: React.FC = () => {
     setIsAddDialogOpen(false);
     fetchRegions();
   };
-
   const handleEditSuccess = () => {
     setIsEditDialogOpen(false);
     setSelectedRegionForEdit(null);
     fetchRegions();
   };
 
-  const handleDeleteSingle = async (regionId: string) => {
+  // Confirmation handlers for delete operations
+  const handleDeleteSingleClick = (regionId: string) => {
+    setRegionToDelete(regionId);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const handleBulkDeleteClick = () => {
+    if (selectedRegions.length === 0) {
+      toast.error("No regions selected");
+      return;
+    }
+    setIsBulkDeleteConfirmOpen(true);
+  };
+
+  const confirmSingleDelete = async () => {
+    if (!regionToDelete) return;
+
+    setDeleteLoading(true);
     try {
-      // Save current selection
-      const originalSelection = [...selectedRegions];
-
-      // Select only the target region
-      setSelectedRegions([regionId]);
-
-      // Use the existing delete function
-      await handleDeleteRegions();
-
-      // Restore original selection (minus the deleted region)
-      setSelectedRegions(originalSelection.filter((id) => id !== regionId));
+      await handleDeleteSingle(regionToDelete);
+      toast.success("Region deleted successfully");
     } catch (error) {
-      console.error("Failed to delete region:", error);
       toast.error("Failed to delete region");
+    } finally {
+      setDeleteLoading(false);
+      setIsDeleteConfirmOpen(false);
+      setRegionToDelete(null);
+    }
+  };
 
-      // Restore original selection on error
-      setSelectedRegions(selectedRegions);
+  const confirmBulkDelete = async () => {
+    setDeleteLoading(true);
+    try {
+      await handleDeleteRegions();
+      toast.success(`${selectedRegions.length} region(s) deleted successfully`);
+    } catch (error) {
+      toast.error("Failed to delete regions");
+    } finally {
+      setDeleteLoading(false);
+      setIsBulkDeleteConfirmOpen(false);
     }
   };
 
@@ -297,21 +316,18 @@ const CarRegionsList: React.FC = () => {
           </p>
         </div>
       </div>
-
       {/* Statistics */}
       <CarRegionsStats regions={regions} />
-
-      {/* Table Header */}
+      {/* Table Header */}{" "}
       <CarRegionsTableHeader
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         selectedCount={selectedRegions.length}
-        onDelete={handleDeleteRegions}
+        onDelete={handleBulkDeleteClick}
         onRefresh={handleRefresh}
         onAddRegion={() => setIsAddDialogOpen(true)}
         loading={loading}
-      />
-
+      />{" "}
       {/* Table */}
       <CarRegionsTable
         regions={paginatedRegions}
@@ -320,13 +336,11 @@ const CarRegionsList: React.FC = () => {
         onSelectRegion={handleSelectRegion}
         onEdit={handleEditClick}
         onView={handleViewClick}
-        onDelete={handleDeleteRegions}
-        onDeleteSingle={handleDeleteSingle}
+        onDeleteSingle={handleDeleteSingleClick}
         onSort={handleSort}
         sortConfig={sortConfig}
         loading={loading}
       />
-
       {/* Pagination */}
       <CarRegionsPagination
         currentPage={currentPage}
@@ -336,7 +350,6 @@ const CarRegionsList: React.FC = () => {
         onPageChange={setCurrentPage}
         onRowsPerPageChange={setRowsPerPage}
       />
-
       {/* Dialogs */}
       <AddCarRegionDialog
         isOpen={isAddDialogOpen}
@@ -344,7 +357,6 @@ const CarRegionsList: React.FC = () => {
         onSuccess={handleAddSuccess}
         onAdd={handleAddRegion}
       />
-
       <EditCarRegionDialog
         isOpen={isEditDialogOpen}
         onClose={() => {
@@ -355,7 +367,6 @@ const CarRegionsList: React.FC = () => {
         onEdit={handleEditRegion}
         region={selectedRegionForEdit}
       />
-
       <ViewCarRegionDialog
         isOpen={isViewDialogOpen}
         onClose={() => {
@@ -364,7 +375,32 @@ const CarRegionsList: React.FC = () => {
         }}
         region={selectedRegionForView}
       />
-
+      {/* Confirmation Dialogs */}
+      <ConfirmationDialog
+        isOpen={isDeleteConfirmOpen}
+        onClose={() => {
+          setIsDeleteConfirmOpen(false);
+          setRegionToDelete(null);
+        }}
+        onConfirm={confirmSingleDelete}
+        title="Delete Car Region"
+        description="Are you sure you want to delete this car region? This action cannot be undone and will remove all associated data."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+        loading={deleteLoading}
+      />
+      <ConfirmationDialog
+        isOpen={isBulkDeleteConfirmOpen}
+        onClose={() => setIsBulkDeleteConfirmOpen(false)}
+        onConfirm={confirmBulkDelete}
+        title="Delete Selected Regions"
+        description={`Are you sure you want to delete ${selectedRegions.length} selected region(s)? This action cannot be undone and will remove all associated data.`}
+        confirmText={`Delete ${selectedRegions.length} Region(s)`}
+        cancelText="Cancel"
+        variant="destructive"
+        loading={deleteLoading}
+      />
       {/* Error Display */}
       {error && (
         <div className="fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded max-w-sm">

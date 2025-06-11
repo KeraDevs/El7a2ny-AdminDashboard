@@ -12,6 +12,7 @@ export interface UseCarRegionsReturn {
   fetchRegions: () => Promise<void>;
   handleEditRegion: (regionData: Partial<CarRegion>) => Promise<void>;
   handleDeleteRegions: () => Promise<void>;
+  handleDeleteSingle: (regionId: string) => Promise<void>;
   handleSelectAll: (checked: boolean) => void;
   handleSelectRegion: (regionId: string) => void;
   handleAddRegion: (regionData: Partial<CarRegion>) => Promise<void>;
@@ -233,6 +234,53 @@ export const useCarRegions = (): UseCarRegionsReturn => {
     }
   };
 
+  // Delete single car region
+  const handleDeleteSingle = async (regionId: string): Promise<void> => {
+    if (!currentUser) {
+      throw new Error("Authentication required");
+    }
+
+    try {
+      setLoading(true);
+      const authToken = await currentUser.getIdToken();
+
+      if (!API_KEY) {
+        throw new Error("API key is missing");
+      }
+
+      const response = await fetch(`${API_BASE_URL}/car/regions/${regionId}`, {
+        method: "DELETE",
+        headers: {
+          "x-api-key": API_KEY,
+          Authorization: `Bearer ${authToken}`,
+        } as HeadersInit,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete region: ${response.status}`);
+      }
+
+      // Update the local state to remove deleted region
+      setRegions((prev) => prev.filter((region) => region.id !== regionId));
+
+      // Remove from selected regions if it was selected
+      setSelectedRegions((prev) => prev.filter((id) => id !== regionId));
+
+      toast.success("Region deleted successfully");
+    } catch (error) {
+      toast.error(
+        "Error deleting region: " +
+          (error instanceof Error ? error.message : "Unknown error")
+      );
+      setError(
+        error instanceof Error ? error.message : "Failed to delete region"
+      );
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSelectAll = (checked: boolean) => {
     setSelectedRegions(checked ? regions.map((region) => region.id) : []);
   };
@@ -244,7 +292,6 @@ export const useCarRegions = (): UseCarRegionsReturn => {
         : [...prev, regionId]
     );
   };
-
   return {
     regions,
     selectedRegions,
@@ -253,6 +300,7 @@ export const useCarRegions = (): UseCarRegionsReturn => {
     fetchRegions,
     handleEditRegion,
     handleDeleteRegions,
+    handleDeleteSingle,
     handleSelectAll,
     handleSelectRegion,
     handleAddRegion,

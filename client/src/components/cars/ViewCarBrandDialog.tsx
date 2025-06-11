@@ -2,7 +2,6 @@ import React from "react";
 import { format } from "date-fns";
 import { CarBrand } from "@/types/carTypes";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -14,13 +13,11 @@ import {
 import {
   Eye,
   Car,
-  Globe,
   Calendar,
   Image as ImageIcon,
   ExternalLink,
-  CheckCircle,
-  XCircle,
 } from "lucide-react";
+import Image from "next/image";
 
 interface ViewCarBrandDialogProps {
   isOpen: boolean;
@@ -34,7 +31,6 @@ export const ViewCarBrandDialog: React.FC<ViewCarBrandDialogProps> = ({
   brand,
 }) => {
   if (!brand) return null;
-
   const InfoRow = ({
     icon: Icon,
     label,
@@ -44,12 +40,12 @@ export const ViewCarBrandDialog: React.FC<ViewCarBrandDialogProps> = ({
     icon: React.ElementType;
     label: string;
     value: string | boolean | null | undefined;
-    type?: "text" | "url" | "status" | "date";
+    type?: "text" | "url" | "date";
   }) => (
     <div className="flex items-start gap-3 py-2">
       <Icon className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-muted-foreground">{label}</p>
+        <p className="text-sm font-medium text-muted-foreground">{label}</p>{" "}
         <div className="mt-1">
           {type === "url" && value ? (
             <div className="flex items-center gap-2">
@@ -63,20 +59,6 @@ export const ViewCarBrandDialog: React.FC<ViewCarBrandDialogProps> = ({
                 <ExternalLink className="h-3 w-3" />
               </Button>
             </div>
-          ) : type === "status" ? (
-            <Badge variant={value ? "default" : "secondary"}>
-              {value ? (
-                <div className="flex items-center gap-1">
-                  <CheckCircle className="h-3 w-3" />
-                  Active
-                </div>
-              ) : (
-                <div className="flex items-center gap-1">
-                  <XCircle className="h-3 w-3" />
-                  Inactive
-                </div>
-              )}
-            </Badge>
           ) : type === "date" && value ? (
             <span className="text-sm">
               {format(new Date(value as string), "PPP 'at' p")}
@@ -103,13 +85,16 @@ export const ViewCarBrandDialog: React.FC<ViewCarBrandDialogProps> = ({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Header with Logo and Name */}
+          {/* Header with Logo and Name */}{" "}
           <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <div className="flex-shrink-0">
+              {" "}
               {brand.logo_url ? (
-                <img
+                <Image
                   src={brand.logo_url}
                   alt={`${brand.name} logo`}
+                  width={64}
+                  height={64}
                   className="h-16 w-16 object-contain rounded-lg border bg-white"
                   onError={(e) => {
                     e.currentTarget.style.display = "none";
@@ -123,18 +108,9 @@ export const ViewCarBrandDialog: React.FC<ViewCarBrandDialogProps> = ({
             </div>
             <div className="flex-1">
               <h3 className="text-xl font-semibold">{brand.name}</h3>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant={brand.is_active ? "default" : "secondary"}>
-                  {brand.is_active ? "Active" : "Inactive"}
-                </Badge>
-                {brand.country && (
-                  <Badge variant="outline">{brand.country}</Badge>
-                )}
-              </div>
             </div>
           </div>
-
-          {/* Details */}
+          {/* Details */}{" "}
           <div className="space-y-4">
             <div className="grid gap-4">
               <InfoRow icon={Car} label="Brand Name" value={brand.name} />
@@ -145,11 +121,6 @@ export const ViewCarBrandDialog: React.FC<ViewCarBrandDialogProps> = ({
                   value={brand.description}
                 />
               )}
-              <InfoRow
-                icon={Globe}
-                label="Country of Origin"
-                value={brand.country}
-              />
               {brand.logo_url && (
                 <InfoRow
                   icon={ImageIcon}
@@ -157,13 +128,7 @@ export const ViewCarBrandDialog: React.FC<ViewCarBrandDialogProps> = ({
                   value={brand.logo_url}
                   type="url"
                 />
-              )}{" "}
-              <InfoRow
-                icon={CheckCircle}
-                label="Status"
-                value={brand.is_active}
-                type="status"
-              />
+              )}
             </div>
 
             {/* Regions Section */}
@@ -171,13 +136,12 @@ export const ViewCarBrandDialog: React.FC<ViewCarBrandDialogProps> = ({
               <div className="border-t pt-4">
                 <h4 className="text-sm font-medium text-muted-foreground mb-3">
                   Available Regions ({brand.brand_regions.length})
-                </h4>
+                </h4>{" "}
                 <div className="flex flex-wrap gap-2">
                   {brand.brand_regions.map((brandRegion) => (
-                    <Badge
+                    <span
                       key={brandRegion.id}
-                      variant="outline"
-                      className="text-xs"
+                      className="inline-flex items-center px-2 py-1 rounded-md border text-xs bg-background"
                     >
                       {brandRegion.region.name}
                       {brandRegion.region.country && (
@@ -185,13 +149,12 @@ export const ViewCarBrandDialog: React.FC<ViewCarBrandDialogProps> = ({
                           • {brandRegion.region.country}
                         </span>
                       )}
-                    </Badge>
+                    </span>
                   ))}
                 </div>
               </div>
             )}
           </div>
-
           {/* Metadata */}
           <div className="border-t pt-4">
             <h4 className="text-sm font-medium text-muted-foreground mb-3">

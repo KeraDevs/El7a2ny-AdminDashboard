@@ -1,17 +1,13 @@
-import React, { useState } from "react";
-import { Search, Download, Trash2, RefreshCw, Plus } from "lucide-react";
+import React from "react";
+import { Search, Download, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AddCarBrandDialog } from "./AddCarBrandDialog";
 
 interface CarBrandsTableHeaderProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   selectedCount: number;
   onDelete: () => void;
-  onRefresh: () => void;
-  onAddBrand: (brandData: any) => Promise<void>;
-  loading: boolean;
 }
 
 export const CarBrandsTableHeader: React.FC<CarBrandsTableHeaderProps> = ({
@@ -19,17 +15,7 @@ export const CarBrandsTableHeader: React.FC<CarBrandsTableHeaderProps> = ({
   setSearchQuery,
   selectedCount,
   onDelete,
-  onRefresh,
-  onAddBrand,
-  loading,
 }) => {
-  const [showAddDialog, setShowAddDialog] = useState(false);
-
-  const handleAddSuccess = () => {
-    setShowAddDialog(false);
-    onRefresh();
-  };
-
   return (
     <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-lg border">
       {/* Search */}
@@ -43,8 +29,7 @@ export const CarBrandsTableHeader: React.FC<CarBrandsTableHeaderProps> = ({
             className="pl-10"
           />
         </div>
-      </div>
-
+      </div>{" "}
       {/* Action Buttons */}
       <div className="flex items-center gap-2">
         {/* Selected Items Actions */}
@@ -59,44 +44,12 @@ export const CarBrandsTableHeader: React.FC<CarBrandsTableHeaderProps> = ({
             </Button>
           </div>
         )}
-
-        {/* Add Brand Button */}
-        <Button
-          variant="default"
-          size="sm"
-          onClick={() => setShowAddDialog(true)}
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          Add Brand
-        </Button>
-
-        {/* Refresh Button */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onRefresh}
-          disabled={loading}
-        >
-          <RefreshCw
-            className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`}
-          />
-          Refresh
-        </Button>
-
         {/* Export Button */}
         <Button variant="outline" size="sm">
           <Download className="h-4 w-4 mr-1" />
           Export
-        </Button>
+        </Button>{" "}
       </div>
-
-      {/* Add Brand Dialog */}
-      <AddCarBrandDialog
-        isOpen={showAddDialog}
-        onClose={() => setShowAddDialog(false)}
-        onSuccess={handleAddSuccess}
-        onAdd={onAddBrand}
-      />
     </div>
   );
 };

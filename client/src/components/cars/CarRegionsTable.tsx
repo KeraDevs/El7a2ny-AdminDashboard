@@ -20,7 +20,6 @@ interface CarRegionsTableProps {
   onSelectRegion: (regionId: string) => void;
   onEdit: (region: CarRegion) => void;
   onView: (region: CarRegion) => void;
-  onDelete: () => void;
   onDeleteSingle: (regionId: string) => void;
   onSort: (column: keyof CarRegion) => void;
   sortConfig: SortConfig;
@@ -34,7 +33,6 @@ export const CarRegionsTable: React.FC<CarRegionsTableProps> = ({
   onSelectRegion,
   onEdit,
   onView,
-  onDelete,
   onDeleteSingle,
   onSort,
   sortConfig,

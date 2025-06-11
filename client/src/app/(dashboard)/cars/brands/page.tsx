@@ -7,15 +7,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { CarBrand } from "@/types/carTypes";
 import { toast } from "react-hot-toast";
 import { Loader2, Car, Plus, Settings, TrendingUp } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { IconRefresh, IconFilter } from "@tabler/icons-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 
 import { CarBrandsTableHeader } from "@/components/cars/CarBrandsTableHeader";
 import { CarBrandsTable } from "@/components/cars/CarBrandsTable";
@@ -140,6 +133,7 @@ const CarBrandsList: React.FC = () => {
     handleSelectAll,
     handleSelectBrand,
     handleDeleteBrands,
+    handleDeleteSingle,
     handleEditBrand,
     handleAddBrand,
     setSelectedBrands,
@@ -148,19 +142,17 @@ const CarBrandsList: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
-  const [columnVisibility, setColumnVisibility] =
-    useState<CarBrandColumnVisibility>({
-      name: true,
-      regionsCount: true,
-      regions: true,
-      createdAt: true,
-    });
+  const [columnVisibility] = useState<CarBrandColumnVisibility>({
+    name: true,
+    regionsCount: true,
+    regions: true,
+    createdAt: true,
+  });
 
   const [sortConfig, setSortConfig] = useState<CarBrandSortConfig>({
     key: null,
     direction: "asc",
   });
-
   // Dialog states
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -170,15 +162,20 @@ const CarBrandsList: React.FC = () => {
   const [selectedBrandForView, setSelectedBrandForView] =
     useState<CarBrand | null>(null);
 
+  // Confirmation dialog states
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isBulkDeleteConfirmOpen, setIsBulkDeleteConfirmOpen] = useState(false);
+  const [brandToDelete, setBrandToDelete] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   // Fetch brands on component mount
   useEffect(() => {
     if (currentUser && isAuthorized) {
       fetchBrands();
     }
-  }, [currentUser, isAuthorized, fetchBrands]);
-  // Filter and sort brands
+  }, [currentUser, isAuthorized, fetchBrands]); // Filter and sort brands
   const filteredAndSortedBrands = useMemo(() => {
-    let filtered = brands.filter((brand) => {
+    const filtered = brands.filter((brand) => {
       const matchesSearch = brand.name
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
@@ -223,15 +220,7 @@ const CarBrandsList: React.FC = () => {
           : "asc",
     });
   };
-  const handleRefresh = () => {
-    console.log("=== REFRESH BRANDS DEBUG ===");
-    console.log("Current brands in state:", brands);
-    console.log("Current brands count:", brands.length);
-    console.log("===========================");
 
-    fetchBrands();
-    toast.success("Car brands refreshed successfully!");
-  };
   const handleEditClick = (brand: CarBrand) => {
     console.log("=== HANDLE EDIT CLICK DEBUG ===");
     console.log("Brand received from table:", brand);
@@ -253,32 +242,52 @@ const CarBrandsList: React.FC = () => {
     setIsAddDialogOpen(false);
     fetchBrands();
   };
-
   const handleEditSuccess = () => {
     setIsEditDialogOpen(false);
     setSelectedBrandForEdit(null);
     fetchBrands();
   };
 
-  const handleDeleteSingle = async (brandId: string) => {
+  // Confirmation handlers for delete operations
+  const handleDeleteSingleClick = (brandId: string) => {
+    setBrandToDelete(brandId);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const handleBulkDeleteClick = () => {
+    if (selectedBrands.length === 0) {
+      toast.error("No brands selected");
+      return;
+    }
+    setIsBulkDeleteConfirmOpen(true);
+  };
+
+  const confirmSingleDelete = async () => {
+    if (!brandToDelete) return;
+
+    setDeleteLoading(true);
     try {
-      // Save current selection
-      const originalSelection = [...selectedBrands];
-
-      // Select only the target brand
-      setSelectedBrands([brandId]);
-
-      // Use the existing delete function
-      await handleDeleteBrands();
-
-      // Restore original selection (minus the deleted brand)
-      setSelectedBrands(originalSelection.filter((id) => id !== brandId));
+      await handleDeleteSingle(brandToDelete);
+      toast.success("Brand deleted successfully");
     } catch (error) {
-      console.error("Failed to delete brand:", error);
       toast.error("Failed to delete brand");
+    } finally {
+      setDeleteLoading(false);
+      setIsDeleteConfirmOpen(false);
+      setBrandToDelete(null);
+    }
+  };
 
-      // Restore original selection on error
-      setSelectedBrands(selectedBrands);
+  const confirmBulkDelete = async () => {
+    setDeleteLoading(true);
+    try {
+      await handleDeleteBrands();
+      toast.success(`${selectedBrands.length} brand(s) deleted successfully`);
+    } catch (error) {
+      toast.error("Failed to delete brands");
+    } finally {
+      setDeleteLoading(false);
+      setIsBulkDeleteConfirmOpen(false);
     }
   };
 
@@ -294,9 +303,9 @@ const CarBrandsList: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-2">Access Denied</h2>
+          <h2 className="text-2xl font-semibold mb-2">Access Denied</h2>{" "}
           <p className="text-muted-foreground">
-            You don't have permission to access car brands management.
+            You don&apos;t have permission to access car brands management.
           </p>
         </div>
       </div>
@@ -305,6 +314,7 @@ const CarBrandsList: React.FC = () => {
 
   return (
     <div className="space-y-6 p-6">
+      {" "}
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -315,16 +325,6 @@ const CarBrandsList: React.FC = () => {
             Manage car brands, their details and availability
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleRefresh} disabled={loading}>
-            <IconRefresh className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Brand
-          </Button>
-        </div>
       </div>
       {/* Statistics */}
       <CarBrandsStats brands={brands} /> {/* Table Header */}
@@ -332,10 +332,7 @@ const CarBrandsList: React.FC = () => {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         selectedCount={selectedBrands.length}
-        onDelete={handleDeleteBrands}
-        onRefresh={handleRefresh}
-        onAddBrand={handleAddBrand}
-        loading={loading}
+        onDelete={handleBulkDeleteClick}
       />
       {/* Table */}
       <CarBrandsTable
@@ -345,8 +342,7 @@ const CarBrandsList: React.FC = () => {
         onSelectBrand={handleSelectBrand}
         onEdit={handleEditClick}
         onView={handleViewClick}
-        onDelete={handleDeleteBrands}
-        onDeleteSingle={handleDeleteSingle}
+        onDeleteSingle={handleDeleteSingleClick}
         columnVisibility={columnVisibility}
         onSort={handleSort}
         sortConfig={sortConfig}
@@ -385,6 +381,32 @@ const CarBrandsList: React.FC = () => {
           setSelectedBrandForView(null);
         }}
         brand={selectedBrandForView}
+      />
+      {/* Confirmation Dialogs */}
+      <ConfirmationDialog
+        isOpen={isDeleteConfirmOpen}
+        onClose={() => {
+          setIsDeleteConfirmOpen(false);
+          setBrandToDelete(null);
+        }}
+        onConfirm={confirmSingleDelete}
+        title="Delete Car Brand"
+        description="Are you sure you want to delete this car brand? This action cannot be undone and will remove all associated data."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+        loading={deleteLoading}
+      />
+      <ConfirmationDialog
+        isOpen={isBulkDeleteConfirmOpen}
+        onClose={() => setIsBulkDeleteConfirmOpen(false)}
+        onConfirm={confirmBulkDelete}
+        title="Delete Selected Brands"
+        description={`Are you sure you want to delete ${selectedBrands.length} selected brand(s)? This action cannot be undone and will remove all associated data.`}
+        confirmText={`Delete ${selectedBrands.length} Brand(s)`}
+        cancelText="Cancel"
+        variant="destructive"
+        loading={deleteLoading}
       />
       {/* Error Display */}
       {error && (

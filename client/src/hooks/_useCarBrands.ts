@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { CarBrand, CarBrandsResponse } from "@/types/carTypes";
+import { CarBrand } from "@/types/carTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_KEY, API_BASE_URL } from "@/utils/config";
 import toast from "react-hot-toast";
@@ -12,6 +12,7 @@ export interface UseCarBrandsReturn {
   fetchBrands: () => Promise<void>;
   handleEditBrand: (brandData: Partial<CarBrand>) => Promise<void>;
   handleDeleteBrands: () => Promise<void>;
+  handleDeleteSingle: (brandId: string) => Promise<void>;
   handleSelectAll: (checked: boolean) => void;
   handleSelectBrand: (brandId: string) => void;
   handleAddBrand: (brandData: Partial<CarBrand>) => Promise<void>;
@@ -319,6 +320,53 @@ export const useCarBrands = (): UseCarBrandsReturn => {
     }
   };
 
+  // Delete single car brand
+  const handleDeleteSingle = async (brandId: string): Promise<void> => {
+    if (!currentUser) {
+      throw new Error("Authentication required");
+    }
+
+    try {
+      setLoading(true);
+      const authToken = await currentUser.getIdToken();
+
+      if (!API_KEY) {
+        throw new Error("API key is missing");
+      }
+
+      const response = await fetch(`${API_BASE_URL}/car/brands/${brandId}`, {
+        method: "DELETE",
+        headers: {
+          "x-api-key": API_KEY,
+          Authorization: `Bearer ${authToken}`,
+        } as HeadersInit,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete brand: ${response.status}`);
+      }
+
+      // Update the local state to remove deleted brand
+      setBrands((prev) => prev.filter((brand) => brand.id !== brandId));
+
+      // Remove from selected brands if it was selected
+      setSelectedBrands((prev) => prev.filter((id) => id !== brandId));
+
+      toast.success("Brand deleted successfully");
+    } catch (error) {
+      toast.error(
+        "Error deleting brand: " +
+          (error instanceof Error ? error.message : "Unknown error")
+      );
+      setError(
+        error instanceof Error ? error.message : "Failed to delete brand"
+      );
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSelectAll = (checked: boolean) => {
     setSelectedBrands(checked ? brands.map((brand) => brand.id) : []);
   };
@@ -330,7 +378,6 @@ export const useCarBrands = (): UseCarBrandsReturn => {
         : [...prev, brandId]
     );
   };
-
   return {
     brands,
     selectedBrands,
@@ -339,6 +386,7 @@ export const useCarBrands = (): UseCarBrandsReturn => {
     fetchBrands,
     handleEditBrand,
     handleDeleteBrands,
+    handleDeleteSingle,
     handleSelectAll,
     handleSelectBrand,
     handleAddBrand,
