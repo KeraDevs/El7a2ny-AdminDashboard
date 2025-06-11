@@ -1,13 +1,17 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
+import { CarRegion, SortConfig } from "@/types/carTypes";
 import { useCarRegions } from "@/hooks/_useCarRegions";
-import { useAuth } from "@/contexts/AuthContext";
-import { CarRegion } from "@/types/carTypes";
-import { toast } from "react-hot-toast";
-import { Loader2, MapPin, Plus, Settings, TrendingUp } from "lucide-react";
-import { API_KEY, API_BASE_URL } from "@/utils/config";
+import { CarRegionsTableHeader } from "@/components/cars/CarRegionsTableHeader";
+import { CarRegionsTable } from "@/components/cars/CarRegionsTable";
+import { CarRegionsPagination } from "@/components/cars/CarRegionsPagination";
+import { AddCarRegionDialog } from "@/components/cars/AddCarRegionDialog";
+import { EditCarRegionDialog } from "@/components/cars/EditCarRegionDialog";
+import { ViewCarRegionDialog } from "@/components/cars/ViewCarRegionDialog";
+import { toast } from "sonner";
+import { Loader2, MapPin, Globe, TrendingUp, Building2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -15,27 +19,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { IconRefresh, IconFilter } from "@tabler/icons-react";
 
-import { CarRegionsTableHeader } from "@/components/cars/CarRegionsTableHeader";
-import { CarRegionsTable } from "@/components/cars/CarRegionsTable";
-import { CarRegionsPagination } from "@/components/cars/CarRegionsPagination";
-import { AddCarRegionDialog } from "@/components/cars/AddCarRegionDialog";
-import { EditCarRegionDialog } from "@/components/cars/EditCarRegionDialog";
-import { ViewCarRegionDialog } from "@/components/cars/ViewCarRegionDialog";
-
-// Car Regions Statistics Component
-const CarRegionsStats = ({ regions }: { regions: CarRegion[] }) => {
+// Regions Statistics Component
+const RegionsStats = ({ regions }: { regions: CarRegion[] }) => {
   const totalRegions = regions.length;
   const activeRegions = regions.filter((r) => r.is_active).length;
   const inactiveRegions = totalRegions - activeRegions;
-  const recentRegions = regions.filter((r) => {
-    const createdDate = new Date(r.created_at || Date.now());
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    return createdDate > thirtyDaysAgo;
-  }).length;
+  const regionsWithBrands = regions.filter(
+    (r) => r.brand_regions && r.brand_regions.length > 0
+  ).length;
 
   const stats = [
     {
@@ -43,34 +35,34 @@ const CarRegionsStats = ({ regions }: { regions: CarRegion[] }) => {
       value: totalRegions.toString(),
       icon: MapPin,
       description: "All car regions",
-      trend: "+8.5%",
+      trend: "+5.2%",
       color: "from-blue-500 to-blue-600",
       bgColor: "from-blue-50 to-blue-100",
     },
     {
       title: "Active Regions",
       value: activeRegions.toString(),
-      icon: Plus,
+      icon: Globe,
       description: "Currently active",
-      trend: "+5.2%",
+      trend: "+3.1%",
       color: "from-green-500 to-green-600",
       bgColor: "from-green-50 to-green-100",
     },
     {
-      title: "Inactive Regions",
-      value: inactiveRegions.toString(),
-      icon: Settings,
-      description: "Temporarily disabled",
-      trend: "-1.1%",
-      color: "from-red-500 to-red-600",
-      bgColor: "from-red-50 to-red-100",
+      title: "With Brands",
+      value: regionsWithBrands.toString(),
+      icon: Building2,
+      description: "Have associated brands",
+      trend: "+8.7%",
+      color: "from-purple-500 to-purple-600",
+      bgColor: "from-purple-50 to-purple-100",
     },
     {
-      title: "Recent Additions",
-      value: recentRegions.toString(),
+      title: "Inactive",
+      value: inactiveRegions.toString(),
       icon: TrendingUp,
-      description: "Last 30 days",
-      trend: "+12.3%",
+      description: "Not currently active",
+      trend: "-2.4%",
       color: "from-orange-500 to-orange-600",
       bgColor: "from-orange-50 to-orange-100",
     },
@@ -100,14 +92,9 @@ const CarRegionsStats = ({ regions }: { regions: CarRegion[] }) => {
               >
                 {stat.value}
               </div>
-              <div className="flex items-center justify-between mt-1">
-                <p className="text-xs text-muted-foreground">
-                  {stat.description}
-                </p>
-                <span className="text-xs text-green-600 font-medium">
-                  {stat.trend}
-                </span>
-              </div>
+              <p className="text-xs text-muted-foreground">
+                {stat.description}
+              </p>
             </CardContent>
           </Card>
         </motion.div>
@@ -116,305 +103,298 @@ const CarRegionsStats = ({ regions }: { regions: CarRegion[] }) => {
   );
 };
 
-export type CarRegionColumnVisibility = {
-  name: boolean;
-  description: boolean;
-  country: boolean;
-  continent: boolean;
-  is_active: boolean;
-  created_at: boolean;
-};
-
-export type CarRegionSortConfig = {
-  key: keyof CarRegion | null;
-  direction: "asc" | "desc";
-};
-
-const CarRegionsList: React.FC = () => {
-  const { currentUser, isAuthorized, loading: authLoading } = useAuth();
-  const {
-    regions,
-    loading,
-    error,
-    fetchRegions,
-    selectedRegions,
-    handleSelectAll,
-    handleSelectRegion,
-    handleDeleteRegions,
-    handleEditRegion,
-    handleAddRegion,
-    setSelectedRegions,
-  } = useCarRegions();
-
+const CarRegionsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "active" | "inactive"
-  >("all");
-  const [continentFilter, setContinentFilter] = useState("");
-
-  const [columnVisibility, setColumnVisibility] =
-    useState<CarRegionColumnVisibility>({
-      name: true,
-      description: true,
-      country: true,
-      continent: true,
-      is_active: true,
-      created_at: true,
-    });
-
-  const [sortConfig, setSortConfig] = useState<CarRegionSortConfig>({
-    key: null,
-    direction: "asc",
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    key: "created_at",
+    direction: "desc",
   });
 
   // Dialog states
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [selectedRegionForEdit, setSelectedRegionForEdit] =
-    useState<CarRegion | null>(null);
-  const [selectedRegionForView, setSelectedRegionForView] =
-    useState<CarRegion | null>(null);
+  const [selectedRegion, setSelectedRegion] = useState<CarRegion | null>(null);
 
-  // Fetch regions on component mount
+  const {
+    regions,
+    loading,
+    error,
+    fetchRegions,
+    handleDeleteRegions,
+    handleAddRegion,
+    handleEditRegion,
+  } = useCarRegions();
+
+  // Auto-load regions on mount
   useEffect(() => {
-    if (currentUser && isAuthorized) {
-      fetchRegions();
-    }
-  }, [currentUser, isAuthorized, fetchRegions]);
+    fetchRegions();
+  }, [fetchRegions]);
 
   // Filter and sort regions
   const filteredAndSortedRegions = useMemo(() => {
-    let filtered = regions.filter((region) => {
-      const matchesSearch =
-        region.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (region.description
-          ?.toLowerCase()
-          .includes(searchQuery.toLowerCase()) ??
-          false);
+    let filtered = regions;
 
-      const matchesStatus =
-        statusFilter === "all" ||
-        (statusFilter === "active" && region.is_active) ||
-        (statusFilter === "inactive" && !region.is_active);
-
-      const matchesContinent =
-        !continentFilter ||
-        (region.continent
-          ?.toLowerCase()
-          .includes(continentFilter.toLowerCase()) ??
-          false);
-
-      return matchesSearch && matchesStatus && matchesContinent;
-    }); // Sort regions
-    if (sortConfig.key) {
-      filtered.sort((a, b) => {
-        const aValue = a[sortConfig.key!];
-        const bValue = b[sortConfig.key!];
-
-        // Handle null/undefined values
-        if (aValue == null && bValue == null) return 0;
-        if (aValue == null) return sortConfig.direction === "asc" ? 1 : -1;
-        if (bValue == null) return sortConfig.direction === "asc" ? -1 : 1;
-
-        if (aValue < bValue) {
-          return sortConfig.direction === "asc" ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === "asc" ? 1 : -1;
-        }
-        return 0;
-      });
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = regions.filter((region) =>
+        region.name.toLowerCase().includes(query)
+      );
     }
 
-    return filtered;
-  }, [regions, searchQuery, statusFilter, continentFilter, sortConfig]);
+    // Apply sorting
+    return [...filtered].sort((a, b) => {
+      const aValue = a[sortConfig.key as keyof CarRegion];
+      const bValue = b[sortConfig.key as keyof CarRegion];
 
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return sortConfig.direction === "asc" ? -1 : 1;
+      if (bValue == null) return sortConfig.direction === "asc" ? 1 : -1;
+
+      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [regions, searchQuery, sortConfig]);
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedRegions.length / rowsPerPage);
-  const paginatedRegions = filteredAndSortedRegions.slice(
-    (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
-  );
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const currentRegions = filteredAndSortedRegions.slice(startIndex, endIndex);
 
-  const handleSort = (key: keyof CarRegion) => {
-    setSortConfig({
-      key,
+  // Reset to first page when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  // Handlers
+  const handleSort = (column: keyof CarRegion) => {
+    setSortConfig((prev) => ({
+      key: column,
       direction:
-        sortConfig.key === key && sortConfig.direction === "asc"
-          ? "desc"
-          : "asc",
-    });
+        prev.key === column && prev.direction === "asc" ? "desc" : "asc",
+    }));
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedRegions(currentRegions.map((region) => region.id));
+    } else {
+      setSelectedRegions([]);
+    }
+  };
+
+  const handleSelectRegion = (regionId: string) => {
+    setSelectedRegions((prev) =>
+      prev.includes(regionId)
+        ? prev.filter((id) => id !== regionId)
+        : [...prev, regionId]
+    );
+  };
+
+  const handleEdit = (region: CarRegion) => {
+    setSelectedRegion(region);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleView = (region: CarRegion) => {
+    setSelectedRegion(region);
+    setIsViewDialogOpen(true);
+  };
+  const handleDeleteSelected = async () => {
+    if (selectedRegions.length === 0) {
+      toast.error("No regions selected");
+      return;
+    }
+
+    try {
+      await handleDeleteRegions();
+      setSelectedRegions([]);
+      toast.success(`${selectedRegions.length} region(s) deleted successfully`);
+    } catch (error) {
+      toast.error("Failed to delete regions");
+    }
+  };
+
+  const handleDeleteSingle = async (regionId: string) => {
+    try {
+      // For single delete, we'll need to implement this in the hook or handle it differently
+      // For now, let's use the existing multi-delete but set selected regions first
+      setSelectedRegions([regionId]);
+      await handleDeleteRegions();
+      setSelectedRegions([]);
+      toast.success("Region deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete region");
+    }
   };
 
   const handleRefresh = () => {
     fetchRegions();
-    toast.success("Car regions refreshed successfully!");
+    setSelectedRegions([]);
+    toast.success("Regions refreshed");
   };
 
-  const handleEditClick = (region: CarRegion) => {
-    setSelectedRegionForEdit(region);
-    setIsEditDialogOpen(true);
-  };
+  const handleExport = () => {
+    // Simple CSV export
+    const csvData = filteredAndSortedRegions
+      .map(
+        (region) =>
+          `"${region.name}","${region.country || ""}","${
+            region.continent || ""
+          }","${region.is_active ? "Active" : "Inactive"}","${
+            region.created_at
+          }"`
+      )
+      .join("\n");
 
-  const handleViewClick = (region: CarRegion) => {
-    setSelectedRegionForView(region);
-    setIsViewDialogOpen(true);
+    const csvContent = `"Name","Country","Continent","Status","Created At"\n${csvData}`;
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "car-regions.csv";
+    a.click();
+    window.URL.revokeObjectURL(url);
+    toast.success("Regions exported successfully");
   };
-
-  const handleAddSuccess = () => {
+  const handleDialogSuccess = () => {
+    fetchRegions();
     setIsAddDialogOpen(false);
-    fetchRegions();
-  };
-
-  const handleEditSuccess = () => {
     setIsEditDialogOpen(false);
-    setSelectedRegionForEdit(null);
-    fetchRegions();
-  };
-  const handleDeleteSingle = async (regionId: string) => {
-    try {
-      // Save current selection
-      const originalSelection = [...selectedRegions];
-
-      // Select only the target region
-      setSelectedRegions([regionId]);
-
-      // Use the existing delete function
-      await handleDeleteRegions();
-
-      // Restore original selection (minus the deleted region)
-      setSelectedRegions(originalSelection.filter((id) => id !== regionId));
-    } catch (error) {
-      console.error("Failed to delete region:", error);
-      toast.error("Failed to delete region");
-
-      // Restore original selection on error
-      setSelectedRegions(selectedRegions);
-    }
+    setSelectedRegion(null);
   };
 
-  if (authLoading) {
+  if (loading && regions.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="flex h-full items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground text-sm">
+            Loading car regions...
+          </p>
+        </div>
       </div>
     );
   }
 
-  if (!isAuthorized) {
+  if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-2">Access Denied</h2>
-          <p className="text-muted-foreground">
-            You don't have permission to access car regions management.
-          </p>
+          <p className="text-destructive mb-2">Failed to load car regions</p>
+          <p className="text-sm text-muted-foreground mb-4">{error}</p>
+          <button
+            onClick={handleRefresh}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div
+      className="container mx-auto p-4 space-y-4 overflow-y-auto"
+      style={{ scrollbarGutter: "stable" }}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
+      >
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
             Car Regions Management
           </h1>
           <p className="text-muted-foreground">
-            Manage car regions, their details and availability
+            Manage car regions and their associated brands
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleRefresh} disabled={loading}>
-            <IconRefresh className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Region
-          </Button>
-        </div>
-      </div>
-      {/* Statistics */}
-      <CarRegionsStats regions={regions} />
-      {/* Table Header */}
-      <CarRegionsTableHeader
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        continentFilter={continentFilter}
-        setContinentFilter={setContinentFilter}
-        columnVisibility={columnVisibility}
-        setColumnVisibility={setColumnVisibility}
-        selectedCount={selectedRegions.length}
-        onDelete={handleDeleteRegions}
-        onRefresh={handleRefresh}
-        loading={loading}
-      />
-      {/* Table */}
-      <CarRegionsTable
-        regions={paginatedRegions}
-        selectedRegions={selectedRegions}
-        onSelectAll={handleSelectAll}
-        onSelectRegion={handleSelectRegion}
-        onEdit={handleEditClick}
-        onView={handleViewClick}
-        onDelete={handleDeleteRegions}
-        onDeleteSingle={handleDeleteSingle}
-        columnVisibility={columnVisibility}
-        onSort={handleSort}
-        sortConfig={sortConfig}
-        loading={loading}
-      />
-      {/* Pagination */}
-      <CarRegionsPagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        rowsPerPage={rowsPerPage}
-        totalItems={filteredAndSortedRegions.length}
-        onPageChange={setCurrentPage}
-        onRowsPerPageChange={setRowsPerPage}
-      />
+      </motion.div>
+
+      <RegionsStats regions={regions} />
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="space-y-4"
+      >
+        <Card className="overflow-hidden">
+          <CarRegionsTableHeader
+            onAddRegion={() => setIsAddDialogOpen(true)}
+            onRefresh={handleRefresh}
+            onExport={handleExport}
+            onDelete={handleDeleteSelected}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            selectedCount={selectedRegions.length}
+            loading={loading}
+          />
+
+          <CarRegionsTable
+            regions={currentRegions}
+            selectedRegions={selectedRegions}
+            onSelectAll={handleSelectAll}
+            onSelectRegion={handleSelectRegion}
+            onEdit={handleEdit}
+            onView={handleView}
+            onDelete={handleDeleteSelected}
+            onDeleteSingle={handleDeleteSingle}
+            onSort={handleSort}
+            sortConfig={sortConfig}
+            loading={loading}
+          />
+
+          <div className="p-4 pt-0">
+            <CarRegionsPagination
+              currentPage={currentPage}
+              totalPages={Math.max(1, totalPages)}
+              onPageChange={setCurrentPage}
+              totalItems={filteredAndSortedRegions.length}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={setRowsPerPage}
+            />
+          </div>
+        </Card>
+      </motion.div>
+
       {/* Dialogs */}
       <AddCarRegionDialog
         isOpen={isAddDialogOpen}
         onClose={() => setIsAddDialogOpen(false)}
-        onSuccess={handleAddSuccess}
+        onSuccess={handleDialogSuccess}
         onAdd={handleAddRegion}
       />
+
       <EditCarRegionDialog
         isOpen={isEditDialogOpen}
         onClose={() => {
           setIsEditDialogOpen(false);
-          setSelectedRegionForEdit(null);
+          setSelectedRegion(null);
         }}
-        onSuccess={handleEditSuccess}
+        region={selectedRegion}
+        onSuccess={handleDialogSuccess}
         onEdit={handleEditRegion}
-        region={selectedRegionForEdit}
       />
+
       <ViewCarRegionDialog
         isOpen={isViewDialogOpen}
         onClose={() => {
           setIsViewDialogOpen(false);
-          setSelectedRegionForView(null);
+          setSelectedRegion(null);
         }}
-        region={selectedRegionForView}
+        region={selectedRegion}
       />
-      {/* Error Display */}
-      {error && (
-        <div className="fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          {error}
-        </div>
-      )}
     </div>
   );
 };
 
-export default CarRegionsList;
+export default CarRegionsPage;

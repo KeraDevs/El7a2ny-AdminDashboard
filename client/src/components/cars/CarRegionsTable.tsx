@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  CarRegion,
-  CarRegionColumnVisibility,
-  SortConfig,
-} from "@/types/carTypes";
+import { CarRegion, SortConfig } from "@/types/carTypes";
 import {
   Table,
   TableBody,
@@ -14,21 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  ChevronDown,
-  ChevronUp,
-  MoreHorizontal,
-  Eye,
-  Edit,
-  Trash2,
-} from "lucide-react";
+import { ChevronDown, ChevronUp, Eye, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 
 interface CarRegionsTableProps {
@@ -40,7 +22,6 @@ interface CarRegionsTableProps {
   onView: (region: CarRegion) => void;
   onDelete: () => void;
   onDeleteSingle: (regionId: string) => void;
-  columnVisibility: CarRegionColumnVisibility;
   onSort: (column: keyof CarRegion) => void;
   sortConfig: SortConfig;
   loading: boolean;
@@ -55,7 +36,6 @@ export const CarRegionsTable: React.FC<CarRegionsTableProps> = ({
   onView,
   onDelete,
   onDeleteSingle,
-  columnVisibility,
   onSort,
   sortConfig,
   loading,
@@ -97,15 +77,9 @@ export const CarRegionsTable: React.FC<CarRegionsTableProps> = ({
               <TableHead className="w-12">
                 <Checkbox disabled />
               </TableHead>
-              {columnVisibility.name && <TableHead>Name</TableHead>}
-              {columnVisibility.description && (
-                <TableHead>Description</TableHead>
-              )}
-              {columnVisibility.country && <TableHead>Country</TableHead>}
-              {columnVisibility.continent && <TableHead>Continent</TableHead>}
-              {columnVisibility.is_active && <TableHead>Status</TableHead>}
-              {columnVisibility.created_at && <TableHead>Created</TableHead>}
-              <TableHead className="w-24">Actions</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead className="w-32 sm:w-48">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -114,36 +88,12 @@ export const CarRegionsTable: React.FC<CarRegionsTableProps> = ({
                 <TableCell>
                   <div className="h-4 w-4 bg-gray-200 rounded animate-pulse" />
                 </TableCell>
-                {columnVisibility.name && (
-                  <TableCell>
-                    <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
-                  </TableCell>
-                )}
-                {columnVisibility.description && (
-                  <TableCell>
-                    <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
-                  </TableCell>
-                )}
-                {columnVisibility.country && (
-                  <TableCell>
-                    <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
-                  </TableCell>
-                )}
-                {columnVisibility.continent && (
-                  <TableCell>
-                    <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
-                  </TableCell>
-                )}
-                {columnVisibility.is_active && (
-                  <TableCell>
-                    <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
-                  </TableCell>
-                )}
-                {columnVisibility.created_at && (
-                  <TableCell>
-                    <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
-                  </TableCell>
-                )}
+                <TableCell>
+                  <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
+                </TableCell>
+                <TableCell>
+                  <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
+                </TableCell>
                 <TableCell>
                   <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
                 </TableCell>
@@ -156,7 +106,7 @@ export const CarRegionsTable: React.FC<CarRegionsTableProps> = ({
   }
 
   return (
-    <div className="border rounded-lg">
+    <div className="border rounded-lg overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
@@ -173,34 +123,16 @@ export const CarRegionsTable: React.FC<CarRegionsTableProps> = ({
                 }
               />
             </TableHead>
-            {columnVisibility.name && (
-              <SortableHeader column="name">Name</SortableHeader>
-            )}
-            {columnVisibility.description && (
-              <SortableHeader column="description">Description</SortableHeader>
-            )}
-            {columnVisibility.country && (
-              <SortableHeader column="country">Country</SortableHeader>
-            )}
-            {columnVisibility.continent && (
-              <SortableHeader column="continent">Continent</SortableHeader>
-            )}
-            {columnVisibility.is_active && (
-              <SortableHeader column="is_active">Status</SortableHeader>
-            )}
-            {columnVisibility.created_at && (
-              <SortableHeader column="created_at">Created</SortableHeader>
-            )}
-            <TableHead className="w-24">Actions</TableHead>
+            <SortableHeader column="name">Name</SortableHeader>
+            <SortableHeader column="created_at">Created</SortableHeader>
+            <TableHead className="w-32 sm:w-48">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {regions.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={
-                  Object.values(columnVisibility).filter(Boolean).length + 2
-                }
+                colSpan={4}
                 className="text-center py-8 text-muted-foreground"
               >
                 No car regions found
@@ -222,69 +154,64 @@ export const CarRegionsTable: React.FC<CarRegionsTableProps> = ({
                     />
                   </TableCell>
 
-                  {columnVisibility.name && (
-                    <TableCell className="font-medium">{region.name}</TableCell>
-                  )}
+                  <TableCell className="font-medium">
+                    <div className="flex flex-col">
+                      <span>{region.name}</span>
+                      {/* Show related brands count on mobile */}
+                      {region.brand_regions &&
+                        region.brand_regions.length > 0 && (
+                          <span className="text-xs text-muted-foreground sm:hidden">
+                            {region.brand_regions.length} brand(s)
+                          </span>
+                        )}
+                    </div>
+                  </TableCell>
 
-                  {columnVisibility.description && (
-                    <TableCell
-                      className="max-w-xs truncate"
-                      title={region.description || ""}
-                    >
-                      {region.description || "No description"}
-                    </TableCell>
-                  )}
-
-                  {columnVisibility.country && (
-                    <TableCell>{region.country || "Not specified"}</TableCell>
-                  )}
-
-                  {columnVisibility.continent && (
-                    <TableCell>{region.continent || "Not specified"}</TableCell>
-                  )}
-
-                  {columnVisibility.is_active && (
-                    <TableCell>
-                      <Badge
-                        variant={region.is_active ? "default" : "secondary"}
-                      >
-                        {region.is_active ? "Active" : "Inactive"}
-                      </Badge>
-                    </TableCell>
-                  )}
-
-                  {columnVisibility.created_at && (
-                    <TableCell className="text-muted-foreground">
-                      {format(new Date(region.created_at), "MMM dd, yyyy")}
-                    </TableCell>
-                  )}
+                  <TableCell className="text-muted-foreground">
+                    <div className="flex flex-col">
+                      <span>
+                        {format(new Date(region.created_at), "MMM dd, yyyy")}
+                      </span>
+                      {/* Show brands on larger screens */}
+                      {region.brand_regions &&
+                        region.brand_regions.length > 0 && (
+                          <span className="text-xs text-muted-foreground hidden sm:block">
+                            {region.brand_regions.length} brand(s) associated
+                          </span>
+                        )}
+                    </div>
+                  </TableCell>
 
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onView(region)}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          View
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onEdit(region)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => onDeleteSingle(region.id)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onView(region)}
+                        className="h-8 w-8 p-0"
+                        title="View details"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEdit(region)}
+                        className="h-8 w-8 p-0"
+                        title="Edit region"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onDeleteSingle(region.id)}
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        title="Delete region"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               );
