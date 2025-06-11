@@ -357,7 +357,7 @@ const UsersList: React.FC = () => {
           </p>
         </div>
       </motion.div>
-      <UsersStats users={users} />{" "}
+      <UsersStats users={users} />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -387,7 +387,7 @@ const UsersList: React.FC = () => {
             searchQuery={searchQuery}
             users={users}
             onDelete={handleDelete}
-          />{" "}
+          />
           <div className="p-4 pt-0">
             <UsersPagination
               currentPage={currentPage}

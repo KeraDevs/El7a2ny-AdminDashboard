@@ -19,6 +19,7 @@ import {
   Ticket,
   LogOut,
   UserCircle,
+  Car,
 } from "lucide-react";
 
 import { SidebarSection } from "@/types/navigation";
@@ -67,6 +68,14 @@ export const sidebarSections: SidebarSection[] = [
     subsections: [
       { name: "Users", href: "/wallets/users" },
       { name: "Workshops", href: "/wallets/workshops" },
+    ],
+  },
+  {
+    name: "Cars",
+    icon: <Car className="h-4 w-4" />,
+    subsections: [
+      { name: "Car Brands", href: "/cars/brands" },
+      { name: "Car Regions", href: "/cars/regions" },
     ],
   },
   {

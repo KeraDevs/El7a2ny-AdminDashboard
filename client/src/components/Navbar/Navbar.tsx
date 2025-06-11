@@ -27,17 +27,19 @@ const Navbar = () => {
   const router = useRouter();
 
   const pathname = usePathname();
-
   const getPageTitle = (path: string) => {
     const routeMap: { [key: string]: string } = {
       "/dashboard": "Dashboard",
       "/users": "Users List",
       "/users/:id": "User Profile",
       "/users/cars": "Cars",
+      "/cars/brands": "Car Brands",
+      "/cars/regions": "Car Regions",
       "/workshops": "Workshops List",
       "/workshops/:id": "Workshop Profile",
       "/workshops/cars": "Workshop Cars",
       "/workshops/labels": "Workshop Labels",
+      "/workshops/services": "Workshop Services",
       "/history": "History",
       "/marketplace": "Marketplace",
       "/requests": "Requests",
