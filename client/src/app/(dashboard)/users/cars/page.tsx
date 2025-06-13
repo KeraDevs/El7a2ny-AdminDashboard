@@ -1,14 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Vehicle, CarBrand } from "@/types/vehicleTypes";
 import { toast } from "react-hot-toast";
 import {
   Loader2,
   Car,
-  Settings,
-  TrendingUp,
   Calendar,
   Star,
   MoreHorizontal,
@@ -17,9 +15,8 @@ import {
   Trash,
   Search,
   Filter,
-  RefreshCw,
 } from "lucide-react";
-import { FaCar, FaCarSide, FaTools, FaChartLine } from "react-icons/fa";
+import { FaCar, FaTools } from "react-icons/fa";
 import { SiToyota, SiBmw, SiHonda, SiMercedes, SiNissan } from "react-icons/si";
 import {
   Card,

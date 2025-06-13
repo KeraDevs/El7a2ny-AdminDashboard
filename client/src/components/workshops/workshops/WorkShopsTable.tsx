@@ -1,5 +1,5 @@
 import React from "react";
-import { Workshop, PhoneNumber } from "@/types/workshopTypes";
+import { PhoneNumber } from "@/types/workshopTypes";
 import {
   ChevronsUpDown,
   Edit,
@@ -27,7 +27,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { WorkshopColumnVisibility, SortConfig } from "@/types/workshopTypes";
 import { WorkshopsTableProps } from "@/types/workshopTypes";
 
 export const WorkshopsTable: React.FC<WorkshopsTableProps> = ({

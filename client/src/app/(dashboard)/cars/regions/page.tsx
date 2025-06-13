@@ -12,13 +12,7 @@ import { EditCarRegionDialog } from "@/components/cars/EditCarRegionDialog";
 import { ViewCarRegionDialog } from "@/components/cars/ViewCarRegionDialog";
 import { toast } from "sonner";
 import { Loader2, MapPin, Globe, TrendingUp, Building2 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Regions Statistics Component
 const RegionsStats = ({ regions }: { regions: CarRegion[] }) => {
@@ -202,7 +196,7 @@ const CarRegionsPage: React.FC = () => {
       await handleDeleteRegions();
       setSelectedRegions([]);
       toast.success(`${selectedRegions.length} region(s) deleted successfully`);
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete regions");
     }
   };

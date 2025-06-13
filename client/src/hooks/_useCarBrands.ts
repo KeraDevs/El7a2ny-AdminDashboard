@@ -252,7 +252,6 @@ export const useCarBrands = (): UseCarBrandsReturn => {
       );
       toast.success("Car brand updated successfully");
     } catch (error) {
-      console.error("Edit Brand Error:", error);
       toast.error("Error editing car brand");
       setError(error instanceof Error ? error.message : "Failed to edit brand");
       throw error;

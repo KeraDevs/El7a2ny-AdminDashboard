@@ -260,7 +260,7 @@ const CarRegionsList: React.FC = () => {
     try {
       await handleDeleteSingle(regionToDelete);
       toast.success("Region deleted successfully");
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete region");
     } finally {
       setDeleteLoading(false);
@@ -274,7 +274,7 @@ const CarRegionsList: React.FC = () => {
     try {
       await handleDeleteRegions();
       toast.success(`${selectedRegions.length} region(s) deleted successfully`);
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete regions");
     } finally {
       setDeleteLoading(false);

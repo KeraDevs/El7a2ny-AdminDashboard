@@ -1,6 +1,48 @@
 import { User } from "firebase/auth";
 import { Vehicle } from "./vehicleTypes";
 import { PhoneNumber } from "./workshopTypes";
+import { CarBrand } from "./carTypes";
+
+// Define interfaces for workshop-related data
+export interface WorkshopBranch {
+  id: string;
+  parent_id: string;
+  name: string;
+  address: string;
+  email: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OperatingHour {
+  id: string;
+  workshop_id: string;
+  day: string;
+  open_time: string;
+  close_time: string;
+  is_closed: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkshopWorker {
+  id: string;
+  user_id: string;
+  workshop_id: string;
+  role: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  user: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    profile_pic: string | null;
+  };
+}
 
 export interface ApiResponse {
   total: boolean;
@@ -59,11 +101,11 @@ export interface ApiWorkshopsList {
     updated_at: string;
   };
   parent: null;
-  branches: any[];
+  branches: WorkshopBranch[];
   phone_numbers: PhoneNumber[];
-  operating_hours: any[];
-  workers: any[];
-  supported_brands: any[];
+  operating_hours: OperatingHour[];
+  workers: WorkshopWorker[];
+  supported_brands: CarBrand[];
   labels: string[];
 }
 

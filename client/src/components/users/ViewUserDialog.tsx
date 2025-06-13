@@ -1,5 +1,4 @@
 import React from "react";
-import { User } from "@/types/userTypes";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -16,15 +15,11 @@ import {
   Phone,
   Calendar,
   CircleUser,
-  ShieldUser,
-  UserCog,
-  Wrench,
   Car,
   ExternalLink,
   Tag,
   Shield,
   Edit,
-  User as UserIcon,
   IdCard,
 } from "lucide-react";
 import { getUserTypeBadge, getGenderBadge } from "@/utils/usersStyles";

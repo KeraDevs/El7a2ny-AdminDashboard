@@ -9,7 +9,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,7 +37,7 @@ export function LoginForm({
 
     try {
       await login(email, password);
-    } catch (error) {
+    } catch {
       toast.error("Login attempt failed");
     }
   };

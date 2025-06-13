@@ -136,7 +136,6 @@ const CarBrandsList: React.FC = () => {
     handleDeleteSingle,
     handleEditBrand,
     handleAddBrand,
-    setSelectedBrands,
   } = useCarBrands();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -264,12 +263,11 @@ const CarBrandsList: React.FC = () => {
 
   const confirmSingleDelete = async () => {
     if (!brandToDelete) return;
-
     setDeleteLoading(true);
     try {
       await handleDeleteSingle(brandToDelete);
       toast.success("Brand deleted successfully");
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete brand");
     } finally {
       setDeleteLoading(false);
@@ -283,7 +281,7 @@ const CarBrandsList: React.FC = () => {
     try {
       await handleDeleteBrands();
       toast.success(`${selectedBrands.length} brand(s) deleted successfully`);
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete brands");
     } finally {
       setDeleteLoading(false);

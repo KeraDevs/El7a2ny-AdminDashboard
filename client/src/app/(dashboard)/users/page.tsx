@@ -7,15 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { User } from "@/types/userTypes";
 import { toast } from "react-hot-toast";
 import { Loader2, Users, UserPlus, Settings, TrendingUp } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { IconRefresh, IconFilter } from "@tabler/icons-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { UsersTableHeader } from "@/components/users/UsersTableHeader";
 import { UsersTable } from "@/components/users/UsersTable";
@@ -172,7 +164,7 @@ const UsersList: React.FC = () => {
 
   useEffect(() => {
     if (isAuthorized && currentUser) {
-      fetchUsers().catch((err) => {
+      fetchUsers().catch(() => {
         toast.error("Failed to fetch users");
       });
     }
@@ -254,7 +246,7 @@ const UsersList: React.FC = () => {
     });
   };
 
-  const handleAddUser = async (userData: Partial<User>) => {
+  const handleAddUser = async () => {
     try {
       toast.success("User added successfully!");
       await fetchUsers();
@@ -280,7 +272,7 @@ const UsersList: React.FC = () => {
       await handleEditUser(editUserData);
       toast.success("User updated successfully");
       setIsEditDialogOpen(false);
-    } catch (error) {
+    } catch {
       toast.error("Failed to update user");
     }
   };
@@ -304,7 +296,7 @@ const UsersList: React.FC = () => {
       try {
         await handleDeleteUsers();
         toast.success("Users deleted successfully");
-      } catch (error) {
+      } catch {
         toast.error("Failed to delete users");
       }
     }

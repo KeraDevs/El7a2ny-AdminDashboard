@@ -1,5 +1,7 @@
 import { ColumnVisibility, SortConfig } from "@/app/(dashboard)/users/page";
 import { Vehicle } from "./vehicleTypes";
+import { User as FirebaseUser } from "firebase/auth";
+
 export interface User {
   id: string;
   email: string;
@@ -20,6 +22,16 @@ export interface User {
   vehicle?: Vehicle;
 }
 
+// Define user data interface for authentication context
+export interface UserData {
+  id: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  type?: string;
+  [key: string]: unknown; // Allow additional properties
+}
+
 export interface UserFormProps {
   user?: User;
   onSubmit: (data: Partial<User>) => void;
@@ -28,6 +40,7 @@ export interface UserFormProps {
   isEdit: boolean;
   loading?: boolean;
 }
+
 export interface AddUserFormProps {
   user?: User;
   onSubmit: (userData: Partial<User>) => void;
@@ -36,6 +49,7 @@ export interface AddUserFormProps {
   open: boolean;
   isEdit: boolean;
 }
+
 export interface EditUserFormProps {
   user: User;
   onSubmit: (userData: Partial<User>) => Promise<void>;
@@ -59,7 +73,7 @@ export interface UsersTableProps {
   users: User[];
   onDelete: () => void;
 }
-``;
+
 export interface UsersPaginationProps {
   currentPage: number;
   setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
@@ -84,9 +98,9 @@ export interface EditUserDialogProps {
 }
 
 export interface AuthContextValue {
-  currentUser: any | null;
+  currentUser: FirebaseUser | null;
   userType: "customer" | "workshopAdmin" | "worker" | "superadmin" | null;
-  userData: any;
+  userData: UserData | null;
   loading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;

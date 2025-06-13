@@ -1,6 +1,3 @@
-// serviceTypes.ts - Complete Rewrite
-// This file defines the expected structure of service types from the API
-
 export interface ServiceTypePercentage {
   id: string;
   service_type_id: string;
@@ -10,27 +7,39 @@ export interface ServiceTypePercentage {
 }
 
 export interface ServiceType {
-  isActive: any;
   id: string;
   name: string;
   name_ar?: string;
   description?: string;
   description_ar?: string;
   service_category: string;
+  category: string; // Alias for service_category for form compatibility
+  basePrice: number;
+  estimatedDuration: number;
+  percentageModifier?: number;
+  requiresSpecialist?: boolean;
+  isActive: boolean;
   created_at: string;
   updated_at: string;
   service_types_percentage?: ServiceTypePercentage;
+  compatibleVehicleTypes?: string[];
+  createdAt: string; // Add this for compatibility with table sorting
+  percentage?: number; // Add this for percentage display
+  price: number; // Add this for price calculations
 }
 
 // Column visibility settings for service types table
 export interface ServiceTypeColumnVisibility {
-  basePrice: any;
+  basePrice: boolean;
   name: boolean;
   description?: boolean;
   percentage?: boolean;
   category?: boolean;
   created_at?: boolean;
   updated_at?: boolean;
+  estimatedDuration?: boolean;
+  isActive: boolean;
+  createdAt?: boolean; // Add this for compatibility
 }
 
 // Sort configuration for service types

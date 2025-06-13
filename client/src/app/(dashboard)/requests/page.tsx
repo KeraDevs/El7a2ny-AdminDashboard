@@ -102,7 +102,7 @@ const mockWorkshops: Workshop[] = [
 
 const RequestsPage = () => {
   const [requests, setRequests] = useState<ServiceRequest[]>(mockRequests);
-  const [workshops, setWorkshops] = useState<Workshop[]>(mockWorkshops);
+  const [workshops] = useState<Workshop[]>(mockWorkshops);
   const [filteredRequests, setFilteredRequests] =
     useState<ServiceRequest[]>(requests);
   const [statusFilter, setStatusFilter] = useState("all");

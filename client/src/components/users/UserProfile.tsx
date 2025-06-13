@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useEffect, useState, use } from "react";
+import React, { useEffect, useState } from "react";
 import { User } from "@/types/userTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -32,7 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getUserTypeBadge } from "@/utils/usersStyles";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const UserProfile = ({ id }: { id: string }) => {
   const { currentUser, isAuthorized } = useAuth();
@@ -170,9 +169,7 @@ const UserProfile = ({ id }: { id: string }) => {
 
       toast.success("User updated successfully");
       setIsEditing(false);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+    } catch {
       toast.error("Failed to update user");
     } finally {
       setLoading(false);

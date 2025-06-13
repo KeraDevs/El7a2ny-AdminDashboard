@@ -10,9 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ColumnVisibility } from "@/app/(dashboard)/users/page";
 import { AddUserDialog } from "@/components/users/AddUserDialog";
-import { User } from "@/types/userTypes";
 import { toast } from "react-hot-toast";
 import { UsersTableHeaderProps } from "@/types/userTypes";
 
@@ -62,8 +60,7 @@ export const UsersTableHeader: React.FC<UsersTableHeaderProps> = ({
           toast.success("Refresh triggered");
         }
       }
-    } catch (error) {
-      console.error("Error refreshing data:", error);
+    } catch {
       toast.error("Failed to refresh users");
     } finally {
       setIsRefreshing(false);

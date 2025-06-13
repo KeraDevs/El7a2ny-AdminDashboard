@@ -38,7 +38,6 @@ const ServiceTypesList: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
-
   const [columnVisibility, setColumnVisibility] =
     useState<ServiceTypeColumnVisibility>({
       name: true,
@@ -46,7 +45,7 @@ const ServiceTypesList: React.FC = () => {
       basePrice: true,
       category: true,
       estimatedDuration: true,
-      createdAt: true,
+      created_at: true,
       isActive: true,
     });
 
@@ -182,8 +181,7 @@ const ServiceTypesList: React.FC = () => {
       await handleEditServiceType(editServiceTypeData);
       toast.success("Service type updated successfully");
       setIsEditDialogOpen(false);
-    } catch (error) {
-      console.error("Failed to update service type:", error);
+    } catch {
       toast.error("Failed to update service type");
     }
   };

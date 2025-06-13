@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Car, Calendar, Users } from "lucide-react";
+import { Car, Calendar } from "lucide-react";
 import { ServiceRequest } from "@/app/(dashboard)/requests/page";
 import RequestStatusBadge from "./RequestStatusBadge";
 import RequestUrgencyBadge from "./RequestUrgencyBadge";

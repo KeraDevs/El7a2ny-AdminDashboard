@@ -17,7 +17,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ServiceTypeColumnVisibility, ServiceType } from "@/types/serviceTypes";
+import {
+  ServiceTypeColumnVisibility,
+  CreateServiceTypeData,
+} from "@/types/serviceTypes";
 import { AddServiceTypeDialog } from "./AddServiceTypeDialog";
 import { toast } from "react-hot-toast";
 
@@ -28,7 +31,7 @@ interface ServiceTypesTableHeaderProps {
   setColumnVisibility: React.Dispatch<
     React.SetStateAction<ServiceTypeColumnVisibility>
   >;
-  onAddServiceType: (serviceTypeData: any) => Promise<void>;
+  onAddServiceType: (serviceTypeData: CreateServiceTypeData) => Promise<void>;
   refreshData?: () => Promise<void>;
   selectedServiceTypes: string[];
   onSetPercentage: () => void;
@@ -82,8 +85,8 @@ export const ServiceTypesTableHeader: React.FC<
       } else {
         toast.success("Refresh triggered");
       }
-    } catch (error) {
-      console.error("Error refreshing data:", error);
+    } catch (refreshError) {
+      console.error("Error refreshing data:", refreshError);
       toast.error("Failed to refresh service types");
     } finally {
       setIsRefreshing(false);

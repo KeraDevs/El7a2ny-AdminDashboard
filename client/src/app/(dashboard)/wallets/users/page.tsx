@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Card,
@@ -27,7 +27,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
@@ -43,19 +42,11 @@ import {
   IconMinus,
   IconSearch,
   IconFilter,
-  IconDots,
   IconCreditCard,
   IconUsers,
   IconTrendingUp,
 } from "@tabler/icons-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
-// Mock data for users
 const mockUsers = [
   {
     id: 1,
@@ -332,7 +323,7 @@ export default function UsersWalletPage() {
     setDialogOpen(true);
   };
 
-  const handleWalletUpdate = (amount: number, reason: string) => {
+  const handleWalletUpdate = (amount: number) => {
     if (selectedUser) {
       setUsers((prevUsers) =>
         prevUsers.map((user) =>

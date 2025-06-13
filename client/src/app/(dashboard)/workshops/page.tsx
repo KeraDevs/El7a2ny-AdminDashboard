@@ -12,7 +12,7 @@ import { WorkshopsTable } from "@/components/workshops/workshops/WorkShopsTable"
 import { WorkshopsPagination } from "@/components/workshops/workshops/WorkshopsPagination";
 import { EditWorkshopDialog } from "@/components/workshops/workshops/EditWorkshopDialog";
 import { ViewWorkshopDialog } from "@/components/workshops/workshops/ViewWorkshopDialog";
-import { ColumnVisibility } from "@/types/workshopTypes";
+import { WorkshopColumnVisibility } from "@/types/workshopTypes";
 import { SortConfig } from "@/types/workshopTypes";
 
 const WorkshopsList: React.FC = () => {
@@ -34,18 +34,17 @@ const WorkshopsList: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const [searchQuery, setSearchQuery] = useState("");
-
-  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({
-    name: true,
-    email: true,
-    address: true,
-    phone: true,
-    status: true,
-    labels: true,
-    createdAt: true,
-    ratings: true,
-    services: true,
-  });
+  const [columnVisibility, setColumnVisibility] =
+    useState<WorkshopColumnVisibility>({
+      name: true,
+      email: true,
+      address: true,
+      phone: true,
+      status: true,
+      createdDate: true,
+      ratings: true,
+      services: true,
+    });
 
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: null,
@@ -63,7 +62,7 @@ const WorkshopsList: React.FC = () => {
 
   useEffect(() => {
     if (isAuthorized && currentUser) {
-      fetchWorkshops().catch((err) => {
+      fetchWorkshops().catch(() => {
         toast.error("Failed to fetch workshops");
       });
     }
@@ -159,7 +158,7 @@ const WorkshopsList: React.FC = () => {
       await handleEditWorkshop(editWorkshopData);
       toast.success("Workshop updated successfully");
       setIsEditDialogOpen(false);
-    } catch (error) {
+    } catch {
       toast.error("Failed to update workshop");
     }
   };
@@ -183,7 +182,7 @@ const WorkshopsList: React.FC = () => {
       try {
         await handleDeleteWorkshops();
         toast.success("Workshops deleted successfully");
-      } catch (error) {
+      } catch {
         toast.error("Failed to delete workshops");
       }
     }

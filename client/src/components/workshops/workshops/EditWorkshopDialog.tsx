@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Workshop, PhoneNumber } from "@/types/workshopTypes";
+import { Workshop } from "@/types/workshopTypes";
 import { toast } from "react-hot-toast";
 import {
   Loader2,

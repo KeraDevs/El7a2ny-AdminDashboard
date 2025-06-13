@@ -1,5 +1,4 @@
 import React from "react";
-import { ServiceType } from "@/types/serviceTypes";
 import {
   ChevronsUpDown,
   Edit,
@@ -10,10 +9,8 @@ import {
   Clock,
   DollarSign,
   CheckCircle,
-  XCircle,
   Wrench,
   FileText,
-  Tag,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -177,7 +174,7 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
             {columnVisibility.basePrice && (
               <TableHead
                 className="cursor-pointer"
-                onClick={() => handleSort("base_price")}
+                onClick={() => handleSort("basePrice")}
               >
                 <div className="flex items-center gap-1">
                   Base Price
@@ -238,15 +235,15 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
                 </div>
               </TableHead>
             )}
-            {columnVisibility.createdAt && (
+            {columnVisibility.created_at && (
               <TableHead
                 className="cursor-pointer"
-                onClick={() => handleSort("createdAt")}
+                onClick={() => handleSort("created_at")}
               >
                 <div className="flex items-center gap-1">
                   Created Date
                   <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
-                  {sortConfig.key === "createdAt" && (
+                  {sortConfig.key === "created_at" && (
                     <span className="ml-1">
                       {sortConfig.direction === "asc" ? "↑" : "↓"}
                     </span>
@@ -365,7 +362,7 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
                     </Badge>
                   </TableCell>
                 )}
-                {columnVisibility.createdAt && (
+                {columnVisibility.created_at && (
                   <TableCell>
                     {serviceType.created_at
                       ? new Date(serviceType.created_at).toLocaleDateString()

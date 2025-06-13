@@ -15,7 +15,6 @@ import {
   MapPin,
   Mail,
   Phone,
-  StarIcon,
   CalendarIcon,
   CheckCircle,
   XCircle,

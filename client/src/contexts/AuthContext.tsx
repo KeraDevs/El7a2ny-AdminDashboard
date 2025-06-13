@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import {
   User as FirebaseUser,
   onAuthStateChanged,
@@ -14,14 +20,35 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 import { AuthContextValue } from "@/types/userTypes";
+
 type UserType = "workshopAdmin" | "superadmin" | "worker" | "customer";
+
+// Define user data interface
+interface UserData {
+  id: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  type?: string;
+  [key: string]: unknown; // Allow additional properties
+}
+
+// Define API response interface
+interface ApiUserResponse {
+  user: UserData;
+}
+
+// Define Firebase Auth Error interface
+interface FirebaseAuthError extends Error {
+  code?: string;
+}
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
   const [userType, setUserType] = useState<UserType | null>(null);
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -44,12 +71,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
         toast.error(`Authentication failed: ${response.status}`);
         throw new Error(`Failed to fetch user details: ${response.status}`);
       }
 
-      const responseData = await response.json();
+      const responseData: ApiUserResponse = await response.json();
       const userData = responseData.user;
 
       if (!userData) {
@@ -59,33 +85,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const userType = userData.type?.toLowerCase() as UserType;
       return { userData, userType };
-    } catch (error) {
+    } catch (fetchError) {
       toast.error("Error fetching user details");
-      throw error;
+      throw fetchError;
     }
   };
 
   // Verify login with backend
-  const verifyLogin = async (user: FirebaseUser) => {
-    try {
-      const idToken = await user.getIdToken();
-      const { userData, userType } = await fetchUserDetails(user.uid, idToken);
+  const verifyLogin = useCallback(
+    async (user: FirebaseUser) => {
+      try {
+        const idToken = await user.getIdToken();
+        const { userData, userType } = await fetchUserDetails(
+          user.uid,
+          idToken
+        );
 
-      if (userType !== "superadmin") {
-        toast.error(
-          "Access denied. Only superadmins can access this application."
-        );
-        throw new Error(
-          "Access denied. Only superadmins can access this application."
-        );
+        if (userType !== "superadmin") {
+          toast.error(
+            "Access denied. Only superadmins can access this application."
+          );
+          throw new Error(
+            "Access denied. Only superadmins can access this application."
+          );
+        }
+
+        return { userData, userType };
+      } catch (verifyError) {
+        throw verifyError;
       }
-
-      return { userData, userType };
-    } catch (error) {
-      // Error toast is already shown in fetchUserDetails
-      throw error;
-    }
-  };
+    },
+    [API_KEY, USERS_ROUTE]
+  );
 
   // Auth state listener
   useEffect(() => {
@@ -103,9 +134,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (window.location.pathname === "/login") {
               router.push("/dashboard");
             }
-          } catch (error: any) {
-            setError(error.message);
-            // Toast is already shown in verifyLogin
+          } catch (authError) {
+            const errorMessage =
+              authError instanceof Error
+                ? authError.message
+                : "Authentication failed";
+            setError(errorMessage);
             await signOut(auth);
             setIsAuthorized(false);
             router.push("/login");
@@ -126,7 +160,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       return unsubscribe;
     }
-  }, [router]);
+  }, [router, verifyLogin]);
 
   // Login with email and password
   const login = async (email: string, password: string) => {
@@ -151,14 +185,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         toast.success("Signed in successfully!", { id: toastId });
         router.push("/dashboard");
-      } catch (verifyError: any) {
-        toast.error(verifyError.message, { id: toastId });
+      } catch (verifyError) {
+        const errorMessage =
+          verifyError instanceof Error
+            ? verifyError.message
+            : "Verification failed";
+        toast.error(errorMessage, { id: toastId });
         await signOut(auth);
         setIsAuthorized(false);
         throw verifyError;
       }
-    } catch (err: any) {
-      let errorMsg = err.message || "Login failed";
+    } catch (loginError) {
+      const firebaseError = loginError as FirebaseAuthError;
+      let errorMsg = firebaseError.message || "Login failed";
 
       if (
         errorMsg.includes("auth/wrong-password") ||
@@ -176,7 +215,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setError(errorMsg);
       toast.error(errorMsg);
       setIsAuthorized(false);
-      throw err;
+      throw loginError;
     } finally {
       setLoading(false);
     }
@@ -202,14 +241,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         toast.success("Signed in successfully!", { id: toastId });
         router.push("/dashboard");
-      } catch (verifyError: any) {
-        toast.error(verifyError.message, { id: toastId });
+      } catch (verifyError) {
+        const errorMessage =
+          verifyError instanceof Error
+            ? verifyError.message
+            : "Verification failed";
+        toast.error(errorMessage, { id: toastId });
         await signOut(auth);
         setIsAuthorized(false);
         throw verifyError;
       }
-    } catch (err: any) {
-      let errorMsg = err.message || "Google login failed";
+    } catch (googleError) {
+      const firebaseError = googleError as FirebaseAuthError;
+      let errorMsg = firebaseError.message || "Google login failed";
 
       if (errorMsg.includes("auth/popup-closed-by-user")) {
         errorMsg = "Sign-in popup was closed before completion";
@@ -220,7 +264,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setError(errorMsg);
       toast.error(errorMsg);
       setIsAuthorized(false);
-      throw err;
+      throw googleError;
     } finally {
       setLoading(false);
     }
@@ -236,7 +280,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsAuthorized(false);
       toast.success("Logged out successfully", { id: toastId });
       router.push("/login");
-    } catch (err: any) {
+    } catch (logoutError) {
       const errorMsg = "Logout failed";
       setError(errorMsg);
       toast.error(errorMsg);

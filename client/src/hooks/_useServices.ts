@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 import {
   ServiceType,
-  ServiceTypesResponse,
   CreateServiceTypeData,
   UpdateServiceTypeData,
   SetPercentageData,
@@ -151,7 +150,6 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
         // The API might return the service type directly or nested in a property
         return result.type || result || null;
       } catch (error) {
-        console.error("Error fetching service type:", error);
         toast.error("Error fetching service type!");
         setError(
           error instanceof Error
@@ -215,7 +213,6 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
           setServiceTypes([]);
         }
       } catch (error) {
-        console.error("Error fetching service types by category:", error);
         toast.error("Error fetching service types by category!");
         setError(
           error instanceof Error
@@ -269,7 +266,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
             errorMessage =
               errorData.message ||
               `Failed to add service type: ${response.status}`;
-          } catch (e) {
+          } catch {
             errorMessage = `Failed to add service type: ${response.status} - ${responseText}`;
           }
           throw new Error(errorMessage);
@@ -279,7 +276,6 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
         await fetchServiceTypes();
         toast.success("Service type added successfully");
       } catch (error) {
-        console.error("Error adding service type:", error);
         toast.error("Error adding service type");
         setError(
           error instanceof Error ? error.message : "Failed to add service type"
@@ -361,7 +357,6 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
 
         toast.success("Service type updated successfully");
       } catch (error) {
-        console.error("Error editing service type:", error);
         toast.error("Error editing service type");
         setError(
           error instanceof Error ? error.message : "Failed to edit service type"

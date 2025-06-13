@@ -1,14 +1,44 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { Workshop, PhoneNumber } from "@/types/workshopTypes";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  mapApiWorkshopToFrontend,
-  mapFrontendToApiWorkshop,
-} from "@/utils/workshopsApi";
+import { mapApiWorkshopToFrontend } from "@/utils/workshopsApi";
 import { API_KEY, API_BASE_URL } from "@/utils/config";
 import { ApiResponse } from "@/types/apiTypes";
 import { UseWorkshopsReturn } from "@/types/hookTypes";
 import toast from "react-hot-toast";
+
+// Define the API data structure for type safety
+interface ApiWorkshopData {
+  name?: string;
+  email?: string;
+  address?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  status?: string;
+  active_status?: string;
+  phone_numbers?: {
+    deleteMany?: Record<string, unknown>;
+    createMany?: {
+      data: Array<{
+        phone_number: string;
+        type: string;
+        is_primary: boolean;
+      }>;
+    };
+  };
+  labels?: {
+    deleteMany?: Record<string, unknown>;
+    create?: Array<{
+      label: {
+        create: {
+          name: string;
+        };
+      };
+    }>;
+  };
+  services?: string[];
+  [key: string]: unknown;
+}
 
 export const useWorkshops = (): UseWorkshopsReturn => {
   const { currentUser, userData } = useAuth();
@@ -89,10 +119,12 @@ export const useWorkshops = (): UseWorkshopsReturn => {
       }
 
       setWorkshops(allWorkshops);
-    } catch (error) {
+    } catch (fetchError) {
       toast.error("Error fetching workshops!");
       setError(
-        error instanceof Error ? error.message : "Failed to fetch workshops"
+        fetchError instanceof Error
+          ? fetchError.message
+          : "Failed to fetch workshops"
       );
       setWorkshops([]);
     } finally {
@@ -208,7 +240,8 @@ export const useWorkshops = (): UseWorkshopsReturn => {
           errorMessage =
             errorResponse.message ||
             `Failed to add workshop (${response.status})`;
-        } catch (jsonError) {
+        } catch {
+          // If JSON parsing fails, use status text
           errorMessage = `Failed to add workshop: ${response.status} ${response.statusText}`;
         }
         throw new Error(errorMessage);
@@ -216,14 +249,14 @@ export const useWorkshops = (): UseWorkshopsReturn => {
 
       await fetchWorkshops();
       toast.success("Workshop added successfully");
-    } catch (error) {
+    } catch (addError) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to add workshop"
+        addError instanceof Error ? addError.message : "Failed to add workshop"
       );
       setError(
-        error instanceof Error ? error.message : "Failed to add workshop"
+        addError instanceof Error ? addError.message : "Failed to add workshop"
       );
-      throw error;
+      throw addError;
     } finally {
       setLoading(false);
     }
@@ -251,7 +284,7 @@ export const useWorkshops = (): UseWorkshopsReturn => {
 
       // Format API data
       // For PATCH requests, we only include fields that have changed
-      const apiData = {
+      const apiData: ApiWorkshopData = {
         name: workshopData.name,
         email: workshopData.email,
         address: workshopData.address,
@@ -294,10 +327,11 @@ export const useWorkshops = (): UseWorkshopsReturn => {
       };
 
       // Remove undefined fields
-      Object.keys(apiData).forEach(
-        (key) =>
-          (apiData as any)[key] === undefined && delete (apiData as any)[key]
-      );
+      Object.keys(apiData).forEach((key) => {
+        if (apiData[key] === undefined) {
+          delete apiData[key];
+        }
+      });
 
       const response = await fetch(
         `${API_BASE_URL}/workshops/${workshopData.id}`,
@@ -319,7 +353,8 @@ export const useWorkshops = (): UseWorkshopsReturn => {
           errorMessage =
             errorResponse.message ||
             `Failed to update workshop (${response.status})`;
-        } catch (jsonError) {
+        } catch {
+          // If JSON parsing fails, use status text
           errorMessage = `Failed to update workshop: ${response.status} ${response.statusText}`;
         }
         throw new Error(errorMessage);
@@ -328,14 +363,18 @@ export const useWorkshops = (): UseWorkshopsReturn => {
       // Refresh workshops list
       await fetchWorkshops();
       toast.success("Workshop updated successfully");
-    } catch (error) {
+    } catch (editError) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to edit workshop"
+        editError instanceof Error
+          ? editError.message
+          : "Failed to edit workshop"
       );
       setError(
-        error instanceof Error ? error.message : "Failed to edit workshop"
+        editError instanceof Error
+          ? editError.message
+          : "Failed to edit workshop"
       );
-      throw error;
+      throw editError;
     } finally {
       setLoading(false);
     }
@@ -389,17 +428,17 @@ export const useWorkshops = (): UseWorkshopsReturn => {
       toast.success(
         `Successfully deactivated ${selectedWorkshops.length} workshop(s)`
       );
-    } catch (error) {
+    } catch (deleteError) {
       toast.error(
         "Error deactivating workshops: " +
-          (error instanceof Error ? error.message : "Unknown error")
+          (deleteError instanceof Error ? deleteError.message : "Unknown error")
       );
       setError(
-        error instanceof Error
-          ? error.message
+        deleteError instanceof Error
+          ? deleteError.message
           : "Failed to deactivate workshops"
       );
-      throw error;
+      throw deleteError;
     } finally {
       setLoading(false);
     }

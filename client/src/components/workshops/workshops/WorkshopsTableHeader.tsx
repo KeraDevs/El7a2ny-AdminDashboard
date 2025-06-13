@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Search, SlidersHorizontal, RefreshCw, Building } from "lucide-react";
+import { Search, SlidersHorizontal, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -79,8 +79,7 @@ export const WorkshopsTableHeader: React.FC<WorkshopsTableHeaderProps> = ({
           toast.success("Refresh triggered");
         }
       }
-    } catch (error) {
-      console.error("Error refreshing data:", error);
+    } catch {
       toast.error("Failed to refresh workshops");
     } finally {
       setIsRefreshing(false);

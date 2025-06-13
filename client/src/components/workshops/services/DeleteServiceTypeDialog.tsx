@@ -122,7 +122,7 @@ const DeleteServiceTypeDialog: React.FC<DeleteServiceTypeDialogProps> = ({
             <div className="space-y-2">
               <p className="text-sm font-medium">
                 To confirm deletion of {serviceTypeIds.length} service types,
-                type "DELETE" below:
+                type (DELETE) below:
               </p>
               <ul className="text-sm border-l-2 border-l-primary pl-2 mt-2 mb-2 max-h-32 overflow-y-auto">
                 {serviceTypeIds.map((id) => {

@@ -111,7 +111,7 @@ const SetPercentageDialog: React.FC<SetPercentageDialogProps> = ({
                   {new Intl.NumberFormat("en-US", {
                     style: "currency",
                     currency: "EGP",
-                  }).format(singleServiceType.price || 0)}
+                  }).format(singleServiceType.basePrice || 0)}
                 </div>
               </div>
             </div>

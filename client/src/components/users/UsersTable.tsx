@@ -19,7 +19,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ColumnVisibility, SortConfig } from "@/app/(dashboard)/users/page";
 import { getGenderBadge, getUserTypeBadge } from "@/utils/usersStyles";
 
 import { UsersTableProps } from "@/types/userTypes";

@@ -131,7 +131,6 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
         await onSuccess();
       }
     } catch (error) {
-      console.error("Service type creation error:", error);
       toast.error(
         error instanceof Error ? error.message : "Service type creation failed"
       );

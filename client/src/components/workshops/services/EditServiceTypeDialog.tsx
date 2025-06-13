@@ -55,11 +55,25 @@ export const EditServiceTypeDialog: React.FC<EditServiceTypeDialogProps> = ({
   }, [isOpen]);
 
   // Handle changes to service type form data
-  const handleInputChange = (field: keyof ServiceType, value: any) => {
-    setServiceTypeData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const handleInputChange = <K extends keyof ServiceType>(
+    field: K,
+    value: ServiceType[K]
+  ) => {
+    setServiceTypeData((prev) => {
+      const updated = {
+        ...prev,
+        [field]: value,
+      };
+
+      // Keep service_category in sync with category
+      if (field === "category" && typeof value === "string") {
+        updated.service_category = value;
+      } else if (field === "service_category" && typeof value === "string") {
+        updated.category = value;
+      }
+
+      return updated;
+    });
 
     // Clear error when user types
     if (errors[field]) {
@@ -105,24 +119,24 @@ export const EditServiceTypeDialog: React.FC<EditServiceTypeDialogProps> = ({
       newErrors.name = "Service type name is required";
       isValid = false;
     }
-
     if (
-      serviceTypeData.basePrice === undefined ||
-      serviceTypeData.basePrice < 0
+      serviceTypeData?.basePrice === undefined ||
+      (serviceTypeData?.basePrice !== undefined &&
+        serviceTypeData.basePrice < 0)
     ) {
       newErrors.basePrice =
         "Base price is required and must be a positive number";
       isValid = false;
     }
 
-    if (!serviceTypeData.category) {
+    if (!serviceTypeData?.category) {
       newErrors.category = "Category is required";
       isValid = false;
     }
 
     if (
-      serviceTypeData.estimatedDuration === undefined ||
-      serviceTypeData.estimatedDuration <= 0
+      serviceTypeData?.estimatedDuration === undefined ||
+      serviceTypeData?.estimatedDuration <= 0
     ) {
       newErrors.estimatedDuration =
         "Estimated duration is required and must be greater than 0";
@@ -246,9 +260,13 @@ export const EditServiceTypeDialog: React.FC<EditServiceTypeDialogProps> = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">Category *</Label>
+                <Label htmlFor="category">Category *</Label>{" "}
                 <Select
-                  value={serviceTypeData.category}
+                  value={
+                    serviceTypeData?.category ||
+                    serviceTypeData?.service_category ||
+                    ""
+                  }
                   onValueChange={(value) =>
                     handleInputChange("category", value)
                   }

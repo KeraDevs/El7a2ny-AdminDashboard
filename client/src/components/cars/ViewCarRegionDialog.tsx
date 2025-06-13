@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { format } from "date-fns";
 import { CarRegion } from "@/types/carTypes";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,

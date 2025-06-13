@@ -9,7 +9,6 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import { usePathname } from "next/navigation";
 import {
   Search,
-  Bell,
   Sun,
   Moon,
   UserCircle,
@@ -65,7 +64,7 @@ const Navbar = () => {
     try {
       await logOut();
       router.push("/login");
-    } catch (error) {
+    } catch {
       toast.error("Logout failed!");
     }
   };

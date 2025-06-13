@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { User } from "@/types/userTypes";
 import { API_KEY, API_BASE_URL } from "@/utils/config";
-import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "react-hot-toast";
 import {
   Loader2,
@@ -10,7 +9,6 @@ import {
   Phone,
   Lock,
   UserCog,
-  BadgeCheck,
   Tag,
   Eye,
   EyeOff,
@@ -58,7 +56,6 @@ export const AddUserDialog: React.FC<AddUserDialogProps> = ({ onAddUser }) => {
     last_name: "",
     phone: "",
   });
-  const { currentUser } = useAuth();
 
   // Firebase registration data
   const [firebaseData, setFirebaseData] = useState({
@@ -436,7 +433,6 @@ export const AddUserDialog: React.FC<AddUserDialogProps> = ({ onAddUser }) => {
       toast.success("User added successfully");
       setIsOpen(false);
     } catch (error) {
-      console.error("User registration error:", error);
       toast.error(
         error instanceof Error ? error.message : "Registration failed"
       );

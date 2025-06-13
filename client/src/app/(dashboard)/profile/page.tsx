@@ -18,7 +18,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -69,10 +68,11 @@ const AdminProfilePage = () => {
         first_name: userData.first_name || "",
         last_name: userData.last_name || "",
         email: userData.email || "",
-        phone: userData.phone || "",
-        gender: userData.gender || "male",
+        phone: typeof userData.phone === "string" ? userData.phone : "",
+        gender: typeof userData.gender === "string" ? userData.gender : "male",
         userType: "superadmin",
-        profile_pic: userData.profile_pic || "",
+        profile_pic:
+          typeof userData.profile_pic === "string" ? userData.profile_pic : "",
       });
     }
   }, [userData]);
@@ -98,6 +98,11 @@ const AdminProfilePage = () => {
     }
 
     try {
+      if (!userData) {
+        toast.error("User data not available");
+        return;
+      }
+
       setLoading(true);
       const toastId = toast.loading("Updating profile...");
 
@@ -241,10 +246,19 @@ const AdminProfilePage = () => {
                               first_name: userData.first_name || "",
                               last_name: userData.last_name || "",
                               email: userData.email || "",
-                              phone: userData.phone || "",
-                              gender: userData.gender || "male",
+                              phone:
+                                typeof userData.phone === "string"
+                                  ? userData.phone
+                                  : "",
+                              gender:
+                                typeof userData.gender === "string"
+                                  ? userData.gender
+                                  : "male",
                               userType: "superadmin",
-                              profile_pic: userData.profile_pic || "",
+                              profile_pic:
+                                typeof userData.profile_pic === "string"
+                                  ? userData.profile_pic
+                                  : "",
                             });
                           }
                           setEditMode(false);

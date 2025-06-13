@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
-import Navbar from "@/components/Navbar/Navbar";
 
 export default function HomePage() {
   const { isAuthorized, loading, authInitialized } = useAuth();

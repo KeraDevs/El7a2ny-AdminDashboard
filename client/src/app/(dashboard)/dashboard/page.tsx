@@ -1,6 +1,4 @@
 "use client";
-
-import { DashboardAnalytics } from "@/components/dashboard/DashboardAnalytics";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -265,7 +263,7 @@ export default function DashboardPage() {
   const getFirstName = () => {
     if (userData?.first_name) {
       return userData.first_name;
-    } else if (userData?.fullName) {
+    } else if (userData?.fullName && typeof userData.fullName === "string") {
       return userData.fullName.split(" ")[0];
     }
     return "Admin";

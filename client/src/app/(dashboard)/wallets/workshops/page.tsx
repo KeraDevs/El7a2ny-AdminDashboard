@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Card,
@@ -49,10 +49,8 @@ import {
   IconSearch,
   IconFilter,
   IconDots,
-  IconCreditCard,
   IconBuildingStore,
   IconTrendingUp,
-  IconTransfer,
 } from "@tabler/icons-react";
 
 interface Workshop {

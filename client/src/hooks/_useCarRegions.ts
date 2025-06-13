@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { CarRegion, CarRegionsResponse } from "@/types/carTypes";
+import { CarRegion } from "@/types/carTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_KEY, API_BASE_URL } from "@/utils/config";
 import toast from "react-hot-toast";

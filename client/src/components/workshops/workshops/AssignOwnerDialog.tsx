@@ -3,13 +3,7 @@ import { User } from "@/types/userTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_KEY, API_BASE_URL } from "@/utils/config";
 import { toast } from "react-hot-toast";
-import {
-  Search,
-  CheckCircle,
-  UserCog,
-  Loader2,
-  User as UserIcon,
-} from "lucide-react";
+import { Search, CheckCircle, UserCog, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +23,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { convertApiUserToUser } from "@/utils/workshopsApi";
 import { ApiUserResponse } from "@/types/apiTypes";
 
