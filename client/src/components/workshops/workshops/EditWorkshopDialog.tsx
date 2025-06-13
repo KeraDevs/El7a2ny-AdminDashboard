@@ -69,9 +69,11 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
       setLabelInput("");
     }
   }, [isOpen]);
-
   // Handle changes to workshop form data
-  const handleInputChange = (field: keyof Workshop, value: any) => {
+  const handleInputChange = (
+    field: keyof Workshop,
+    value: string | number | boolean | null
+  ) => {
     setWorkshopData((prev) => ({
       ...prev,
       [field]: value,

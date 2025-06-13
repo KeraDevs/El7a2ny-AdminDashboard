@@ -29,27 +29,6 @@ const ViewServiceTypeDialog: React.FC<ViewServiceTypeDialogProps> = ({
 }) => {
   if (!serviceType) return null;
 
-  // Format price to currency
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "EGP",
-    }).format(price);
-  };
-
-  // Format duration to hours and minutes
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-
-    if (hours > 0) {
-      return `${hours} hr${hours > 1 ? "s" : ""} ${
-        mins > 0 ? `${mins} min${mins > 1 ? "s" : ""}` : ""
-      }`;
-    }
-    return `${mins} min${mins > 1 ? "s" : ""}`;
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-md">

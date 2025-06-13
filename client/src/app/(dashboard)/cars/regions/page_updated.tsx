@@ -127,7 +127,6 @@ const CarRegionsList: React.FC = () => {
     handleDeleteSingle,
     handleEditRegion,
     handleAddRegion,
-    setSelectedRegions,
   } = useCarRegions();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -159,10 +158,9 @@ const CarRegionsList: React.FC = () => {
       fetchRegions();
     }
   }, [currentUser, isAuthorized, fetchRegions]);
-
   // Filter and sort regions
   const filteredAndSortedRegions = useMemo(() => {
-    let filtered = regions.filter((region) => {
+    const filtered = regions.filter((region) => {
       const matchesSearch =
         region.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (region.description

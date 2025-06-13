@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Vehicle, CarBrand } from "@/types/vehicleTypes";
+import { Vehicle } from "@/types/vehicleTypes";
 import { toast } from "react-hot-toast";
 import {
   Loader2,
@@ -196,12 +196,12 @@ const CarsStats = ({ cars }: { cars: Vehicle[] }) => {
 };
 
 const Cars: React.FC = () => {
-  const [cars, setCars] = useState<Vehicle[]>(mockCars);
+  const [cars] = useState<Vehicle[]>(mockCars);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage] = useState(10);
   const getBrandName = (brandId: string) => {
     const brandMap: { [key: string]: string } = {
       toyota_001: "Toyota",
@@ -212,9 +212,10 @@ const Cars: React.FC = () => {
     };
     return brandMap[brandId] || "Unknown";
   };
-
   const getBrandIcon = (brandId: string) => {
-    const iconMap: { [key: string]: React.ComponentType<any> } = {
+    const iconMap: {
+      [key: string]: React.ComponentType<{ className?: string }>;
+    } = {
       toyota_001: SiToyota,
       bmw_001: SiBmw,
       honda_001: SiHonda,
@@ -373,7 +374,7 @@ const Cars: React.FC = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    paginatedCars.map((car, index) => (
+                    paginatedCars.map((car) => (
                       <TableRow
                         key={car.id}
                         className="hover:bg-gradient-to-r hover:from-blue-50/30 hover:to-purple-50/30 dark:hover:from-gray-800/50 dark:hover:to-gray-700/50 transition-all duration-300"

@@ -89,7 +89,7 @@ function DynamicTime() {
                 data.city || data.locality || getCityFromTimezone(userTimezone),
               timezone: userTimezone,
             });
-          } catch (error) {
+          } catch {
             // Fallback to timezone-based city name
             setLocation({
               city: getCityFromTimezone(userTimezone),
@@ -186,7 +186,7 @@ function StatsCard({
   title: string;
   value: number;
   change: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   trend: "up" | "down";
 }) {
   const animatedValue = useCounter(value, 1500);
@@ -252,12 +252,7 @@ function getGreeting() {
 }
 
 export default function DashboardPage() {
-  const [isLoaded, setIsLoaded] = useState(false);
   const { userData } = useAuth();
-
-  useEffect(() => {
-    setIsLoaded(true);
-  }, []);
 
   // Get user's first name
   const getFirstName = () => {

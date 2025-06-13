@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { User } from "@/types/userTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_KEY, API_BASE_URL } from "@/utils/config";
@@ -45,13 +45,7 @@ export const AssignOwnerDialog: React.FC<AssignOwnerDialogProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    if (open) {
-      fetchWorkshopAdmins();
-    }
-  }, [open]);
-
-  const fetchWorkshopAdmins = async () => {
+  const fetchWorkshopAdmins = useCallback(async () => {
     if (!currentUser) {
       toast.error("Authentication required");
       return;
@@ -87,7 +81,13 @@ export const AssignOwnerDialog: React.FC<AssignOwnerDialogProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (open) {
+      fetchWorkshopAdmins();
+    }
+  }, [open, fetchWorkshopAdmins]);
 
   const filteredUsers = searchQuery
     ? users.filter(

@@ -102,10 +102,11 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
       setSelectedOwnerId(null);
       setSelectedOwnerName("");
     }
-  }, [isOpen]);
-
-  // Handle changes to form inputs
-  const handleInputChange = (field: keyof Workshop, value: any) => {
+  }, [isOpen]); // Handle changes to form inputs
+  const handleInputChange = (
+    field: keyof Workshop,
+    value: string | number | boolean | null
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -263,7 +264,7 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
             "Validation errors:",
             errorData.errors || "No detailed errors"
           );
-        } catch (e) {
+        } catch {
           errorMessage = `Workshop creation failed: ${response.status} - ${responseText}`;
         }
         throw new Error(errorMessage);
@@ -273,7 +274,7 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
       let createdWorkshop;
       try {
         createdWorkshop = JSON.parse(responseText);
-      } catch (e) {
+      } catch {
         console.warn("Could not parse response as JSON:", responseText);
         // Include locally stored data for client-side use
         createdWorkshop = {

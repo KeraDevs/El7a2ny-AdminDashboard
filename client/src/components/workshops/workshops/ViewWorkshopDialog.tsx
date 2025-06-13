@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import { Workshop } from "@/types/workshopTypes";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -141,12 +142,15 @@ export const ViewWorkshopDialog: React.FC<ViewWorkshopDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
+          {" "}
           <div className="flex items-center justify-center pb-4">
             <div className="h-24 w-24 rounded-full bg-blue-100 flex items-center justify-center">
               {workshopData.profilePic ? (
-                <img
+                <Image
                   src={workshopData.profilePic}
                   alt={workshopData.name}
+                  width={96}
+                  height={96}
                   className="h-24 w-24 rounded-full object-cover"
                 />
               ) : (
@@ -154,7 +158,6 @@ export const ViewWorkshopDialog: React.FC<ViewWorkshopDialogProps> = ({
               )}
             </div>
           </div>
-
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-1 col-span-3">
               <h4 className="text-sm font-medium text-muted-foreground">
@@ -205,7 +208,6 @@ export const ViewWorkshopDialog: React.FC<ViewWorkshopDialogProps> = ({
               </div>
             </div>
           </div>
-
           <div className="space-y-1">
             <h4 className="text-sm font-medium text-muted-foreground">
               Address
@@ -215,7 +217,6 @@ export const ViewWorkshopDialog: React.FC<ViewWorkshopDialogProps> = ({
               <span>{workshopData.address}</span>
             </p>
           </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <h4 className="text-sm font-medium text-muted-foreground">
@@ -242,7 +243,6 @@ export const ViewWorkshopDialog: React.FC<ViewWorkshopDialogProps> = ({
               </p>
             </div>
           </div>
-
           <div className="space-y-2">
             <h4 className="text-sm font-medium text-muted-foreground">
               Services
@@ -261,7 +261,6 @@ export const ViewWorkshopDialog: React.FC<ViewWorkshopDialogProps> = ({
               )}
             </div>
           </div>
-
           <div className="space-y-2">
             <h4 className="text-sm font-medium text-muted-foreground">
               Labels

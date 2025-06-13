@@ -105,26 +105,6 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
     }
   };
 
-  // Format duration to hours and minutes
-  const formatDuration = (minutes: number | undefined) => {
-    if (minutes === undefined || minutes === null) return "N/A";
-
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-
-    if (hours > 0) {
-      return `${hours}h ${mins > 0 ? `${mins}m` : ""}`;
-    }
-
-    return `${mins}m`;
-  };
-
-  // Safe formatting for prices
-  const formatPrice = (price: number | undefined) => {
-    if (price === undefined || price === null) return "N/A";
-    return price.toFixed(2);
-  };
-
   return (
     <div className="rounded-md border">
       <Table>

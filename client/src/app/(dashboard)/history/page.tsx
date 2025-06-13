@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Card,
@@ -303,7 +303,7 @@ export default function HistoryPage() {
       return matchesSearch && matchesStatus && matchesPriority;
     })
     .sort((a, b) => {
-      let valueA: any, valueB: any;
+      let valueA: string | number | Date, valueB: string | number | Date;
 
       switch (sortBy) {
         case "created_at":

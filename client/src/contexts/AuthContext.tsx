@@ -57,39 +57,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
   const USERS_ROUTE = process.env.NEXT_PUBLIC_USERS_ROUTE;
-
   // Fetch user details from the API
-  const fetchUserDetails = async (userId: string, idToken: string) => {
-    try {
-      const response = await fetch(`${USERS_ROUTE}/${userId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
-          "x-api-key": API_KEY!,
-        },
-      });
+  const fetchUserDetails = useCallback(
+    async (userId: string, idToken: string) => {
+      try {
+        const response = await fetch(`${USERS_ROUTE}/${userId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${idToken}`,
+            "x-api-key": API_KEY!,
+          },
+        });
 
-      if (!response.ok) {
-        toast.error(`Authentication failed: ${response.status}`);
-        throw new Error(`Failed to fetch user details: ${response.status}`);
+        if (!response.ok) {
+          toast.error(`Authentication failed: ${response.status}`);
+          throw new Error(`Failed to fetch user details: ${response.status}`);
+        }
+
+        const responseData: ApiUserResponse = await response.json();
+        const userData = responseData.user;
+
+        if (!userData) {
+          toast.error("User data not found");
+          throw new Error("User data not found in API response");
+        }
+
+        const userType = userData.type?.toLowerCase() as UserType;
+        return { userData, userType };
+      } catch (fetchError) {
+        toast.error("Error fetching user details");
+        throw fetchError;
       }
-
-      const responseData: ApiUserResponse = await response.json();
-      const userData = responseData.user;
-
-      if (!userData) {
-        toast.error("User data not found");
-        throw new Error("User data not found in API response");
-      }
-
-      const userType = userData.type?.toLowerCase() as UserType;
-      return { userData, userType };
-    } catch (fetchError) {
-      toast.error("Error fetching user details");
-      throw fetchError;
-    }
-  };
+    },
+    [API_KEY, USERS_ROUTE]
+  );
 
   // Verify login with backend
   const verifyLogin = useCallback(
@@ -115,7 +117,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         throw verifyError;
       }
     },
-    [API_KEY, USERS_ROUTE]
+    [fetchUserDetails]
   );
 
   // Auth state listener
@@ -280,7 +282,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsAuthorized(false);
       toast.success("Logged out successfully", { id: toastId });
       router.push("/login");
-    } catch (logoutError) {
+    } catch {
       const errorMsg = "Logout failed";
       setError(errorMsg);
       toast.error(errorMsg);
