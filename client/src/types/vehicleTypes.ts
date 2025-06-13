@@ -1,5 +1,3 @@
-import { Key } from "react";
-
 export interface Vehicle {
   id?: string;
   brand_id: string;

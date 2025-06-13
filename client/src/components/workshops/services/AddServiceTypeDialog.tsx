@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { ServiceType } from "@/types/serviceTypes";
+import { CreateServiceTypeData } from "@/types/serviceTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "react-hot-toast";
 import {
   Loader2,
-  PlusCircle,
   ClipboardCheck,
   Wrench,
   Clock,
@@ -24,7 +23,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -37,10 +35,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface AddServiceTypeDialogProps {
-  onAddServiceType: (serviceTypeData: Partial<ServiceType>) => Promise<void>;
+  onAddServiceType: (serviceTypeData: CreateServiceTypeData) => Promise<void>;
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   onSuccess?: () => Promise<void>;
+}
+
+// Define form data interface for better type safety
+interface ServiceTypeFormData {
+  name: string;
+  name_ar?: string;
+  description?: string;
+  description_ar?: string;
+  service_category: "maintenance" | "repair" | "inspection" | "custom";
+  basePrice?: number;
+  estimatedDuration?: number;
+  percentageModifier?: number;
+  isActive: boolean;
+  requiresSpecialist?: boolean;
+  compatibleVehicleTypes?: string[];
 }
 
 export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
@@ -53,16 +66,12 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
   const [activeTab, setActiveTab] = useState("basic");
   const { currentUser } = useAuth();
 
-  const [formData, setFormData] = useState<Partial<ServiceType>>({
+  // Use the proper form data interface
+  const [formData, setFormData] = useState<ServiceTypeFormData>({
     name: "",
     description: "",
-    basePrice: 0,
-    percentageModifier: 0,
-    category: "maintenance",
-    estimatedDuration: 60,
+    service_category: "maintenance",
     isActive: true,
-    requiresSpecialist: false,
-    compatibleVehicleTypes: [],
   });
 
   // Reset form when dialog closes
@@ -72,19 +81,17 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
       setFormData({
         name: "",
         description: "",
-        basePrice: 0,
-        percentageModifier: 0,
-        category: "maintenance",
-        estimatedDuration: 60,
+        service_category: "maintenance",
         isActive: true,
-        requiresSpecialist: false,
-        compatibleVehicleTypes: [],
       });
     }
   }, [isOpen]);
 
-  // Handle changes to form inputs
-  const handleInputChange = (field: keyof ServiceType, value: any) => {
+  // Handle changes to form inputs with proper typing
+  const handleInputChange = (
+    field: keyof ServiceTypeFormData,
+    value: unknown
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -106,7 +113,16 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
     setIsSubmitting(true);
 
     try {
-      await onAddServiceType(formData);
+      // Transform form data to match CreateServiceTypeData interface
+      const createData: CreateServiceTypeData = {
+        name: formData.name,
+        name_ar: formData.name_ar,
+        description: formData.description,
+        description_ar: formData.description_ar,
+        service_category: formData.service_category,
+      };
+
+      await onAddServiceType(createData);
 
       toast.success("Service type added successfully");
       setIsOpen(false);
@@ -173,7 +189,7 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
                 <Input
                   id="name"
                   placeholder="Service type name"
-                  value={formData.name || ""}
+                  value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   className="border-none bg-transparent focus-visible:ring-0 p-0"
                   required
@@ -199,7 +215,7 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="basePrice">Base Price (EGP) *</Label>
+                <Label htmlFor="basePrice">Base Price (EGP)</Label>
                 <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-green-50/50">
                   <PoundSterling className="h-4 w-4 text-green-500" />
                   <Input
@@ -216,20 +232,29 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
                       )
                     }
                     className="border-none bg-transparent focus-visible:ring-0 p-0"
-                    required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">Category *</Label>
+                <Label htmlFor="service_category">Category *</Label>
                 <Select
-                  value={formData.category}
+                  value={formData.service_category}
                   onValueChange={(value) =>
-                    handleInputChange("category", value)
+                    handleInputChange(
+                      "service_category",
+                      value as
+                        | "maintenance"
+                        | "repair"
+                        | "inspection"
+                        | "custom"
+                    )
                   }
                 >
-                  <SelectTrigger id="category" className="bg-purple-50/50">
+                  <SelectTrigger
+                    id="service_category"
+                    className="bg-purple-50/50"
+                  >
                     <TagIcon className="h-4 w-4 text-purple-500 mr-2" />
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -245,7 +270,7 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
 
             <div className="space-y-2">
               <Label htmlFor="estimatedDuration">
-                Estimated Duration (minutes) *
+                Estimated Duration (minutes)
               </Label>
               <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-amber-50/50">
                 <Clock className="h-4 w-4 text-amber-500" />
@@ -262,7 +287,6 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
                     )
                   }
                   className="border-none bg-transparent focus-visible:ring-0 p-0"
-                  required
                 />
               </div>
             </div>
@@ -313,7 +337,7 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="requiresSpecialist"
-                checked={formData.requiresSpecialist}
+                checked={formData.requiresSpecialist || false}
                 onCheckedChange={(checked) =>
                   handleInputChange("requiresSpecialist", !!checked)
                 }

@@ -326,7 +326,7 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Edit Workshop</DialogTitle>
           <DialogDescription>
-            Update workshop information. Click save when you're done.
+            Update workshop information. Click save when you&apos;re done.
           </DialogDescription>
         </DialogHeader>
 

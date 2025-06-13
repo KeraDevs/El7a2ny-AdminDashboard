@@ -168,7 +168,7 @@ export const EditServiceTypeDialog: React.FC<EditServiceTypeDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Edit Service Type</DialogTitle>
           <DialogDescription>
-            Update service type information. Click save when you're done.
+            Update service type information. Click save when you&apos;re done.
           </DialogDescription>
         </DialogHeader>
 

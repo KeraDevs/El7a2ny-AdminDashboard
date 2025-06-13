@@ -156,7 +156,7 @@ function WalletDialog({
           </DialogTitle>
           <DialogDescription>
             {type === "add" ? "Add money to" : "Remove money from"} {user?.name}
-            's wallet
+            &apos;s wallet
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">

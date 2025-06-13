@@ -65,7 +65,7 @@ export interface UseRequestsReturn {
   ) => Promise<void>;
 }
 
-export const _useRequests = (): UseRequestsReturn => {
+export const useRequests = (): UseRequestsReturn => {
   const { currentUser } = useAuth();
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const [workshops, setWorkshops] = useState<Workshop[]>([]);

@@ -296,7 +296,7 @@ const CarRegionsList: React.FC = () => {
         <div className="text-center">
           <h2 className="text-2xl font-semibold mb-2">Access Denied</h2>
           <p className="text-muted-foreground">
-            You don't have permission to access car regions management.
+            You don&apos;t have permission to access car regions management.
           </p>
         </div>
       </div>

@@ -122,7 +122,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Edit User</DialogTitle>
           <DialogDescription>
-            Update user information. Click save when you're done.
+            Update user information. Click save when you&apos;re done.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">

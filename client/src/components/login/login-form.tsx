@@ -117,7 +117,7 @@ export function LoginForm({
       </Card>
 
       <div className="text-balance text-center text-xs text-muted-foreground">
-        By signing in, you agree to the organization's&nbsp;
+        By signing in, you agree to the organization&apos;s&nbsp;
         <a href="#" className="underline underline-offset-4 hover:text-primary">
           Terms of Service
         </a>

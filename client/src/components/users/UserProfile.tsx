@@ -558,7 +558,7 @@ const UserProfile = ({ id }: { id: string }) => {
             <CardHeader>
               <CardTitle>Activity</CardTitle>
               <CardDescription>
-                User's recent activities and interactions
+                User&apos;s recent activities and interactions
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -566,7 +566,7 @@ const UserProfile = ({ id }: { id: string }) => {
                 <UserIcon className="h-12 w-12 mx-auto text-muted-foreground opacity-50" />
                 <h3 className="mt-4 text-lg font-medium">No activity yet</h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  This user doesn't have any recorded activity
+                  This user doesn&apos;t have any recorded activity
                 </p>
               </div>
             </CardContent>
@@ -648,7 +648,7 @@ const UserProfile = ({ id }: { id: string }) => {
                     <UserIcon className="h-12 w-12 mx-auto text-muted-foreground opacity-50" />
                     <h3 className="mt-4 text-lg font-medium">No vehicles</h3>
                     <p className="mt-2 text-sm text-muted-foreground">
-                      This user doesn't have any associated vehicles
+                      This user doesn&apos;t have any associated vehicles
                     </p>
                   </div>
                 )}
@@ -668,7 +668,7 @@ const UserProfile = ({ id }: { id: string }) => {
                 <div>
                   <h3 className="text-lg font-medium">Password Reset</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Reset the user's password
+                    Reset the user&apos;s password
                   </p>
                   <Button disabled>Send Password Reset Link</Button>
                 </div>
