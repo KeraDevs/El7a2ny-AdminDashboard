@@ -1,3 +1,4 @@
+import { ColumnVisibility } from "../app/(dashboard)/users/page";
 export interface ServiceTypePercentage {
   id: string;
   service_type_id: string;
@@ -13,7 +14,7 @@ export interface ServiceType {
   description?: string;
   description_ar?: string;
   service_category: string;
-  category: string; // Alias for service_category for form compatibility
+  category: string;
   basePrice: number;
   estimatedDuration: number;
   percentageModifier?: number;
@@ -23,9 +24,9 @@ export interface ServiceType {
   updated_at: string;
   service_types_percentage?: ServiceTypePercentage;
   compatibleVehicleTypes?: string[];
-  createdAt: string; // Add this for compatibility with table sorting
-  percentage?: number; // Add this for percentage display
-  price: number; // Add this for price calculations
+  createdAt: string;
+  percentage?: number;
+  price: number;
 }
 
 // Column visibility settings for service types table
@@ -62,8 +63,23 @@ export interface ServiceTypesTableProps {
   handleView: (serviceType: ServiceType) => void;
   searchQuery: string;
   serviceTypes: ServiceType[];
-  onDelete: () => void;
+  onDelete: (id: string) => void;
   onSetPercentage: () => void;
+}
+
+export interface ServiceTypesTableHeaderProps {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  ColumnVisibility: ColumnVisibility;
+  setColumnVisibility: React.Dispatch<
+    React.SetStateAction<ServiceTypeColumnVisibility>
+  >;
+  onDelete: () => void;
+  onRefresh: () => void;
+  onAddBrand: (brandData: Partial<ServiceType>) => Promise<void>;
+  selectedCount: number;
+  onAddServiceType: () => void;
+  loading: boolean;
 }
 
 // API response structure for service types

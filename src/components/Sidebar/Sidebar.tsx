@@ -48,20 +48,16 @@ export const sidebarSections: SidebarSection[] = [
     ],
   },
   {
-    name: "History",
-    icon: <History className="h-4 w-4" />,
-    href: "/history",
+    name: "Service Types",
+    icon: <ClipboardList className="h-4 w-4" />,
+    href: "/service-types",
   },
   {
-    name: "Marketplace",
-    icon: <ShoppingBag className="h-4 w-4" />,
-    href: "/marketplace",
-  },
-  {
-    name: "Requests",
+    name: "Requests History",
     icon: <ClipboardList className="h-4 w-4" />,
     href: "/requests",
   },
+
   {
     name: "Wallets",
     icon: <Wallet className="h-4 w-4" />,
@@ -97,6 +93,11 @@ export const sidebarSections: SidebarSection[] = [
     name: "Vouchers",
     icon: <Ticket className="h-4 w-4" />,
     href: "/vouchers",
+  },
+  {
+    name: "Marketplace",
+    icon: <ShoppingBag className="h-4 w-4" />,
+    href: "/marketplace",
   },
 ];
 
