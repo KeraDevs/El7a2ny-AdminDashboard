@@ -142,7 +142,6 @@ export const ViewWorkshopDialog: React.FC<ViewWorkshopDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          {" "}
           <div className="flex items-center justify-center pb-4">
             <div className="h-24 w-24 rounded-full bg-blue-100 flex items-center justify-center">
               {workshopData.profilePic ? (

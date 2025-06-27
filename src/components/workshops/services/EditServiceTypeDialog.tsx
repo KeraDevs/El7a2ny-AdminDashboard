@@ -260,7 +260,7 @@ export const EditServiceTypeDialog: React.FC<EditServiceTypeDialogProps> = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">Category *</Label>{" "}
+                <Label htmlFor="category">Category *</Label>
                 <Select
                   value={
                     serviceTypeData?.category ||

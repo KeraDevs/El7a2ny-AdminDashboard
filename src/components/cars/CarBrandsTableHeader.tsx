@@ -33,7 +33,7 @@ export const CarBrandsTableHeader: React.FC<CarBrandsTableHeaderProps> = ({
             className="pl-10"
           />
         </div>
-      </div>{" "}
+      </div>
       {/* Action Buttons */}
       <div className="flex items-center gap-2">
         {/* Selected Items Actions */}
@@ -56,7 +56,7 @@ export const CarBrandsTableHeader: React.FC<CarBrandsTableHeaderProps> = ({
         <Button variant="default" size="sm" onClick={onAdd}>
           <Plus className="h-4 w-4 mr-1" />
           Add Brand
-        </Button>{" "}
+        </Button>
       </div>
     </div>
   );

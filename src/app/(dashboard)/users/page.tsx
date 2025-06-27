@@ -11,10 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { UsersTableHeader } from "@/components/users/UsersTableHeader";
 import { UsersTable } from "@/components/users/UsersTable";
-import { UsersPagination } from "@/components/users/UsersPagination";
 import { EditUserDialog } from "@/components/users/EditUserDialog";
 import { ViewUserDialog } from "@/components/users/ViewUserDialog";
 import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
+import { DataPagination } from "@/components/ui/DataPagination";
 
 // Users Statistics Component
 const UsersStats = ({ users }: { users: User[] }) => {
@@ -381,15 +381,16 @@ const UsersList: React.FC = () => {
             users={users}
             onDelete={handleDelete}
           />
-          <div className="p-4 pt-0">
-            <UsersPagination
+          <div className="border-t">
+            <DataPagination
               currentPage={currentPage}
-              setCurrentPage={setCurrentPage}
               totalPages={totalPages}
-              rowsPerPage={rowsPerPage}
-              setRowsPerPage={setRowsPerPage}
-              filteredUsers={filteredUsers}
-              selectedUsers={selectedUsers}
+              totalItems={filteredUsers.length}
+              itemsPerPage={rowsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={setRowsPerPage}
+              itemType="users"
+              loading={loading}
             />
           </div>
         </Card>

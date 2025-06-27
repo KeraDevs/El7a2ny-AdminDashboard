@@ -80,7 +80,7 @@ export const CarBrandsTable: React.FC<CarBrandsTableProps> = ({
             <TableRow>
               <TableHead className="w-12">
                 <Checkbox disabled />
-              </TableHead>{" "}
+              </TableHead>
               {columnVisibility.name && <TableHead>Name</TableHead>}
               {columnVisibility.regionsCount && <TableHead>Regions</TableHead>}
               {columnVisibility.regions && <TableHead>Region List</TableHead>}
@@ -208,7 +208,7 @@ export const CarBrandsTable: React.FC<CarBrandsTableProps> = ({
                     <TableCell className="text-muted-foreground">
                       {format(new Date(brand.created_at), "MMM dd, yyyy")}
                     </TableCell>
-                  )}{" "}
+                  )}
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <Button

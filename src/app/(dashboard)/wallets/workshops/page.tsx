@@ -53,6 +53,7 @@ import {
   IconTrendingUp,
 } from "@tabler/icons-react";
 import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
+import { DataPagination } from "@/components/ui/DataPagination";
 
 interface Workshop {
   id: number;
@@ -348,6 +349,8 @@ export default function WorkshopWalletsPage() {
   const [workshops, setWorkshops] = useState<Workshop[]>(mockWorkshops);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop | null>(
     null
   );
@@ -367,6 +370,13 @@ export default function WorkshopWalletsPage() {
 
     return matchesSearch && matchesStatus;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredWorkshops.length / itemsPerPage);
+  const paginatedWorkshops = filteredWorkshops.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
   const handleWalletAction = (workshop: Workshop, type: "add" | "transfer") => {
     setSelectedWorkshop(workshop);
     setDialogType(type);
@@ -487,7 +497,7 @@ export default function WorkshopWalletsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredWorkshops.map((workshop, index) => (
+                  {paginatedWorkshops.map((workshop, index) => (
                     <motion.tr
                       key={workshop.id}
                       initial={{ opacity: 0, x: -20 }}
@@ -566,6 +576,16 @@ export default function WorkshopWalletsPage() {
                 </div>
               )}
             </div>
+
+            <DataPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredWorkshops.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={setItemsPerPage}
+              itemType="workshops"
+            />
           </CardContent>
         </Card>
       </motion.div>
@@ -580,7 +600,7 @@ export default function WorkshopWalletsPage() {
 
       {/* Floating Download Button */}
       <FloatingDownloadButton
-        data={filteredWorkshops.map((workshop) => ({
+        data={paginatedWorkshops.map((workshop) => ({
           name: workshop.name || "",
           email: workshop.email || "",
           phone: `+${workshop.phone}` || "",

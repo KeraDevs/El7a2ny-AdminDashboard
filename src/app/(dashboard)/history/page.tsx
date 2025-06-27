@@ -49,6 +49,7 @@ import {
   IconSortDescending,
 } from "@tabler/icons-react";
 import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
+import { DataPagination } from "@/components/ui/DataPagination";
 
 interface ServiceRequest {
   id: string;
@@ -277,6 +278,8 @@ export default function HistoryPage() {
   const [sortBy, setSortBy] = useState<string>("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Filter and sort requests
   const filteredRequests = requests
@@ -333,6 +336,13 @@ export default function HistoryPage() {
         return valueA < valueB ? 1 : -1;
       }
     });
+
+  // Add pagination
+  const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
+  const paginatedRequests = filteredRequests.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -523,7 +533,7 @@ export default function HistoryPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredRequests.map((request, index) => (
+                  {paginatedRequests.map((request, index) => (
                     <motion.tr
                       key={request.id}
                       initial={{ opacity: 0, x: -20 }}
@@ -617,20 +627,36 @@ export default function HistoryPage() {
                   ))}
                 </TableBody>
               </Table>
-              {filteredRequests.length === 0 && (
+              {paginatedRequests.length === 0 && filteredRequests.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                   <IconHistory className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>No requests found matching your criteria.</p>
                 </div>
               )}
             </div>
+            
+            {/* Pagination */}
+            {filteredRequests.length > 0 && (
+              <div className="border-t">
+                <DataPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={filteredRequests.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPage}
+                  onItemsPerPageChange={setItemsPerPage}
+                  itemType="requests"
+                  loading={isRefreshing}
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>
 
       {/* Floating Download Button */}
       <FloatingDownloadButton
-        data={filteredRequests.map((request) => ({
+        data={paginatedRequests.map((request) => ({
           id: request.id?.toString() || "",
           customer_name: request.customer_name || "",
           customer_phone: request.customer_phone || "",

@@ -12,11 +12,11 @@ import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 
 import { CarBrandsTableHeader } from "@/components/cars/CarBrandsTableHeader";
 import { CarBrandsTable } from "@/components/cars/CarBrandsTable";
-import { CarBrandsPagination } from "@/components/cars/CarBrandsPagination";
 import { AddCarBrandDialog } from "@/components/cars/AddCarBrandDialog";
 import { EditCarBrandDialog } from "@/components/cars/EditCarBrandDialog";
 import { ViewCarBrandDialog } from "@/components/cars/ViewCarBrandDialog";
 import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
+import { DataPagination } from "@/components/ui/DataPagination";
 
 // Car Brands Statistics Component
 const CarBrandsStats = ({ brands }: { brands: CarBrand[] }) => {
@@ -307,7 +307,7 @@ const CarBrandsList: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-2">Access Denied</h2>{" "}
+          <h2 className="text-2xl font-semibold mb-2">Access Denied</h2>
           <p className="text-muted-foreground">
             You don&apos;t have permission to access car brands management.
           </p>
@@ -318,7 +318,6 @@ const CarBrandsList: React.FC = () => {
 
   return (
     <div className="space-y-6 p-6">
-      {" "}
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -355,13 +354,15 @@ const CarBrandsList: React.FC = () => {
         loading={loading}
       />
       {/* Pagination */}
-      <CarBrandsPagination
+      <DataPagination
         currentPage={currentPage}
         totalPages={totalPages}
-        rowsPerPage={rowsPerPage}
         totalItems={filteredAndSortedBrands.length}
+        itemsPerPage={rowsPerPage}
         onPageChange={setCurrentPage}
-        onRowsPerPageChange={setRowsPerPage}
+        onItemsPerPageChange={setRowsPerPage}
+        itemType="brands"
+        loading={loading}
       />
       {/* Dialogs */}
       <AddCarBrandDialog

@@ -12,7 +12,7 @@ import {
   MoreHorizontal,
   Eye,
   Edit,
-  Trash,
+  Trash2 as Trash,
   Search,
   Filter,
 } from "lucide-react";
@@ -50,6 +50,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { IconRefresh as TablerRefresh } from "@tabler/icons-react";
+import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
+import { DataPagination } from "@/components/ui/DataPagination";
 
 // Mock data for cars
 const mockCars: Vehicle[] = [
@@ -201,7 +203,7 @@ const Cars: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const getBrandName = (brandId: string) => {
     const brandMap: { [key: string]: string } = {
       toyota_001: "Toyota",
@@ -253,11 +255,11 @@ const Cars: React.FC = () => {
   }, [cars, searchQuery, typeFilter]);
 
   const paginatedCars = useMemo(() => {
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    return filteredCars.slice(startIndex, startIndex + rowsPerPage);
-  }, [filteredCars, currentPage, rowsPerPage]);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredCars.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredCars, currentPage, itemsPerPage]);
 
-  const totalPages = Math.ceil(filteredCars.length / rowsPerPage);
+  const totalPages = Math.ceil(filteredCars.length / itemsPerPage);
 
   const handleRefresh = async () => {
     setLoading(true);
@@ -473,37 +475,44 @@ const Cars: React.FC = () => {
               </Table>
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-4">
-                <div className="text-sm text-muted-foreground">
-                  Showing {(currentPage - 1) * rowsPerPage + 1} to
-                  {Math.min(currentPage * rowsPerPage, filteredCars.length)} of
-                  {filteredCars.length} results
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(currentPage - 1)}
-                  >
-                    Previous
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
-            )}
+            <DataPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredCars.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={setItemsPerPage}
+              itemType="cars"
+              loading={loading}
+            />
           </CardContent>
         </Card>
       </motion.div>
+
+      <FloatingDownloadButton
+        data={paginatedCars.map(car => ({
+          brand: getBrandName(car.brand_id),
+          model: car.model,
+          year: car.year.toString(),
+          license_plate: car.license_plate,
+          vin_number: car.vin_number,
+          car_type: car.car_type,
+          turbo: car.turbo ? "Yes" : "No",
+          exotic: car.exotic ? "Yes" : "No",
+        }))}
+        filename="users-cars"
+        pageName="User Cars"
+        headers={[
+          { key: "brand", label: "Brand" },
+          { key: "model", label: "Model" },
+          { key: "year", label: "Year" },
+          { key: "license_plate", label: "License Plate" },
+          { key: "vin_number", label: "VIN Number" },
+          { key: "car_type", label: "Type" },
+          { key: "turbo", label: "Turbo" },
+          { key: "exotic", label: "Exotic" },
+        ]}
+      />
     </div>
   );
 };

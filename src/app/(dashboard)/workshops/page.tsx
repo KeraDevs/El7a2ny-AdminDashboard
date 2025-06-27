@@ -9,12 +9,12 @@ import { Loader2 } from "lucide-react";
 
 import { WorkshopsTableHeader } from "@/components/workshops/workshops/WorkshopsTableHeader";
 import { WorkshopsTable } from "@/components/workshops/workshops/WorkShopsTable";
-import { WorkshopsPagination } from "@/components/workshops/workshops/WorkshopsPagination";
 import { EditWorkshopDialog } from "@/components/workshops/workshops/EditWorkshopDialog";
 import { ViewWorkshopDialog } from "@/components/workshops/workshops/ViewWorkshopDialog";
 import { WorkshopColumnVisibility } from "@/types/workshopTypes";
 import { SortConfig } from "@/types/workshopTypes";
 import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
+import { DataPagination } from "@/components/ui/DataPagination";
 
 const WorkshopsList: React.FC = () => {
   const { currentUser, isAuthorized, loading: authLoading } = useAuth();
@@ -252,14 +252,15 @@ const WorkshopsList: React.FC = () => {
         onDelete={handleDelete}
       />
 
-      <WorkshopsPagination
+      <DataPagination
         currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
         totalPages={totalPages}
-        rowsPerPage={rowsPerPage}
-        setRowsPerPage={setRowsPerPage}
-        filteredWorkshops={filteredWorkshops}
-        selectedWorkshops={selectedWorkshops}
+        totalItems={filteredWorkshops.length}
+        itemsPerPage={rowsPerPage}
+        onPageChange={setCurrentPage}
+        onItemsPerPageChange={setRowsPerPage}
+        itemType="workshops"
+        loading={loading}
       />
 
       <EditWorkshopDialog

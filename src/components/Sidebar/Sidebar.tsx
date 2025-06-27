@@ -10,7 +10,6 @@ import {
   LayoutDashboard,
   Users,
   Boxes,
-  History,
   ShoppingBag,
   ClipboardList,
   Wallet,
@@ -43,8 +42,7 @@ export const sidebarSections: SidebarSection[] = [
     icon: <Boxes className="h-4 w-4" />,
     subsections: [
       { name: "Workshops List", href: "/workshops" },
-      { name: "Cars", href: "/workshops/cars" },
-      { name: "Service Types", href: "/workshops/services" },
+      { name: "Services", href: "/workshops/services" },
     ],
   },
   {
