@@ -14,6 +14,7 @@ import { UsersTable } from "@/components/users/UsersTable";
 import { UsersPagination } from "@/components/users/UsersPagination";
 import { EditUserDialog } from "@/components/users/EditUserDialog";
 import { ViewUserDialog } from "@/components/users/ViewUserDialog";
+import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
 
 // Users Statistics Component
 const UsersStats = ({ users }: { users: User[] }) => {
@@ -410,6 +411,36 @@ const UsersList: React.FC = () => {
             handleEdit(viewUserData);
           }
         }}
+      />
+      
+      {/* Floating Download Button */}
+      <FloatingDownloadButton
+        data={paginatedUsers.map(user => ({
+          id: user.id,
+          name: user.fullName || `${user.first_name} ${user.last_name}`,
+          email: user.email,
+          phone: user.phone ? `+${String(user.phone)}` : '',
+          gender: user.gender,
+          userType: user.userType,
+          joinDate: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '',
+          isActive: user.isActive ? 'Active' : 'Inactive',
+          nationalNumber: String(user.nationalNumber || ''),
+          labels: user.labels?.join(', ') || ''
+        }))}
+        filename={`users-page-${currentPage}`}
+        pageName="Users Management"
+        headers={[
+          { label: 'ID', key: 'id' },
+          { label: 'Full Name', key: 'name' },
+          { label: 'Email', key: 'email' },
+          { label: 'Phone', key: 'phone' },
+          { label: 'Gender', key: 'gender' },
+          { label: 'User Type', key: 'userType' },
+          { label: 'Join Date', key: 'joinDate' },
+          { label: 'Status', key: 'isActive' },
+          { label: 'National Number', key: 'nationalNumber' },
+          { label: 'Labels', key: 'labels' }
+        ]}
       />
     </div>
   );

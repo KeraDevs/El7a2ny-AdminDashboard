@@ -1,5 +1,5 @@
 import React from "react";
-import { Search, Download, Trash2 } from "lucide-react";
+import { Search, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -8,6 +8,8 @@ interface CarBrandsTableHeaderProps {
   setSearchQuery: (query: string) => void;
   selectedCount: number;
   onDelete: () => void;
+  onAdd: () => void;
+  onRefresh: () => void;
 }
 
 export const CarBrandsTableHeader: React.FC<CarBrandsTableHeaderProps> = ({
@@ -15,6 +17,8 @@ export const CarBrandsTableHeader: React.FC<CarBrandsTableHeaderProps> = ({
   setSearchQuery,
   selectedCount,
   onDelete,
+  onAdd,
+  onRefresh,
 }) => {
   return (
     <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-lg border">
@@ -45,9 +49,14 @@ export const CarBrandsTableHeader: React.FC<CarBrandsTableHeaderProps> = ({
           </div>
         )}
         {/* Export Button */}
-        <Button variant="outline" size="sm">
-          <Download className="h-4 w-4 mr-1" />
-          Export
+        <Button variant="outline" size="sm" onClick={onRefresh}>
+          <RefreshCw className="h-4 w-4 mr-1" />
+          Refresh
+        </Button>
+        
+        <Button variant="default" size="sm" onClick={onAdd}>
+          <Plus className="h-4 w-4 mr-1" />
+          Add Brand
         </Button>{" "}
       </div>
     </div>

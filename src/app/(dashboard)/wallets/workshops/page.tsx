@@ -52,6 +52,7 @@ import {
   IconBuildingStore,
   IconTrendingUp,
 } from "@tabler/icons-react";
+import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
 
 interface Workshop {
   id: number;
@@ -575,6 +576,22 @@ export default function WorkshopWalletsPage() {
         onOpenChange={setDialogOpen}
         type={dialogType}
         onSubmit={handleWalletSubmit}
+      />
+
+      {/* Floating Download Button */}
+      <FloatingDownloadButton
+        data={filteredWorkshops.map(workshop => ({
+          name: workshop.name || '',
+          email: workshop.email || '',
+          phone: `+${workshop.phone}` || '',
+          wallet_balance: workshop.walletBalance?.toString() || '0',
+          location: workshop.location || '',
+          owner: workshop.owner || '',
+          status: workshop.status || '',
+          last_transaction: workshop.lastTransaction || ''
+        }))}
+        filename="workshop-wallets"
+        pageName="Workshop Wallets Management Report"
       />
     </div>
   );

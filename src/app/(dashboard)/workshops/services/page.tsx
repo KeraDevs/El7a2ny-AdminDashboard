@@ -5,6 +5,7 @@ import { useServiceTypes } from "@/hooks/_useServices";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
+import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
 
 import { ServiceTypesTableHeader } from "@/components/workshops/services/ServiceTypeHeader";
 import { ServiceTypesTable } from "@/components/workshops/services/ServiceTypeTable";
@@ -352,6 +353,30 @@ const ServiceTypesList: React.FC = () => {
         serviceTypeIds={selectedServiceTypes}
         onSetPercentage={handlePercentageUpdate}
         ServiceTypes={serviceTypes}
+      />
+
+      {/* Floating Download Button */}
+      <FloatingDownloadButton
+        data={paginatedServiceTypes.map(service => ({
+          name: service.name || '',
+          description: service.description || '',
+          category: service.category || '',
+          base_price: service.basePrice?.toString() || '0',
+          estimated_duration: service.estimatedDuration?.toString() || '',
+          status: service.isActive ? 'Active' : 'Inactive',
+          created_at: service.created_at || ''
+        }))}
+        filename="service-types"
+        pageName="Service Types Management Report"
+        columnVisibility={{
+          name: columnVisibility.name ?? true,
+          description: columnVisibility.description ?? true,
+          category: columnVisibility.category ?? true,
+          base_price: columnVisibility.basePrice ?? true,
+          estimated_duration: columnVisibility.estimatedDuration ?? true,
+          status: columnVisibility.isActive ?? true,
+          created_at: columnVisibility.created_at ?? true
+        }}
       />
     </div>
   );

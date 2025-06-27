@@ -46,6 +46,7 @@ import {
   IconUsers,
   IconTrendingUp,
 } from "@tabler/icons-react";
+import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
 
 const mockUsers = [
   {
@@ -499,6 +500,20 @@ export default function UsersWalletPage() {
         onClose={() => setDialogOpen(false)}
         type={dialogType}
         onConfirm={handleWalletUpdate}
+      />
+
+      {/* Floating Download Button */}
+      <FloatingDownloadButton
+        data={filteredUsers.map(user => ({
+          name: user.name || '',
+          email: user.email || '',
+          phone: `+${user.phone}` || '',
+          wallet_balance: user.walletBalance?.toString() || '0',
+          status: user.status || '',
+          last_transaction: user.lastTransaction || ''
+        }))}
+        filename="user-wallets"
+        pageName="User Wallets Management Report"
       />
     </div>
   );

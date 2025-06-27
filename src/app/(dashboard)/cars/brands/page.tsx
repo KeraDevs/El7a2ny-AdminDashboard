@@ -16,6 +16,7 @@ import { CarBrandsPagination } from "@/components/cars/CarBrandsPagination";
 import { AddCarBrandDialog } from "@/components/cars/AddCarBrandDialog";
 import { EditCarBrandDialog } from "@/components/cars/EditCarBrandDialog";
 import { ViewCarBrandDialog } from "@/components/cars/ViewCarBrandDialog";
+import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
 
 // Car Brands Statistics Component
 const CarBrandsStats = ({ brands }: { brands: CarBrand[] }) => {
@@ -241,6 +242,11 @@ const CarBrandsList: React.FC = () => {
     setIsAddDialogOpen(false);
     fetchBrands();
   };
+  
+  const handleRefresh = () => {
+    fetchBrands();
+    toast.success("Brands refreshed successfully");
+  };
   const handleEditSuccess = () => {
     setIsEditDialogOpen(false);
     setSelectedBrandForEdit(null);
@@ -325,12 +331,14 @@ const CarBrandsList: React.FC = () => {
         </div>
       </div>
       {/* Statistics */}
-      <CarBrandsStats brands={brands} /> {/* Table Header */}
+      <CarBrandsStats brands={brands} />      {/* Table Header */}
       <CarBrandsTableHeader
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         selectedCount={selectedBrands.length}
         onDelete={handleBulkDeleteClick}
+        onAdd={() => setIsAddDialogOpen(true)}
+        onRefresh={handleRefresh}
       />
       {/* Table */}
       <CarBrandsTable
@@ -412,6 +420,36 @@ const CarBrandsList: React.FC = () => {
           {error}
         </div>
       )}
+      
+      {/* Floating Download Button */}
+      <FloatingDownloadButton
+        data={paginatedBrands.map(brand => ({
+          id: brand.id,
+          name: brand.name,
+          description: brand.description || '',
+          regionsCount: brand.brand_regions?.length || 0,
+          createdDate: brand.created_at ? new Date(brand.created_at).toLocaleDateString() : '',
+          updatedDate: brand.updated_at ? new Date(brand.updated_at).toLocaleDateString() : ''
+        }))}
+        filename={`car-brands-page-${currentPage}`}
+        pageName="Car Brands Management"
+        columnVisibility={{
+          id: true,
+          name: columnVisibility.name,
+          description: true,
+          regionsCount: columnVisibility.regionsCount,
+          createdDate: columnVisibility.createdAt,
+          updatedDate: true
+        }}
+        headers={[
+          { label: 'ID', key: 'id' },
+          { label: 'Brand Name', key: 'name' },
+          { label: 'Description', key: 'description' },
+          { label: 'Regions Count', key: 'regionsCount' },
+          { label: 'Created Date', key: 'createdDate' },
+          { label: 'Updated Date', key: 'updatedDate' }
+        ]}
+      />
     </div>
   );
 };
