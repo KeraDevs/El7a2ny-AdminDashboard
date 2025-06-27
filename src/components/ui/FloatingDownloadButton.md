@@ -14,6 +14,7 @@ A reusable React component that provides a floating action button for downloadin
 ## Installation
 
 Required dependencies:
+
 ```bash
 pnpm add react-csv jspdf framer-motion lucide-react
 pnpm add -D @types/react-csv
@@ -26,34 +27,34 @@ import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
 
 // Example usage in a component
 <FloatingDownloadButton
-  data={users.map(user => ({
+  data={users.map((user) => ({
     id: user.id,
     name: user.fullName,
     email: user.email,
     phone: user.phone,
-    status: user.isActive ? 'Active' : 'Inactive'
+    status: user.isActive ? "Active" : "Inactive",
   }))}
   filename="users-list"
   pdfTitle="Users List Report"
   headers={[
-    { label: 'ID', key: 'id' },
-    { label: 'Full Name', key: 'name' },
-    { label: 'Email', key: 'email' },
-    { label: 'Phone', key: 'phone' },
-    { label: 'Status', key: 'status' }
+    { label: "ID", key: "id" },
+    { label: "Full Name", key: "name" },
+    { label: "Email", key: "email" },
+    { label: "Phone", key: "phone" },
+    { label: "Status", key: "status" },
   ]}
-/>
+/>;
 ```
 
 ## Props
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `data` | `Array<Record<string, any>>` | ✅ | Array of objects to export |
-| `filename` | `string` | ✅ | Base filename (without extension) |
-| `headers` | `Array<{label: string, key: string}>` | ❌ | CSV headers (auto-generated if not provided) |
-| `pdfTitle` | `string` | ❌ | Title for PDF document |
-| `className` | `string` | ❌ | Additional CSS classes |
+| Prop        | Type                                  | Required | Description                                  |
+| ----------- | ------------------------------------- | -------- | -------------------------------------------- |
+| `data`      | `Array<Record<string, any>>`          | ✅       | Array of objects to export                   |
+| `filename`  | `string`                              | ✅       | Base filename (without extension)            |
+| `headers`   | `Array<{label: string, key: string}>` | ❌       | CSV headers (auto-generated if not provided) |
+| `pdfTitle`  | `string`                              | ❌       | Title for PDF document                       |
+| `className` | `string`                              | ❌       | Additional CSS classes                       |
 
 ## Component Structure
 
@@ -80,6 +81,7 @@ The component uses Tailwind CSS classes and can be customized by:
 ## Current Implementation
 
 Currently implemented on:
+
 - ✅ Users List page (`/users`)
 
 ## Future Enhancements

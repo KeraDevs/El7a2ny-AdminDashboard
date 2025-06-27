@@ -222,10 +222,10 @@ const RequestsPage = () => {
           />
         </>
       )}
-      
+
       {/* Floating Download Button */}
       <FloatingDownloadButton
-        data={filteredRequests.map(request => ({
+        data={filteredRequests.map((request) => ({
           id: request.id,
           customerName: request.customerName,
           vehicle: request.vehicle,
@@ -233,19 +233,19 @@ const RequestsPage = () => {
           status: request.status,
           date: request.date,
           workshop: request.workshop,
-          urgency: request.urgency
+          urgency: request.urgency,
         }))}
         filename={`service-requests`}
         pageName="Service Requests Management"
         headers={[
-          { label: 'Request ID', key: 'id' },
-          { label: 'Customer Name', key: 'customerName' },
-          { label: 'Vehicle', key: 'vehicle' },
-          { label: 'Service', key: 'service' },
-          { label: 'Status', key: 'status' },
-          { label: 'Date', key: 'date' },
-          { label: 'Workshop', key: 'workshop' },
-          { label: 'Urgency', key: 'urgency' }
+          { label: "Request ID", key: "id" },
+          { label: "Customer Name", key: "customerName" },
+          { label: "Vehicle", key: "vehicle" },
+          { label: "Service", key: "service" },
+          { label: "Status", key: "status" },
+          { label: "Date", key: "date" },
+          { label: "Workshop", key: "workshop" },
+          { label: "Urgency", key: "urgency" },
         ]}
       />
     </div>

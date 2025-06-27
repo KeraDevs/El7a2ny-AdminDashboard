@@ -357,14 +357,14 @@ const ServiceTypesList: React.FC = () => {
 
       {/* Floating Download Button */}
       <FloatingDownloadButton
-        data={paginatedServiceTypes.map(service => ({
-          name: service.name || '',
-          description: service.description || '',
-          category: service.category || '',
-          base_price: service.basePrice?.toString() || '0',
-          estimated_duration: service.estimatedDuration?.toString() || '',
-          status: service.isActive ? 'Active' : 'Inactive',
-          created_at: service.created_at || ''
+        data={paginatedServiceTypes.map((service) => ({
+          name: service.name || "",
+          description: service.description || "",
+          category: service.category || "",
+          base_price: service.basePrice?.toString() || "0",
+          estimated_duration: service.estimatedDuration?.toString() || "",
+          status: service.isActive ? "Active" : "Inactive",
+          created_at: service.created_at || "",
         }))}
         filename="service-types"
         pageName="Service Types Management Report"
@@ -375,7 +375,7 @@ const ServiceTypesList: React.FC = () => {
           base_price: columnVisibility.basePrice ?? true,
           estimated_duration: columnVisibility.estimatedDuration ?? true,
           status: columnVisibility.isActive ?? true,
-          created_at: columnVisibility.created_at ?? true
+          created_at: columnVisibility.created_at ?? true,
         }}
       />
     </div>

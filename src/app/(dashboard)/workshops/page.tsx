@@ -281,34 +281,38 @@ const WorkshopsList: React.FC = () => {
           }
         }}
       />
-      
+
       {/* Floating Download Button */}
       <FloatingDownloadButton
-        data={paginatedWorkshops.map(workshop => ({
+        data={paginatedWorkshops.map((workshop) => ({
           id: workshop.id,
           name: workshop.name,
           email: workshop.email,
-          phone: workshop.phoneNumbers?.[0]?.phone_number ? `+${String(workshop.phoneNumbers[0].phone_number)}` : '',
+          phone: workshop.phoneNumbers?.[0]?.phone_number
+            ? `+${String(workshop.phoneNumbers[0].phone_number)}`
+            : "",
           address: workshop.address,
           status: workshop.active_status,
-          createdDate: workshop.createdAt ? new Date(workshop.createdAt).toLocaleDateString() : '',
-          rating: workshop.ratings || 'Not rated',
+          createdDate: workshop.createdAt
+            ? new Date(workshop.createdAt).toLocaleDateString()
+            : "",
+          rating: workshop.ratings || "Not rated",
           services: workshop.services?.length || 0,
-          totalReviews: workshop.totalReviews || 0
+          totalReviews: workshop.totalReviews || 0,
         }))}
         filename={`workshops-page-${currentPage}`}
         pageName="Workshops Management"
         headers={[
-          { label: 'ID', key: 'id' },
-          { label: 'Workshop Name', key: 'name' },
-          { label: 'Email', key: 'email' },
-          { label: 'Phone', key: 'phone' },
-          { label: 'Address', key: 'address' },
-          { label: 'Status', key: 'status' },
-          { label: 'Created Date', key: 'createdDate' },
-          { label: 'Rating', key: 'rating' },
-          { label: 'Services Count', key: 'services' },
-          { label: 'Total Reviews', key: 'totalReviews' }
+          { label: "ID", key: "id" },
+          { label: "Workshop Name", key: "name" },
+          { label: "Email", key: "email" },
+          { label: "Phone", key: "phone" },
+          { label: "Address", key: "address" },
+          { label: "Status", key: "status" },
+          { label: "Created Date", key: "createdDate" },
+          { label: "Rating", key: "rating" },
+          { label: "Services Count", key: "services" },
+          { label: "Total Reviews", key: "totalReviews" },
         ]}
       />
     </div>

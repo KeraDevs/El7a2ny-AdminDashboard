@@ -30,7 +30,9 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
   const [isOpen, setIsOpen] = useState(false);
 
   // Generate dynamic title based on page name
-  const dynamicTitle = pageName ? `${pageName} Report` : (pdfTitle || `${filename} Report`);
+  const dynamicTitle = pageName
+    ? `${pageName} Report`
+    : pdfTitle || `${filename} Report`;
 
   // Generate CSV headers automatically if not provided
   const csvHeaders =
@@ -44,7 +46,7 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
   // Filter data based on column visibility
   const getVisibleData = () => {
     if (!columnVisibility) return data;
-    
+
     return data.map((row) => {
       const filteredRow: Record<string, any> = {};
       Object.keys(row).forEach((key) => {
@@ -60,31 +62,34 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
 
   // Helper function to format numbers properly
   const formatValue = (value: any): string => {
-    if (value === null || value === undefined) return '';
-    
+    if (value === null || value === undefined) return "";
+
     // Convert to string first
     const strValue = String(value);
-    
+
     // Check if it's a large number that might be in scientific notation
-    if (typeof value === 'number' && (value > 999999999 || strValue.includes('E'))) {
+    if (
+      typeof value === "number" &&
+      (value > 999999999 || strValue.includes("E"))
+    ) {
       // Convert back to regular number format
       return value.toFixed(0);
     }
-    
+
     // For scientific notation strings, convert them back
-    if (strValue.includes('E') || strValue.includes('e')) {
+    if (strValue.includes("E") || strValue.includes("e")) {
       const num = parseFloat(strValue);
       if (!isNaN(num)) {
         return num.toFixed(0);
       }
     }
-    
+
     return strValue;
   };
 
   // Helper function to format phone numbers with + prefix
   const formatPhoneNumber = (phone: any): string => {
-    if (!phone) return '';
+    if (!phone) return "";
     const cleanPhone = formatValue(phone);
     // Add + prefix if it's a valid phone number (all digits and reasonable length)
     if (cleanPhone && /^\d+$/.test(cleanPhone) && cleanPhone.length >= 8) {
@@ -96,26 +101,26 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
   // Generate PDF with proper table formatting
   const generatePDF = async () => {
     try {
-      const pdf = new jsPDF('l', 'mm', 'a4'); // Landscape orientation for better table fit
+      const pdf = new jsPDF("l", "mm", "a4"); // Landscape orientation for better table fit
 
       // Add logo
       try {
         // Create an image element to load the logo
         const img = new Image();
-        img.crossOrigin = 'anonymous';
-        
+        img.crossOrigin = "anonymous";
+
         await new Promise((resolve, reject) => {
           img.onload = resolve;
           img.onerror = reject;
-          img.src = '/images/logo.png';
+          img.src = "/images/logo.png";
         });
-        
+
         // Add logo to PDF (top-left corner)
         const logoWidth = 30;
         const logoHeight = 20;
-        pdf.addImage(img, 'PNG', 10, 5, logoWidth, logoHeight);
+        pdf.addImage(img, "PNG", 10, 5, logoWidth, logoHeight);
       } catch (error) {
-        console.warn('Could not load logo:', error);
+        console.warn("Could not load logo:", error);
         // Continue without logo if it fails to load
       }
 
@@ -133,7 +138,7 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
       const pageWidth = pdf.internal.pageSize.width;
       const pageHeight = pdf.internal.pageSize.height;
       const margin = 10;
-      const tableWidth = pageWidth - (margin * 2);
+      const tableWidth = pageWidth - margin * 2;
       const colWidth = tableWidth / csvHeaders.length;
       const rowHeight = 8;
 
@@ -142,19 +147,19 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
       // Draw table headers
       pdf.setFontSize(8);
       pdf.setFont("helvetica", "bold");
-      
+
       // Header background
       pdf.setFillColor(240, 240, 240);
-      pdf.rect(margin, currentY - 2, tableWidth, rowHeight, 'F');
-      
+      pdf.rect(margin, currentY - 2, tableWidth, rowHeight, "F");
+
       // Header borders
       pdf.setDrawColor(200, 200, 200);
       pdf.rect(margin, currentY - 2, tableWidth, rowHeight);
 
       csvHeaders.forEach((header, index) => {
-        const x = margin + (index * colWidth);
+        const x = margin + index * colWidth;
         pdf.text(header.label, x + 2, currentY + 4);
-        
+
         // Vertical lines
         if (index > 0) {
           pdf.line(x, currentY - 2, x, currentY + rowHeight - 2);
@@ -172,31 +177,31 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
         // Check if we need a new page
         if (currentY + rowHeight > pageHeight - 20) {
           pdf.addPage();
-          
+
           // Add logo to new page
           try {
             const img = new Image();
-            img.crossOrigin = 'anonymous';
+            img.crossOrigin = "anonymous";
             await new Promise((resolve) => {
               img.onload = resolve;
               img.onerror = resolve; // Continue even if logo fails
-              img.src = '/images/logo.png';
+              img.src = "/images/logo.png";
             });
-            pdf.addImage(img, 'PNG', 10, 5, 30, 20);
+            pdf.addImage(img, "PNG", 10, 5, 30, 20);
           } catch (error) {
             // Continue without logo if it fails
           }
-          
+
           currentY = 35;
-          
+
           // Redraw headers on new page
           pdf.setFont("helvetica", "bold");
           pdf.setFillColor(240, 240, 240);
-          pdf.rect(margin, currentY - 2, tableWidth, rowHeight, 'F');
+          pdf.rect(margin, currentY - 2, tableWidth, rowHeight, "F");
           pdf.rect(margin, currentY - 2, tableWidth, rowHeight);
 
           csvHeaders.forEach((header, index) => {
-            const x = margin + (index * colWidth);
+            const x = margin + index * colWidth;
             pdf.text(header.label, x + 2, currentY + 4);
             if (index > 0) {
               pdf.line(x, currentY - 2, x, currentY + rowHeight - 2);
@@ -210,24 +215,24 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
         // Row background (alternating)
         if (rowIndex % 2 === 0) {
           pdf.setFillColor(250, 250, 250);
-          pdf.rect(margin, currentY - 2, tableWidth, rowHeight, 'F');
+          pdf.rect(margin, currentY - 2, tableWidth, rowHeight, "F");
         }
 
         // Row border
         pdf.rect(margin, currentY - 2, tableWidth, rowHeight);
 
         csvHeaders.forEach((header, index) => {
-          const x = margin + (index * colWidth);
-          let cellValue = String(row[header.key] || '');
-          
+          const x = margin + index * colWidth;
+          let cellValue = String(row[header.key] || "");
+
           // Truncate long values to fit in cell
           const maxLength = Math.floor(colWidth / 2);
           if (cellValue.length > maxLength) {
-            cellValue = cellValue.substring(0, maxLength - 3) + '...';
+            cellValue = cellValue.substring(0, maxLength - 3) + "...";
           }
-          
+
           pdf.text(cellValue, x + 2, currentY + 4);
-          
+
           // Vertical lines
           if (index > 0) {
             pdf.line(x, currentY - 2, x, currentY + rowHeight - 2);
@@ -248,10 +253,10 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
   };
 
   // Process data for CSV export with proper formatting
-  const processedData = visibleData.map(row => {
+  const processedData = visibleData.map((row) => {
     const processedRow: Record<string, any> = {};
-    Object.keys(row).forEach(key => {
-      if (key === 'phone') {
+    Object.keys(row).forEach((key) => {
+      if (key === "phone") {
         processedRow[key] = formatPhoneNumber(row[key]);
       } else {
         processedRow[key] = formatValue(row[key]);

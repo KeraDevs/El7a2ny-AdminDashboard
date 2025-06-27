@@ -364,13 +364,13 @@ const CarRegionsPage: React.FC = () => {
 
       {/* Floating Download Button */}
       <FloatingDownloadButton
-        data={currentRegions.map(region => ({
-          name: region.name || '',
-          country: region.country || '',
-          continent: region.continent || '',
-          status: region.is_active ? 'Active' : 'Inactive',
-          brands: region.brand_regions?.length?.toString() || '0',
-          created_at: region.created_at || ''
+        data={currentRegions.map((region) => ({
+          name: region.name || "",
+          country: region.country || "",
+          continent: region.continent || "",
+          status: region.is_active ? "Active" : "Inactive",
+          brands: region.brand_regions?.length?.toString() || "0",
+          created_at: region.created_at || "",
         }))}
         filename="car-regions"
         pageName="Car Regions Management Report"

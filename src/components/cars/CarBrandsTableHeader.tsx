@@ -53,7 +53,6 @@ export const CarBrandsTableHeader: React.FC<CarBrandsTableHeaderProps> = ({
           <RefreshCw className="h-4 w-4 mr-1" />
           Refresh
         </Button>
-        
         <Button variant="default" size="sm" onClick={onAdd}>
           <Plus className="h-4 w-4 mr-1" />
           Add Brand

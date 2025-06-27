@@ -504,13 +504,13 @@ export default function UsersWalletPage() {
 
       {/* Floating Download Button */}
       <FloatingDownloadButton
-        data={filteredUsers.map(user => ({
-          name: user.name || '',
-          email: user.email || '',
-          phone: `+${user.phone}` || '',
-          wallet_balance: user.walletBalance?.toString() || '0',
-          status: user.status || '',
-          last_transaction: user.lastTransaction || ''
+        data={filteredUsers.map((user) => ({
+          name: user.name || "",
+          email: user.email || "",
+          phone: `+${user.phone}` || "",
+          wallet_balance: user.walletBalance?.toString() || "0",
+          status: user.status || "",
+          last_transaction: user.lastTransaction || "",
         }))}
         filename="user-wallets"
         pageName="User Wallets Management Report"

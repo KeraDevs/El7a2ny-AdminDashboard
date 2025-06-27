@@ -242,7 +242,7 @@ const CarBrandsList: React.FC = () => {
     setIsAddDialogOpen(false);
     fetchBrands();
   };
-  
+
   const handleRefresh = () => {
     fetchBrands();
     toast.success("Brands refreshed successfully");
@@ -331,7 +331,7 @@ const CarBrandsList: React.FC = () => {
         </div>
       </div>
       {/* Statistics */}
-      <CarBrandsStats brands={brands} />      {/* Table Header */}
+      <CarBrandsStats brands={brands} /> {/* Table Header */}
       <CarBrandsTableHeader
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -420,16 +420,19 @@ const CarBrandsList: React.FC = () => {
           {error}
         </div>
       )}
-      
       {/* Floating Download Button */}
       <FloatingDownloadButton
-        data={paginatedBrands.map(brand => ({
+        data={paginatedBrands.map((brand) => ({
           id: brand.id,
           name: brand.name,
-          description: brand.description || '',
+          description: brand.description || "",
           regionsCount: brand.brand_regions?.length || 0,
-          createdDate: brand.created_at ? new Date(brand.created_at).toLocaleDateString() : '',
-          updatedDate: brand.updated_at ? new Date(brand.updated_at).toLocaleDateString() : ''
+          createdDate: brand.created_at
+            ? new Date(brand.created_at).toLocaleDateString()
+            : "",
+          updatedDate: brand.updated_at
+            ? new Date(brand.updated_at).toLocaleDateString()
+            : "",
         }))}
         filename={`car-brands-page-${currentPage}`}
         pageName="Car Brands Management"
@@ -439,15 +442,15 @@ const CarBrandsList: React.FC = () => {
           description: true,
           regionsCount: columnVisibility.regionsCount,
           createdDate: columnVisibility.createdAt,
-          updatedDate: true
+          updatedDate: true,
         }}
         headers={[
-          { label: 'ID', key: 'id' },
-          { label: 'Brand Name', key: 'name' },
-          { label: 'Description', key: 'description' },
-          { label: 'Regions Count', key: 'regionsCount' },
-          { label: 'Created Date', key: 'createdDate' },
-          { label: 'Updated Date', key: 'updatedDate' }
+          { label: "ID", key: "id" },
+          { label: "Brand Name", key: "name" },
+          { label: "Description", key: "description" },
+          { label: "Regions Count", key: "regionsCount" },
+          { label: "Created Date", key: "createdDate" },
+          { label: "Updated Date", key: "updatedDate" },
         ]}
       />
     </div>
