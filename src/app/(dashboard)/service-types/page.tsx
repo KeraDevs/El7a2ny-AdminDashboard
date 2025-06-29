@@ -28,7 +28,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, MoreHorizontal, Eye, Edit, Trash2 as Trash, Plus, RefreshCw, Settings } from "lucide-react";
+import {
+  Search,
+  MoreHorizontal,
+  Eye,
+  Edit,
+  Trash2 as Trash,
+  Plus,
+  RefreshCw,
+  Settings,
+} from "lucide-react";
 import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
 import { DataPagination } from "@/components/ui/DataPagination";
 
@@ -117,11 +126,18 @@ const mockServiceTypes: ServiceType[] = [
 ];
 
 // Service Types Statistics Component
-const ServiceTypesStats = ({ serviceTypes }: { serviceTypes: ServiceType[] }) => {
+const ServiceTypesStats = ({
+  serviceTypes,
+}: {
+  serviceTypes: ServiceType[];
+}) => {
   const totalServices = serviceTypes.length;
   const activeServices = serviceTypes.filter((s) => s.isActive).length;
-  const avgPrice = serviceTypes.reduce((sum, s) => sum + s.basePrice, 0) / totalServices;
-  const specialistRequired = serviceTypes.filter((s) => s.requiresSpecialist).length;
+  const avgPrice =
+    serviceTypes.reduce((sum, s) => sum + s.basePrice, 0) / totalServices;
+  const specialistRequired = serviceTypes.filter(
+    (s) => s.requiresSpecialist
+  ).length;
 
   const stats = [
     {
@@ -163,7 +179,9 @@ const ServiceTypesStats = ({ serviceTypes }: { serviceTypes: ServiceType[] }) =>
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}
         >
-          <Card className={`border-0 shadow-md bg-gradient-to-br ${stat.bgColor} hover:shadow-lg transition-all duration-300`}>
+          <Card
+            className={`border-0 shadow-md bg-gradient-to-br ${stat.bgColor} hover:shadow-lg transition-all duration-300`}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
@@ -171,10 +189,14 @@ const ServiceTypesStats = ({ serviceTypes }: { serviceTypes: ServiceType[] }) =>
               <Settings className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
+              <div
+                className={`text-2xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}
+              >
                 {stat.value}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {stat.description}
+              </p>
             </CardContent>
           </Card>
         </motion.div>
@@ -206,11 +228,17 @@ const ServiceTypesPage = () => {
     return serviceTypes.filter((service) => {
       const matchesSearch =
         service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (service.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
+        (service.description
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase()) ??
+          false) ||
         service.category.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesCategory = categoryFilter === "all" || service.category.toLowerCase() === categoryFilter.toLowerCase();
-      const matchesStatus = statusFilter === "all" || 
+      const matchesCategory =
+        categoryFilter === "all" ||
+        service.category.toLowerCase() === categoryFilter.toLowerCase();
+      const matchesStatus =
+        statusFilter === "all" ||
         (statusFilter === "active" && service.isActive) ||
         (statusFilter === "inactive" && !service.isActive);
 
@@ -225,7 +253,10 @@ const ServiceTypesPage = () => {
   }, [filteredServiceTypes, currentPage, itemsPerPage]);
 
   return (
-    <div className="container mx-auto p-4 space-y-4 overflow-y-auto" style={{ scrollbarGutter: "stable" }}>
+    <div
+      className="container mx-auto p-4 space-y-4 overflow-y-auto"
+      style={{ scrollbarGutter: "stable" }}
+    >
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -235,7 +266,9 @@ const ServiceTypesPage = () => {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
             Service Types Management
           </h1>
-          <p className="text-muted-foreground">Manage your service types effectively.</p>
+          <p className="text-muted-foreground">
+            Manage your service types effectively.
+          </p>
         </div>
       </motion.div>
 
@@ -260,7 +293,10 @@ const ServiceTypesPage = () => {
                     className="pl-10"
                   />
                 </div>
-                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <Select
+                  value={categoryFilter}
+                  onValueChange={setCategoryFilter}
+                >
                   <SelectTrigger className="w-[150px]">
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
@@ -289,7 +325,9 @@ const ServiceTypesPage = () => {
                   size="sm"
                   disabled={loading}
                 >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+                  <RefreshCw
+                    className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+                  />
                   Refresh
                 </Button>
                 <Button size="sm">
@@ -326,7 +364,10 @@ const ServiceTypesPage = () => {
                     </TableRow>
                   ) : paginatedServiceTypes.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      <TableCell
+                        colSpan={8}
+                        className="text-center py-8 text-muted-foreground"
+                      >
                         No service types found matching your criteria.
                       </TableCell>
                     </TableRow>
@@ -355,23 +396,36 @@ const ServiceTypesPage = () => {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <div className="font-semibold">{service.basePrice} EGP</div>
-                          {service.percentageModifier && service.percentageModifier > 0 && (
-                            <div className="text-xs text-green-600">
-                              +{service.percentageModifier}% modifier
-                            </div>
-                          )}
+                          <div className="font-semibold">
+                            {service.basePrice} EGP
+                          </div>
+                          {service.percentageModifier &&
+                            service.percentageModifier > 0 && (
+                              <div className="text-xs text-green-600">
+                                +{service.percentageModifier}% modifier
+                              </div>
+                            )}
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm">{service.estimatedDuration} min</div>
+                          <div className="text-sm">
+                            {service.estimatedDuration} min
+                          </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={service.requiresSpecialist ? "destructive" : "secondary"}>
+                          <Badge
+                            variant={
+                              service.requiresSpecialist
+                                ? "destructive"
+                                : "secondary"
+                            }
+                          >
                             {service.requiresSpecialist ? "Yes" : "No"}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={service.isActive ? "default" : "secondary"}>
+                          <Badge
+                            variant={service.isActive ? "default" : "secondary"}
+                          >
                             {service.isActive ? "Active" : "Inactive"}
                           </Badge>
                         </TableCell>
@@ -424,7 +478,7 @@ const ServiceTypesPage = () => {
       </motion.div>
 
       <FloatingDownloadButton
-        data={paginatedServiceTypes.map(service => ({
+        data={paginatedServiceTypes.map((service) => ({
           name: service.name,
           category: service.category,
           basePrice: service.basePrice.toString(),

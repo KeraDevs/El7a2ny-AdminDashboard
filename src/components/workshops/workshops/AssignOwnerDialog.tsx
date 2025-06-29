@@ -23,8 +23,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { convertApiUserToUser } from "@/utils/workshopsApi";
-import { ApiUserResponse } from "@/types/apiTypes";
+import { mapApiUserToFrontend } from "@/utils/usersApi";
+import { ApiResponse } from "@/types/apiTypes";
 
 interface AssignOwnerDialogProps {
   open: boolean;
@@ -57,20 +57,43 @@ export const AssignOwnerDialog: React.FC<AssignOwnerDialogProps> = ({
     try {
       const authToken = await currentUser.getIdToken();
 
-      const response = await fetch(`${API_BASE_URL}/users?type=workshopAdmin`, {
-        headers: {
-          "x-api-key": API_KEY || "",
-          Authorization: `Bearer ${authToken}`,
-        } as HeadersInit,
-      });
+      let allUsers: User[] = [];
+      let hasMore = true;
+      let offset = 0;
+      const pageSize = 50;
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch workshop admins: ${response.status}`);
+      // Fetch all workshop admins in batches
+      while (hasMore) {
+        const response = await fetch(
+          `${API_BASE_URL}/users?type=workshopAdmin&skip=${offset}&take=${pageSize}`,
+          {
+            headers: {
+              "x-api-key": API_KEY || "",
+              Authorization: `Bearer ${authToken}`,
+            } as HeadersInit,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch workshop admins: ${response.status}`
+          );
+        }
+
+        const data: ApiResponse = await response.json();
+        const mappedUsers = data.users.map(mapApiUserToFrontend);
+
+        allUsers = [...allUsers, ...mappedUsers];
+        hasMore = data.hasMore;
+        offset += pageSize;
+
+        // Safety check to prevent infinite loops
+        if (mappedUsers.length === 0 || mappedUsers.length < pageSize) {
+          break;
+        }
       }
 
-      const data: ApiUserResponse = await response.json();
-      const mappedUsers = data.users.map(convertApiUserToUser);
-      setUsers(mappedUsers);
+      setUsers(allUsers);
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -99,7 +122,7 @@ export const AssignOwnerDialog: React.FC<AssignOwnerDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-4xl w-full">
         <DialogHeader>
           <DialogTitle>Select Workshop Owner</DialogTitle>
           <DialogDescription>

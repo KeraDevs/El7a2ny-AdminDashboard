@@ -490,7 +490,7 @@ const Cars: React.FC = () => {
       </motion.div>
 
       <FloatingDownloadButton
-        data={paginatedCars.map(car => ({
+        data={paginatedCars.map((car) => ({
           brand: getBrandName(car.brand_id),
           model: car.model,
           year: car.year.toString(),

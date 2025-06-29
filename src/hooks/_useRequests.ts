@@ -286,21 +286,43 @@ export const useRequests = (): UseRequestsReturn => {
         throw new Error("API key is missing");
       }
 
-      const response = await fetch(`${API_BASE_URL}/workshops`, {
-        headers: {
-          "x-api-key": API_KEY,
-          Authorization: `Bearer ${authToken}`,
-        } as HeadersInit,
-      });
+      let allWorkshops: Workshop[] = [];
+      let hasMore = true;
+      let offset = 0;
+      const pageSize = 50;
 
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch workshops: ${response.status} ${response.statusText}`
+      // Fetch all workshops in batches
+      while (hasMore) {
+        const response = await fetch(
+          `${API_BASE_URL}/workshops?skip=${offset}&take=${pageSize}`,
+          {
+            headers: {
+              "x-api-key": API_KEY,
+              Authorization: `Bearer ${authToken}`,
+            } as HeadersInit,
+          }
         );
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch workshops: ${response.status} ${response.statusText}`
+          );
+        }
+
+        const result = await response.json();
+        const batchWorkshops = result.workshops || [];
+
+        allWorkshops = [...allWorkshops, ...batchWorkshops];
+        hasMore = result.hasMore;
+        offset += pageSize;
+
+        // Safety check to prevent infinite loops
+        if (batchWorkshops.length === 0 || batchWorkshops.length < pageSize) {
+          break;
+        }
       }
 
-      const result = await response.json();
-      setWorkshops(result.workshops || []);
+      setWorkshops(allWorkshops);
     } catch (error) {
       toast.error("Error fetching workshops!");
       setError(

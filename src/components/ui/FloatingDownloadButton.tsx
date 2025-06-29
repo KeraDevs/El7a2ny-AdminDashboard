@@ -48,7 +48,10 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
     if (!columnVisibility) return data;
 
     return data.map((row) => {
-      const filteredRow: Record<string, string | number | boolean | null | undefined> = {};
+      const filteredRow: Record<
+        string,
+        string | number | boolean | null | undefined
+      > = {};
       Object.keys(row).forEach((key) => {
         if (columnVisibility[key] !== false) {
           filteredRow[key] = row[key];
@@ -61,7 +64,9 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
   const visibleData = getVisibleData();
 
   // Helper function to format numbers properly
-  const formatValue = (value: string | number | boolean | null | undefined): string => {
+  const formatValue = (
+    value: string | number | boolean | null | undefined
+  ): string => {
     if (value === null || value === undefined) return "";
 
     // Convert to string first
@@ -88,7 +93,9 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
   };
 
   // Helper function to format phone numbers with + prefix
-  const formatPhoneNumber = (phone: string | number | boolean | null | undefined): string => {
+  const formatPhoneNumber = (
+    phone: string | number | boolean | null | undefined
+  ): string => {
     if (!phone) return "";
     const cleanPhone = formatValue(phone);
     // Add + prefix if it's a valid phone number (all digits and reasonable length)

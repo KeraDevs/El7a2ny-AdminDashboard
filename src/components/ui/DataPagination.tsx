@@ -75,7 +75,7 @@ export const DataPagination: React.FC<DataPaginationProps> = ({
         <span className="text-sm text-muted-foreground">
           Showing {startItem} to {endItem} of {totalItems} {itemType}
         </span>
-        
+
         {/* Navigation buttons */}
         <div className="flex items-center gap-1">
           <Button
@@ -88,7 +88,7 @@ export const DataPagination: React.FC<DataPaginationProps> = ({
             <ChevronLeft className="h-4 w-4" />
             Previous
           </Button>
-          
+
           <div className="flex items-center gap-1 mx-2">
             <span className="text-sm font-medium bg-primary text-primary-foreground px-3 py-1 rounded">
               {currentPage}
@@ -97,7 +97,7 @@ export const DataPagination: React.FC<DataPaginationProps> = ({
               of {totalPages}
             </span>
           </div>
-          
+
           <Button
             variant="outline"
             size="sm"

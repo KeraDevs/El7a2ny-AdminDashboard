@@ -49,7 +49,7 @@ export const useWorkshops = (): UseWorkshopsReturn => {
   const [editingWorkshop, setEditingWorkshop] = useState<Workshop | null>(null);
   const [openWorkshopDialog, setOpenWorkshopDialog] = useState(false);
 
-  // Fetching All Workshops
+  // Fetching All Workshops with proper pagination
   const fetchWorkshops = useCallback(async () => {
     if (!currentUser) {
       setError("Authentication required");
@@ -65,31 +65,21 @@ export const useWorkshops = (): UseWorkshopsReturn => {
         throw new Error("API key is missing");
       }
 
-      // Initial fetch to get the first batch
-      const response = await fetch(`${API_BASE_URL}/workshops?take=50`, {
-        headers: {
-          "x-api-key": API_KEY,
-          Authorization: `Bearer ${authToken}`,
-        } as HeadersInit,
-      });
+      let allWorkshops: Workshop[] = [];
+      let hasMore = true;
+      let offset = 0;
+      const pageSize = 50;
 
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch workshops: ${response.status} ${response.statusText}`
-        );
-      }
+      console.log("Starting to fetch workshops with pagination...");
 
-      const initialResult: ApiResponse = await response.json();
-      let allWorkshops = (initialResult.workshops || []).map(
-        mapApiWorkshopToFrontend
-      );
-
-      let hasMore = initialResult.hasMore;
-      let offset = 50;
-
+      // Fetch all workshops in batches
       while (hasMore) {
-        const nextPageResponse = await fetch(
-          `${API_BASE_URL}/workshops?skip=${offset}&take=50`,
+        console.log(
+          `Fetching workshops batch: skip=${offset}, take=${pageSize}`
+        );
+
+        const response = await fetch(
+          `${API_BASE_URL}/workshops?skip=${offset}&take=${pageSize}`,
           {
             headers: {
               "x-api-key": API_KEY,
@@ -98,26 +88,37 @@ export const useWorkshops = (): UseWorkshopsReturn => {
           }
         );
 
-        if (!nextPageResponse.ok) {
+        if (!response.ok) {
           throw new Error(
-            `Failed to fetch workshops page: ${nextPageResponse.status}`
+            `Failed to fetch workshops: ${response.status} ${response.statusText}`
           );
         }
 
-        const nextPageResult: ApiResponse = await nextPageResponse.json();
-        const nextPageWorkshops = (nextPageResult.workshops || []).map(
+        const result: ApiResponse = await response.json();
+        const batchWorkshops = (result.workshops || []).map(
           mapApiWorkshopToFrontend
         );
 
-        allWorkshops = [...allWorkshops, ...nextPageWorkshops];
-        hasMore = nextPageResult.hasMore;
-        offset += 50;
+        console.log(`Fetched ${batchWorkshops.length} workshops in this batch`);
 
-        if (nextPageWorkshops.length === 0) {
+        allWorkshops = [...allWorkshops, ...batchWorkshops];
+        hasMore = result.hasMore;
+        offset += pageSize;
+
+        // Safety check to prevent infinite loops
+        if (batchWorkshops.length === 0) {
+          console.log("No more workshops returned, stopping pagination");
           break;
+        }
+
+        // If we got less than the page size, we've reached the end
+        if (batchWorkshops.length < pageSize) {
+          console.log("Received less than page size, assuming end reached");
+          hasMore = false;
         }
       }
 
+      console.log(`Total workshops fetched: ${allWorkshops.length}`);
       setWorkshops(allWorkshops);
     } catch (fetchError) {
       toast.error("Error fetching workshops!");

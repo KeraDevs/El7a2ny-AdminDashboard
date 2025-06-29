@@ -627,14 +627,15 @@ export default function HistoryPage() {
                   ))}
                 </TableBody>
               </Table>
-              {paginatedRequests.length === 0 && filteredRequests.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <IconHistory className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No requests found matching your criteria.</p>
-                </div>
-              )}
+              {paginatedRequests.length === 0 &&
+                filteredRequests.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <IconHistory className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No requests found matching your criteria.</p>
+                  </div>
+                )}
             </div>
-            
+
             {/* Pagination */}
             {filteredRequests.length > 0 && (
               <div className="border-t">

@@ -26,7 +26,6 @@ export const useCarBrands = (): UseCarBrandsReturn => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  // Fetch all car brands
   const fetchBrands = useCallback(async () => {
     if (!currentUser) {
       setError("Authentication required");

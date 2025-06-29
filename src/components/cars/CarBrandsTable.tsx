@@ -66,7 +66,7 @@ export const CarBrandsTable: React.FC<CarBrandsTableProps> = ({
           (sortConfig.direction === "asc" ? (
             <ChevronUp className="h-4 w-4" />
           ) : (
-            <ChevronDown className="h-4 w-4" />
+            <ChevronDownIcon className="h-4 w-4" />
           ))}
       </div>
     </TableHead>
