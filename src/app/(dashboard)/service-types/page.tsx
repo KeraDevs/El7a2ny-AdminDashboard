@@ -1,506 +1,441 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { motion } from "framer-motion";
-import { ServiceType } from "@/types/serviceTypes";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Search,
-  MoreHorizontal,
-  Eye,
-  Edit,
-  Trash2 as Trash,
-  Plus,
-  RefreshCw,
-  Settings,
-} from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useServiceTypes } from "@/hooks/_useServices";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "react-hot-toast";
+import { Loader2 } from "lucide-react";
 import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
-import { DataPagination } from "@/components/ui/DataPagination";
 
-// Mock data for service types
-const mockServiceTypes: ServiceType[] = [
-  {
-    id: "1",
-    name: "Oil Change",
-    name_ar: "تغيير الزيت",
-    description: "Complete engine oil and filter replacement",
-    description_ar: "تغيير زيت المحرك والفلتر بالكامل",
-    service_category: "maintenance",
-    category: "Maintenance",
-    basePrice: 250,
-    price: 250,
-    estimatedDuration: 45,
-    percentageModifier: 0,
-    requiresSpecialist: false,
-    isActive: true,
-    created_at: "2024-01-01T00:00:00Z",
-    updated_at: "2024-01-01T00:00:00Z",
-    createdAt: "2024-01-01T00:00:00Z",
-    compatibleVehicleTypes: ["Sedan", "SUV", "Hatchback"],
-    percentage: 0,
-  },
-  {
-    id: "2",
-    name: "Brake Service",
-    name_ar: "خدمة الفرامل",
-    description: "Brake pad replacement and system check",
-    description_ar: "تغيير تيل الفرامل وفحص النظام",
-    service_category: "repair",
-    category: "Repair",
-    basePrice: 800,
-    price: 800,
-    estimatedDuration: 120,
-    percentageModifier: 15,
-    requiresSpecialist: true,
-    isActive: true,
-    created_at: "2024-01-02T00:00:00Z",
-    updated_at: "2024-01-02T00:00:00Z",
-    createdAt: "2024-01-02T00:00:00Z",
-    compatibleVehicleTypes: ["Sedan", "SUV"],
-    percentage: 15,
-  },
-  {
-    id: "3",
-    name: "Engine Diagnostics",
-    name_ar: "فحص المحرك",
-    description: "Complete engine diagnostic and analysis",
-    description_ar: "فحص وتحليل المحرك الكامل",
-    service_category: "diagnostic",
-    category: "Diagnostic",
-    basePrice: 150,
-    price: 150,
-    estimatedDuration: 60,
-    percentageModifier: 5,
-    requiresSpecialist: true,
-    isActive: true,
-    created_at: "2024-01-03T00:00:00Z",
-    updated_at: "2024-01-03T00:00:00Z",
-    createdAt: "2024-01-03T00:00:00Z",
-    compatibleVehicleTypes: ["Sedan", "SUV", "Hatchback", "Coupe"],
-    percentage: 5,
-  },
-  {
-    id: "4",
-    name: "Tire Replacement",
-    name_ar: "تغيير الإطارات",
-    description: "Professional tire installation and balancing",
-    description_ar: "تركيب الإطارات المهني والموازنة",
-    service_category: "maintenance",
-    category: "Maintenance",
-    basePrice: 400,
-    price: 400,
-    estimatedDuration: 90,
-    percentageModifier: 10,
-    requiresSpecialist: false,
-    isActive: false,
-    created_at: "2024-01-04T00:00:00Z",
-    updated_at: "2024-01-04T00:00:00Z",
-    createdAt: "2024-01-04T00:00:00Z",
-    compatibleVehicleTypes: ["Sedan", "SUV", "Hatchback"],
-    percentage: 10,
-  },
-];
+import { ServiceTypesTableHeader } from "@/components/workshops/services/ServiceTypeHeader";
+import { ServiceTypesTable } from "@/components/workshops/services/ServiceTypeTable";
+import ServiceTypesPagination from "@/components/workshops/services/ServiceTypePagination";
+import EditServiceTypeDialog from "@/components/workshops/services/EditServiceTypeDialog";
+import ViewServiceTypeDialog from "@/components/workshops/services/ViewServiceTypeDialog";
+import DeleteServiceTypeDialog from "@/components/workshops/services/DeleteServiceTypeDialog";
+import {
+  ServiceTypeColumnVisibility,
+  SortConfig,
+  ServiceType,
+} from "@/types/serviceTypes";
 
-// Service Types Statistics Component
-const ServiceTypesStats = ({
-  serviceTypes,
-}: {
-  serviceTypes: ServiceType[];
-}) => {
-  const totalServices = serviceTypes.length;
-  const activeServices = serviceTypes.filter((s) => s.isActive).length;
-  const avgPrice =
-    serviceTypes.reduce((sum, s) => sum + s.basePrice, 0) / totalServices;
-  const specialistRequired = serviceTypes.filter(
-    (s) => s.requiresSpecialist
-  ).length;
+const ServiceTypesList: React.FC = () => {
+  const { currentUser, isAuthorized, loading: authLoading } = useAuth();
+  const {
+    serviceTypes,
+    loading,
+    error,
+    pagination,
+    fetchServiceTypes,
+    selectedServiceTypes,
+    handleSelectAll,
+    handleSelectServiceType,
+    handleDeleteServiceTypes,
+    checkServiceTypesCanBeDeleted,
+    handleEditServiceType,
+    handleAddServiceType,
+  } = useServiceTypes();
 
-  const stats = [
-    {
-      title: "Total Services",
-      value: totalServices.toString(),
-      description: "All service types",
-      color: "from-blue-500 to-blue-600",
-      bgColor: "from-blue-50 to-blue-100",
-    },
-    {
-      title: "Active Services",
-      value: activeServices.toString(),
-      description: "Currently available",
-      color: "from-green-500 to-green-600",
-      bgColor: "from-green-50 to-green-100",
-    },
-    {
-      title: "Average Price",
-      value: `${Math.round(avgPrice)} EGP`,
-      description: "Average service cost",
-      color: "from-purple-500 to-purple-600",
-      bgColor: "from-purple-50 to-purple-100",
-    },
-    {
-      title: "Specialist Required",
-      value: specialistRequired.toString(),
-      description: "Need specialist technicians",
-      color: "from-orange-500 to-orange-600",
-      bgColor: "from-orange-50 to-orange-100",
-    },
-  ];
+  // Remove local pagination states since we're using server-side pagination
+  // const [currentPage, setCurrentPage] = useState(1);
+  // const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-      {stats.map((stat, index) => (
-        <motion.div
-          key={stat.title}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
-        >
-          <Card
-            className={`border-0 shadow-md bg-gradient-to-br ${stat.bgColor} hover:shadow-lg transition-all duration-300`}
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-              <Settings className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div
-                className={`text-2xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}
-              >
-                {stat.value}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stat.description}
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
-      ))}
-    </div>
-  );
-};
-
-const ServiceTypesPage = () => {
-  const [serviceTypes] = useState<ServiceType[]>(mockServiceTypes);
-  const [loading, setLoading] = useState(false);
+  // Use pagination from hooks
   const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [columnVisibility, setColumnVisibility] =
+    useState<ServiceTypeColumnVisibility>({
+      name: true,
+      name_ar: true,
+      description: true,
+      description_ar: true,
+      service_category: true,
+      created_at: true,
+      updated_at: false,
+    });
 
-  const getCategoryColor = (category: string) => {
-    const colors: { [key: string]: string } = {
-      maintenance: "bg-blue-100 text-blue-800",
-      repair: "bg-red-100 text-red-800",
-      diagnostic: "bg-purple-100 text-purple-800",
-      inspection: "bg-orange-100 text-orange-800",
-    };
-    return colors[category.toLowerCase()] || "bg-gray-100 text-gray-800";
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    key: null,
+    direction: "asc",
+  });
+
+  const [editServiceTypeData, setEditServiceTypeData] = useState<
+    Partial<ServiceType>
+  >({});
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [viewServiceTypeData, setViewServiceTypeData] =
+    useState<ServiceType | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  // Initial data load when component mounts
+  useEffect(() => {
+    if (isAuthorized && currentUser) {
+      console.log("Authorized, fetching service types");
+      fetchServiceTypes(1, 10).catch((err) => {
+        console.error("Error fetching service types:", err);
+        toast.error("Failed to fetch service types");
+      });
+    }
+  }, [isAuthorized, currentUser, fetchServiceTypes]);
+
+  // Make sure table re-renders when serviceTypes changes
+  useEffect(() => {
+    console.log(`ServiceTypes updated: ${serviceTypes.length} items`);
+  }, [serviceTypes]);
+
+  // Display any errors from the API
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
+  // Apply sorting to the service types (keep client-side sorting for better UX)
+  const sortedServiceTypes = useMemo(() => {
+    console.log("Sorting service types:", serviceTypes.length);
+    const serviceTypesCopy = [...serviceTypes];
+    if (sortConfig.key) {
+      serviceTypesCopy.sort((a, b) => {
+        const aValue = a[sortConfig.key as keyof ServiceType];
+        const bValue = b[sortConfig.key as keyof ServiceType];
+
+        if (aValue === bValue) return 0;
+        if (aValue === undefined || aValue === null) return 1;
+        if (bValue === undefined || bValue === null) return -1;
+
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          return sortConfig.direction === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        }
+
+        if (typeof aValue === "number" && typeof bValue === "number") {
+          return sortConfig.direction === "asc"
+            ? aValue - bValue
+            : bValue - aValue;
+        }
+
+        return sortConfig.direction === "asc"
+          ? String(aValue).localeCompare(String(bValue))
+          : String(bValue).localeCompare(String(aValue));
+      });
+    }
+    return serviceTypesCopy;
+  }, [serviceTypes, sortConfig]);
+
+  // Search handler - trigger server-side search
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    // Reset to first page when searching
+    fetchServiceTypes(1, pagination.limit, query);
   };
 
-  const filteredServiceTypes = useMemo(() => {
-    return serviceTypes.filter((service) => {
-      const matchesSearch =
-        service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (service.description
-          ?.toLowerCase()
-          .includes(searchQuery.toLowerCase()) ??
-          false) ||
-        service.category.toLowerCase().includes(searchQuery.toLowerCase());
+  // Handle search query changes with debouncing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (isAuthorized && currentUser) {
+        fetchServiceTypes(1, pagination.limit, searchQuery);
+      }
+    }, 300); // 300ms debounce
 
-      const matchesCategory =
-        categoryFilter === "all" ||
-        service.category.toLowerCase() === categoryFilter.toLowerCase();
-      const matchesStatus =
-        statusFilter === "all" ||
-        (statusFilter === "active" && service.isActive) ||
-        (statusFilter === "inactive" && !service.isActive);
+    return () => clearTimeout(timeoutId);
+  }, [
+    searchQuery,
+    isAuthorized,
+    currentUser,
+    fetchServiceTypes,
+    pagination.limit,
+  ]);
 
-      return matchesSearch && matchesCategory && matchesStatus;
+  // Use server-side data directly - no client-side filtering needed
+  const paginatedServiceTypes = sortedServiceTypes;
+
+  // Pagination handlers
+  const handlePageChange = (page: React.SetStateAction<number>) => {
+    const newPage = typeof page === "function" ? page(pagination.page) : page;
+    fetchServiceTypes(newPage, pagination.limit, searchQuery);
+  };
+
+  const handleLimitChange = (limit: React.SetStateAction<number>) => {
+    const newLimit =
+      typeof limit === "function" ? limit(pagination.limit) : limit;
+    fetchServiceTypes(1, newLimit, searchQuery);
+  };
+
+  // Handle sorting
+  const handleSort = (key: keyof ServiceType) => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig.key === key) {
+        return {
+          key,
+          direction: prevConfig.direction === "asc" ? "desc" : "asc",
+        };
+      }
+      return { key, direction: "asc" };
     });
-  }, [serviceTypes, searchQuery, categoryFilter, statusFilter]);
+  };
 
-  const totalPages = Math.ceil(filteredServiceTypes.length / itemsPerPage);
-  const paginatedServiceTypes = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredServiceTypes.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredServiceTypes, currentPage, itemsPerPage]);
+  // Handle edit button click
+  const handleEdit = (serviceType: ServiceType) => {
+    console.log("Editing service type:", serviceType);
+    setEditServiceTypeData(serviceType);
+    setIsEditDialogOpen(true);
+  };
 
-  return (
-    <div
-      className="container mx-auto p-4 space-y-4 overflow-y-auto"
-      style={{ scrollbarGutter: "stable" }}
-    >
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
-      >
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-            Service Types Management
-          </h1>
-          <p className="text-muted-foreground">
-            Manage your service types effectively.
+  // Handle view button click
+  const handleView = (serviceType: ServiceType) => {
+    console.log("Viewing service type:", serviceType);
+    setViewServiceTypeData(serviceType);
+    setIsViewDialogOpen(true);
+  };
+
+  // Handle edit save
+  const handleSaveEdit = async () => {
+    try {
+      await handleEditServiceType(editServiceTypeData);
+      toast.success("Service type updated successfully");
+      setIsEditDialogOpen(false);
+    } catch {
+      toast.error("Failed to update service type");
+    }
+  };
+
+  // Handle delete
+  const handleDelete = async () => {
+    try {
+      console.log("Selected service types for deletion:", selectedServiceTypes);
+      console.log(
+        "Available service types:",
+        serviceTypes.map((st) => ({ id: st.id, name: st.name }))
+      );
+
+      if (selectedServiceTypes.length === 0) {
+        toast.error("No service types selected for deletion");
+        return;
+      }
+
+      // Show loading toast while checking
+      const loadingToast = toast.loading(
+        "🔍 Checking which service types can be deleted..."
+      );
+
+      try {
+        // Pre-check which service types can be deleted
+        const { canDelete, cannotDelete } = await checkServiceTypesCanBeDeleted(
+          selectedServiceTypes
+        );
+
+        // Dismiss loading toast
+        toast.dismiss(loadingToast);
+
+        console.log("Pre-check results:", { canDelete, cannotDelete });
+
+        if (cannotDelete.length > 0) {
+          const cannotDeleteNames = cannotDelete
+            .map((item) => item.name)
+            .join(", ");
+
+          if (canDelete.length > 0) {
+            // Mixed case: some can be deleted, some cannot
+            const canDeleteNames = canDelete
+              .map((id) => {
+                const serviceType = serviceTypes.find((st) => st.id === id);
+                return serviceType?.name || id;
+              })
+              .join(", ");
+
+            const proceed = window.confirm(
+              `⚠️ Some service types cannot be deleted because they are being used by workshops.\n\n` +
+                `❌ Cannot delete: ${cannotDeleteNames}\n\n` +
+                `✅ Can delete: ${canDeleteNames}\n\n` +
+                `Would you like to proceed with deleting only the available ones?`
+            );
+
+            if (!proceed) {
+              return;
+            }
+
+            // Proceed with only deletable ones
+            await handleDeleteServiceTypes(canDelete);
+            toast.success(
+              `Successfully deleted ${canDelete.length} service type(s)`
+            );
+          } else {
+            // All selected items cannot be deleted
+            toast.error(
+              `❌ Cannot delete any selected service types: ${cannotDeleteNames}.\nThey are currently being used by workshops.`,
+              { duration: 6000 }
+            );
+            return;
+          }
+        } else {
+          // All can be deleted, proceed normally
+          await handleDeleteServiceTypes(selectedServiceTypes);
+          toast.success(
+            selectedServiceTypes.length === 1
+              ? "Service type deleted successfully"
+              : `${selectedServiceTypes.length} service types deleted successfully`
+          );
+        }
+
+        // Close dialog and refresh data after successful deletion
+        setIsDeleteDialogOpen(false);
+        await fetchServiceTypes(pagination.page, pagination.limit, searchQuery);
+      } catch (checkError) {
+        // Dismiss loading toast if still showing
+        toast.dismiss(loadingToast);
+        throw checkError;
+      }
+    } catch (error) {
+      console.error("Failed to delete service types:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      toast.error(`Failed to delete service types: ${errorMessage}`);
+    }
+  };
+
+  // Check if authenticated
+  if (authLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground text-sm">
+            Checking authentication...
           </p>
         </div>
-      </motion.div>
+      </div>
+    );
+  }
 
-      <ServiceTypesStats serviceTypes={serviceTypes} />
+  if (!isAuthorized || !currentUser) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center p-6 max-w-md">
+          <h2 className="text-xl font-semibold mb-2">
+            Authentication Required
+          </h2>
+          <p className="text-muted-foreground">
+            You need to be logged in to view this page. Please log in and try
+            again.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="space-y-4"
-      >
-        <Card className="overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5">
-            <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-              <div className="flex flex-1 items-center space-x-4">
-                <div className="relative flex-1 max-w-sm">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    placeholder="Search service types..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <Select
-                  value={categoryFilter}
-                  onValueChange={setCategoryFilter}
-                >
-                  <SelectTrigger className="w-[150px]">
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="maintenance">Maintenance</SelectItem>
-                    <SelectItem value="repair">Repair</SelectItem>
-                    <SelectItem value="diagnostic">Diagnostic</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[120px]">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  onClick={() => setLoading(!loading)}
-                  variant="outline"
-                  size="sm"
-                  disabled={loading}
-                >
-                  <RefreshCw
-                    className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
-                  />
-                  Refresh
-                </Button>
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Service Type
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Service Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Base Price</TableHead>
-                    <TableHead>Duration</TableHead>
-                    <TableHead>Specialist Required</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8">
-                        <div className="flex items-center justify-center">
-                          <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-                          Loading service types...
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ) : paginatedServiceTypes.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={8}
-                        className="text-center py-8 text-muted-foreground"
-                      >
-                        No service types found matching your criteria.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    paginatedServiceTypes.map((service, index) => (
-                      <motion.tr
-                        key={service.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="hover:bg-muted/50"
-                      >
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{service.name}</div>
-                            {service.description && (
-                              <div className="text-sm text-muted-foreground line-clamp-1">
-                                {service.description}
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getCategoryColor(service.category)}>
-                            {service.category}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-semibold">
-                            {service.basePrice} EGP
-                          </div>
-                          {service.percentageModifier &&
-                            service.percentageModifier > 0 && (
-                              <div className="text-xs text-green-600">
-                                +{service.percentageModifier}% modifier
-                              </div>
-                            )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            {service.estimatedDuration} min
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              service.requiresSpecialist
-                                ? "destructive"
-                                : "secondary"
-                            }
-                          >
-                            {service.requiresSpecialist ? "Yes" : "No"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={service.isActive ? "default" : "secondary"}
-                          >
-                            {service.isActive ? "Active" : "Inactive"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            {new Date(service.created_at).toLocaleDateString()}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                <Eye className="h-4 w-4 mr-2" />
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit Service
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-600">
-                                <Trash className="h-4 w-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </motion.tr>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+  console.log(
+    "Rendering ServiceTypesList with",
+    serviceTypes.length,
+    "service types"
+  );
 
-            <DataPagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={filteredServiceTypes.length}
-              itemsPerPage={itemsPerPage}
-              onPageChange={setCurrentPage}
-              onItemsPerPageChange={setItemsPerPage}
-              itemType="service types"
-            />
-          </CardContent>
-        </Card>
-      </motion.div>
+  return (
+    <div className="flex h-full w-full flex-col gap-5">
+      <div className="mb-4">
+        <h1 className="text-2xl font-semibold tracking-tight">Service Types</h1>
+        <p className="text-muted-foreground">
+          Manage service types and their pricing structure
+        </p>
+      </div>
 
+      <ServiceTypesTableHeader
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        columnVisibility={columnVisibility}
+        setColumnVisibility={setColumnVisibility}
+        onAddServiceType={handleAddServiceType}
+        refreshData={() =>
+          fetchServiceTypes(pagination.page, pagination.limit, searchQuery)
+        }
+        selectedServiceTypes={selectedServiceTypes}
+        onDelete={() => setIsDeleteDialogOpen(true)}
+      />
+
+      <ServiceTypesTable
+        loading={loading}
+        paginatedServiceTypes={paginatedServiceTypes}
+        columnVisibility={columnVisibility}
+        sortConfig={sortConfig}
+        handleSort={handleSort}
+        selectedServiceTypes={selectedServiceTypes}
+        handleSelectAll={handleSelectAll}
+        handleSelectServiceType={handleSelectServiceType}
+        handleEdit={handleEdit}
+        handleView={handleView}
+        searchQuery={searchQuery}
+        serviceTypes={serviceTypes}
+        onDelete={() => setIsDeleteDialogOpen(true)}
+      />
+
+      <ServiceTypesPagination
+        currentPage={pagination.page}
+        setCurrentPage={handlePageChange}
+        totalPages={Math.ceil(pagination.total / pagination.limit)}
+        rowsPerPage={pagination.limit}
+        setRowsPerPage={handleLimitChange}
+        totalItems={pagination.total}
+        currentItems={paginatedServiceTypes.length}
+        selectedServiceTypes={selectedServiceTypes}
+      />
+
+      {/* Edit Dialog */}
+      <EditServiceTypeDialog
+        isOpen={isEditDialogOpen}
+        setIsOpen={setIsEditDialogOpen}
+        serviceTypeData={editServiceTypeData}
+        setServiceTypeData={setEditServiceTypeData}
+        onSave={handleSaveEdit}
+        onSuccess={fetchServiceTypes}
+      />
+
+      {/* View Dialog */}
+      <ViewServiceTypeDialog
+        isOpen={isViewDialogOpen}
+        setIsOpen={setIsViewDialogOpen}
+        serviceType={viewServiceTypeData}
+        onEdit={() => {
+          setIsViewDialogOpen(false);
+          if (viewServiceTypeData) {
+            handleEdit(viewServiceTypeData);
+          }
+        }}
+      />
+
+      {/* Delete Dialog */}
+      <DeleteServiceTypeDialog
+        isOpen={isDeleteDialogOpen}
+        setIsOpen={setIsDeleteDialogOpen}
+        serviceTypeIds={selectedServiceTypes}
+        onDelete={handleDelete}
+        ServiceTypes={serviceTypes}
+      />
+
+      {/* Floating Download Button */}
       <FloatingDownloadButton
         data={paginatedServiceTypes.map((service) => ({
-          name: service.name,
-          category: service.category,
-          basePrice: service.basePrice.toString(),
-          estimatedDuration: service.estimatedDuration.toString(),
-          requiresSpecialist: service.requiresSpecialist ? "Yes" : "No",
-          isActive: service.isActive ? "Active" : "Inactive",
-          created_at: new Date(service.created_at).toLocaleDateString(),
+          name: service.name || "",
+          name_ar: service.name_ar || "",
+          description: service.description || "",
+          description_ar: service.description_ar || "",
+          service_category: service.service_category || "",
+          created_at: service.created_at || "",
+          updated_at: service.updated_at || "",
         }))}
         filename="service-types"
-        pageName="Service Types"
-        headers={[
-          { key: "name", label: "Service Name" },
-          { key: "category", label: "Category" },
-          { key: "basePrice", label: "Base Price (EGP)" },
-          { key: "estimatedDuration", label: "Duration (min)" },
-          { key: "requiresSpecialist", label: "Requires Specialist" },
-          { key: "isActive", label: "Status" },
-          { key: "created_at", label: "Created Date" },
-        ]}
+        pageName="Service Types Management Report"
+        columnVisibility={{
+          name: columnVisibility.name ?? true,
+          name_ar: columnVisibility.name_ar ?? true,
+          description: columnVisibility.description ?? true,
+          description_ar: columnVisibility.description_ar ?? true,
+          service_category: columnVisibility.service_category ?? true,
+          created_at: columnVisibility.created_at ?? true,
+          updated_at: columnVisibility.updated_at ?? true,
+        }}
       />
     </div>
   );
 };
 
-export default ServiceTypesPage;
+export default ServiceTypesList;

@@ -3,9 +3,8 @@ import {
   Search,
   SlidersHorizontal,
   RefreshCw,
-  PlusCircle,
+  Plus,
   Trash2,
-  PercentIcon,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -34,7 +33,6 @@ interface ServiceTypesTableHeaderProps {
   onAddServiceType: (serviceTypeData: CreateServiceTypeData) => Promise<void>;
   refreshData?: () => Promise<void>;
   selectedServiceTypes: string[];
-  onSetPercentage: () => void;
   onDelete: () => void;
 }
 
@@ -48,7 +46,6 @@ export const ServiceTypesTableHeader: React.FC<
   onAddServiceType,
   refreshData,
   selectedServiceTypes,
-  onSetPercentage,
   onDelete,
 }) => {
   const [isMobile, setIsMobile] = useState(false);
@@ -131,7 +128,7 @@ export const ServiceTypesTableHeader: React.FC<
               </Button>
               <div className="flex gap-2">
                 <Button onClick={() => setAddDialogOpen(true)} size="sm">
-                  <PlusCircle className="h-4 w-4 mr-1" />
+                  <Plus className="h-4 w-4 mr-1" />
                   Add
                 </Button>
 
@@ -145,20 +142,46 @@ export const ServiceTypesTableHeader: React.FC<
                     <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {/* Column checkboxes */}
-                    {Object.entries(columnVisibility).map(([key, value]) => (
-                      <DropdownMenuCheckboxItem
-                        key={key}
-                        checked={!!value}
-                        onCheckedChange={(checked) =>
-                          setColumnVisibility((prev) => ({
-                            ...prev,
-                            [key]: checked,
-                          }))
+                    {Object.entries(columnVisibility).map(([key, value]) => {
+                      const getColumnLabel = (columnKey: string) => {
+                        switch (columnKey) {
+                          case "name":
+                            return "Name (EN)";
+                          case "name_ar":
+                            return "Name (AR)";
+                          case "description":
+                            return "Description (EN)";
+                          case "description_ar":
+                            return "Description (AR)";
+                          case "service_category":
+                            return "Category";
+                          case "created_at":
+                            return "Created Date";
+                          case "updated_at":
+                            return "Updated Date";
+                          default:
+                            return (
+                              columnKey.charAt(0).toUpperCase() +
+                              columnKey.slice(1)
+                            );
                         }
-                      >
-                        {key.charAt(0).toUpperCase() + key.slice(1)}
-                      </DropdownMenuCheckboxItem>
-                    ))}
+                      };
+
+                      return (
+                        <DropdownMenuCheckboxItem
+                          key={key}
+                          checked={!!value}
+                          onCheckedChange={(checked) =>
+                            setColumnVisibility((prev) => ({
+                              ...prev,
+                              [key]: checked,
+                            }))
+                          }
+                        >
+                          {getColumnLabel(key)}
+                        </DropdownMenuCheckboxItem>
+                      );
+                    })}
                   </DropdownMenuContent>
                 </DropdownMenu>
 
@@ -192,21 +215,12 @@ export const ServiceTypesTableHeader: React.FC<
 
           <div className="flex items-center gap-2">
             <Button onClick={() => setAddDialogOpen(true)}>
-              <PlusCircle className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 h-4 w-4" />
               Add Service Type
             </Button>
 
             {selectedServiceTypes.length > 0 && (
               <>
-                <Button
-                  variant="outline"
-                  onClick={onSetPercentage}
-                  className="gap-1"
-                >
-                  <PercentIcon className="h-3.5 w-3.5" />
-                  <span>Set Percentage</span>
-                </Button>
-
                 <Button
                   variant="outline"
                   onClick={onDelete}

@@ -1,4 +1,29 @@
 import { ColumnVisibility } from "../app/(dashboard)/users/page";
+
+// Service category enum to match backend values
+export enum ServiceCategory {
+  MAINTENANCE = "Maintenance",
+  TUNING = "Tuning",
+  EMERGENCY = "Emergency",
+  CHECK_CAR_SERVICES = "Check_Car_Services",
+}
+
+// Helper function to get display name for service categories
+export const getServiceCategoryDisplayName = (category: string): string => {
+  switch (category) {
+    case ServiceCategory.MAINTENANCE:
+      return "Maintenance";
+    case ServiceCategory.TUNING:
+      return "Tuning";
+    case ServiceCategory.EMERGENCY:
+      return "Emergency";
+    case ServiceCategory.CHECK_CAR_SERVICES:
+      return "Check Car Services";
+    default:
+      return category || "Unknown";
+  }
+};
+
 export interface ServiceTypePercentage {
   id: string;
   service_type_id: string;
@@ -14,33 +39,19 @@ export interface ServiceType {
   description?: string;
   description_ar?: string;
   service_category: string;
-  category: string;
-  basePrice: number;
-  estimatedDuration: number;
-  percentageModifier?: number;
-  requiresSpecialist?: boolean;
-  isActive: boolean;
   created_at: string;
   updated_at: string;
-  service_types_percentage?: ServiceTypePercentage;
-  compatibleVehicleTypes?: string[];
-  createdAt: string;
-  percentage?: number;
-  price: number;
 }
 
 // Column visibility settings for service types table
 export interface ServiceTypeColumnVisibility {
-  basePrice: boolean;
   name: boolean;
-  description?: boolean;
-  percentage?: boolean;
-  category?: boolean;
-  created_at?: boolean;
-  updated_at?: boolean;
-  estimatedDuration?: boolean;
-  isActive: boolean;
-  createdAt?: boolean; // Add this for compatibility
+  name_ar: boolean;
+  description: boolean;
+  description_ar: boolean;
+  service_category: boolean;
+  created_at: boolean;
+  updated_at: boolean;
 }
 
 // Sort configuration for service types
@@ -64,7 +75,6 @@ export interface ServiceTypesTableProps {
   searchQuery: string;
   serviceTypes: ServiceType[];
   onDelete: (id: string) => void;
-  onSetPercentage: () => void;
 }
 
 export interface ServiceTypesTableHeaderProps {
@@ -85,6 +95,13 @@ export interface ServiceTypesTableHeaderProps {
 // API response structure for service types
 export interface ServiceTypesResponse {
   serviceTypes: ServiceType[];
+  total: number;
+  hasMore: boolean;
+}
+
+export interface ServiceTypesPagination {
+  page: number;
+  limit: number;
   total: number;
   hasMore: boolean;
 }

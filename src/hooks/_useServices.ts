@@ -3,7 +3,8 @@ import {
   ServiceType,
   CreateServiceTypeData,
   UpdateServiceTypeData,
-  SetPercentageData,
+  ServiceTypesResponse,
+  ServiceTypesPagination,
 } from "@/types/serviceTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_KEY, API_BASE_URL } from "@/utils/config";
@@ -14,9 +15,14 @@ export interface UseServiceTypesReturn {
   selectedServiceTypes: string[];
   loading: boolean;
   error: string | null;
+  pagination: ServiceTypesPagination;
   editingServiceType: ServiceType | null;
   openServiceTypeDialog: boolean;
-  fetchServiceTypes: () => Promise<void>;
+  fetchServiceTypes: (
+    page?: number,
+    limit?: number,
+    searchQuery?: string
+  ) => Promise<void>;
   fetchServiceTypeById: (id: string) => Promise<ServiceType | null>;
   fetchServiceTypesByCategory: (category: string) => Promise<void>;
   handleAddServiceType: (
@@ -26,6 +32,10 @@ export interface UseServiceTypesReturn {
     serviceTypeData: Partial<ServiceType>
   ) => Promise<void>;
   handleDeleteServiceTypes: (serviceTypeIds: string[]) => Promise<void>;
+  checkServiceTypesCanBeDeleted: (serviceTypeIds: string[]) => Promise<{
+    canDelete: string[];
+    cannotDelete: Array<{ id: string; name: string; reason: string }>;
+  }>;
   handleSelectAll: (checked: boolean) => void;
   handleSelectServiceType: (serviceTypeId: string) => void;
   setEditingServiceType: React.Dispatch<
@@ -33,7 +43,6 @@ export interface UseServiceTypesReturn {
   >;
   setOpenServiceTypeDialog: React.Dispatch<React.SetStateAction<boolean>>;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
-  handleSetPercentage: (id: string, percentage: number) => Promise<void>;
 }
 
 export const useServiceTypes = (): UseServiceTypesReturn => {
@@ -47,71 +56,101 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
   const [editingServiceType, setEditingServiceType] =
     useState<ServiceType | null>(null);
   const [openServiceTypeDialog, setOpenServiceTypeDialog] = useState(false);
+  const [pagination, setPagination] = useState<ServiceTypesPagination>({
+    page: 1,
+    limit: 10,
+    total: 0,
+    hasMore: false,
+  });
 
   /**
-   * Fetch all service types from the API
+   * Fetch all service types from the API with pagination
    */
-  const fetchServiceTypes = useCallback(async () => {
-    if (!currentUser) {
-      setError("Authentication required");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      console.log("Fetching service types...");
-      const authToken = await currentUser.getIdToken();
-      if (!API_KEY) {
-        throw new Error("API key is missing");
+  const fetchServiceTypes = useCallback(
+    async (page = 1, limit = 10, searchQuery = "") => {
+      if (!currentUser) {
+        setError("Authentication required");
+        return;
       }
 
-      // Get all service types
-      const response = await fetch(`${API_BASE_URL}/services/types`, {
-        headers: {
-          "x-api-key": API_KEY,
-          Authorization: `Bearer ${authToken}`,
-        } as HeadersInit,
-      });
+      setLoading(true);
+      setError(null);
 
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch service types: ${response.status} ${response.statusText}`
-        );
-      }
-
-      const result = await response.json();
-      console.log("Fetched service types:", result);
-
-      // Handle the specific response format from the API
-      if (result.serviceTypes && Array.isArray(result.serviceTypes)) {
-        // Format: { serviceTypes: Array(10), total: 36, hasMore: true }
+      try {
         console.log(
-          `Found ${result.serviceTypes.length} service types out of total: ${result.total}`
+          `Fetching service types page ${page} with limit ${limit} and search "${searchQuery}"...`
         );
-        setServiceTypes(result.serviceTypes);
-      } else if (result.types && Array.isArray(result.types)) {
-        // Alternative format with "types" property
-        setServiceTypes(result.types);
-      } else if (Array.isArray(result)) {
-        // Direct array response
-        setServiceTypes(result);
-      } else {
-        console.warn("Unexpected response format:", result);
+        const authToken = await currentUser.getIdToken();
+        if (!API_KEY) {
+          throw new Error("API key is missing");
+        }
+
+        const offset = (page - 1) * limit;
+        const params = new URLSearchParams({
+          limit: limit.toString(),
+          offset: offset.toString(),
+        });
+
+        // Add search query if provided
+        if (searchQuery.trim()) {
+          params.append("search", searchQuery.trim());
+        }
+
+        // Get service types with pagination
+        const response = await fetch(
+          `${API_BASE_URL}/services/types?${params}`,
+          {
+            headers: {
+              "x-api-key": API_KEY,
+              Authorization: `Bearer ${authToken}`,
+            } as HeadersInit,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch service types: ${response.status} ${response.statusText}`
+          );
+        }
+
+        const result: ServiceTypesResponse = await response.json();
+        console.log("Fetched service types:", result);
+
+        if (result.serviceTypes && Array.isArray(result.serviceTypes)) {
+          console.log(
+            `Found ${result.serviceTypes.length} service types out of total: ${result.total}`
+          );
+
+          // Always replace the service types for proper pagination (not infinite scroll)
+          setServiceTypes(result.serviceTypes);
+
+          setPagination({
+            page,
+            limit,
+            total: result.total,
+            hasMore: result.hasMore,
+          });
+        } else {
+          console.warn("Unexpected response format:", result);
+          setServiceTypes([]);
+          setPagination({ page: 1, limit, total: 0, hasMore: false });
+        }
+      } catch (error) {
+        console.error("Error fetching service types:", error);
+        toast.error("Error fetching service types!");
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch service types"
+        );
         setServiceTypes([]);
+        setPagination({ page: 1, limit, total: 0, hasMore: false });
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching service types:", error);
-      toast.error("Error fetching service types!");
-      setError(
-        error instanceof Error ? error.message : "Failed to fetch service types"
-      );
-      setServiceTypes([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentUser]);
+    },
+    [currentUser]
+  );
 
   /**
    * Fetch a service type by ID
@@ -326,6 +365,9 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
           }
         });
 
+        console.log("Sending update data to API:", updateData);
+        console.log("Original service type data:", serviceTypeData);
+
         // Update service type
         const response = await fetch(
           `${API_BASE_URL}/services/types/${serviceTypeData.id}`,
@@ -341,16 +383,21 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
         );
 
         if (!response.ok) {
+          const errorText = await response.text();
+          console.error("API Error Response:", errorText);
           throw new Error(
-            `Failed to edit service type, status: ${response.status}`
+            `Failed to edit service type, status: ${response.status}, message: ${errorText}`
           );
         }
+
+        const responseData = await response.json();
+        console.log("API Update Response:", responseData);
 
         // Update the service types array with the updated service type
         setServiceTypes((prevServiceTypes) =>
           prevServiceTypes.map((serviceType) =>
             serviceType.id === serviceTypeData.id
-              ? { ...serviceType, ...serviceTypeData }
+              ? { ...serviceType, ...updateData }
               : serviceType
           )
         );
@@ -370,92 +417,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
   );
 
   /**
-   * Set percentage for a service type
-   */
-  const handleSetPercentage = useCallback(
-    async (id: string, percentage: number): Promise<void> => {
-      if (!currentUser) {
-        throw new Error("Authentication required");
-      }
-
-      try {
-        console.log("Setting percentage for service type:", id, percentage);
-        setLoading(true);
-        const authToken = await currentUser.getIdToken();
-
-        if (!API_KEY) {
-          throw new Error("API key is missing");
-        }
-
-        const percentageData: SetPercentageData = {
-          percentage: percentage,
-        };
-
-        // Update service type percentage
-        const response = await fetch(
-          `${API_BASE_URL}/service-types/${id}/percentage`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              "x-api-key": API_KEY,
-              Authorization: `Bearer ${authToken}`,
-            } as HeadersInit,
-            body: JSON.stringify(percentageData),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(
-            `Failed to set percentage, status: ${response.status}`
-          );
-        }
-
-        // Update the service types array with the updated percentage
-        setServiceTypes((prevServiceTypes) =>
-          prevServiceTypes.map((serviceType) => {
-            if (serviceType.id === id) {
-              const updatedServiceType = { ...serviceType };
-
-              // Create or update service_types_percentage
-              if (updatedServiceType.service_types_percentage) {
-                updatedServiceType.service_types_percentage = {
-                  ...updatedServiceType.service_types_percentage,
-                  percentage: percentage.toString(),
-                };
-              } else {
-                updatedServiceType.service_types_percentage = {
-                  id: "", // Will be replaced by real ID
-                  service_type_id: id,
-                  percentage: percentage.toString(),
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString(),
-                };
-              }
-
-              return updatedServiceType;
-            }
-            return serviceType;
-          })
-        );
-
-        toast.success("Percentage updated successfully");
-      } catch (error) {
-        console.error("Error setting percentage:", error);
-        toast.error("Error setting percentage");
-        setError(
-          error instanceof Error ? error.message : "Failed to set percentage"
-        );
-        throw error;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [currentUser]
-  );
-
-  /**
-   * Delete service types
+   * Delete service types (only those that can be deleted)
    */
   const handleDeleteServiceTypes = useCallback(
     async (serviceTypeIds: string[]): Promise<void> => {
@@ -468,7 +430,10 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
       }
 
       try {
-        console.log("Deleting service types:", serviceTypeIds);
+        console.log(
+          "Starting deletion process for service types:",
+          serviceTypeIds
+        );
         setLoading(true);
         const authToken = await currentUser.getIdToken();
 
@@ -476,60 +441,237 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
           throw new Error("API key is missing");
         }
 
-        // Delete each service type
-        const deletePromises = serviceTypeIds.map(async (serviceTypeId) => {
-          const response = await fetch(
-            `${API_BASE_URL}/services/types/${serviceTypeId}`,
-            {
-              method: "DELETE",
-              headers: {
-                "x-api-key": API_KEY,
-                Authorization: `Bearer ${authToken}`,
-              } as HeadersInit,
+        // Track deletion results
+        const deletedIds: string[] = [];
+        const failedIds: Array<{ id: string; name: string; reason: string }> =
+          [];
+
+        for (const serviceTypeId of serviceTypeIds) {
+          const serviceType = serviceTypes.find(
+            (st) => st.id === serviceTypeId
+          );
+          const serviceName = serviceType?.name || serviceTypeId;
+
+          try {
+            console.log(
+              `Deleting service type: ${serviceTypeId} (${serviceName})`
+            );
+
+            const response = await fetch(
+              `${API_BASE_URL}/services/types/${serviceTypeId}`,
+              {
+                method: "DELETE",
+                headers: {
+                  "x-api-key": API_KEY,
+                  Authorization: `Bearer ${authToken}`,
+                  "Content-Type": "application/json",
+                } as HeadersInit,
+              }
+            );
+
+            if (response.ok) {
+              console.log(
+                `✅ Successfully deleted service type: ${serviceTypeId} (${serviceName})`
+              );
+              deletedIds.push(serviceTypeId);
+            } else {
+              const errorText = await response.text();
+              console.error(
+                `❌ Failed to delete ${serviceTypeId} (${serviceName}):`,
+                errorText
+              );
+
+              // Determine the reason for failure
+              let reason = "Unknown error";
+              if (
+                response.status === 409 ||
+                errorText.includes("Foreign key") ||
+                errorText.includes("constraint")
+              ) {
+                reason = "Service type is currently being used by workshops";
+              } else if (response.status === 404) {
+                reason = "Service type not found";
+              } else {
+                reason = `Server error: ${response.status}`;
+              }
+
+              failedIds.push({ id: serviceTypeId, name: serviceName, reason });
             }
+          } catch (error) {
+            console.error(
+              `❌ Exception deleting ${serviceTypeId} (${serviceName}):`,
+              error
+            );
+            failedIds.push({
+              id: serviceTypeId,
+              name: serviceName,
+              reason: "Network or server error",
+            });
+          }
+        }
+
+        // Update local state for successfully deleted items
+        if (deletedIds.length > 0) {
+          setServiceTypes((prevServiceTypes) =>
+            prevServiceTypes.filter(
+              (serviceType) => !deletedIds.includes(serviceType.id)
+            )
           );
 
-          if (!response.ok) {
+          // Clear selection for deleted items
+          setSelectedServiceTypes((prev) =>
+            prev.filter((id) => !deletedIds.includes(id))
+          );
+        }
+
+        // Handle results and provide appropriate feedback
+        if (deletedIds.length > 0 && failedIds.length === 0) {
+          // All deletions successful - don't show toast here, let the dialog handle it
+          return;
+        } else if (deletedIds.length > 0 && failedIds.length > 0) {
+          // Partial success - some deleted, some failed
+          const inUseCount = failedIds.filter((f) =>
+            f.reason.includes("being used")
+          ).length;
+
+          if (inUseCount === failedIds.length) {
+            // All failures were due to being in use
             throw new Error(
-              `Failed to delete service type ${serviceTypeId}: ${response.status}`
+              `${deletedIds.length} service type(s) deleted successfully, but ${inUseCount} could not be deleted as they are currently being used by workshops`
+            );
+          } else {
+            // Mixed failure reasons
+            throw new Error(
+              `${deletedIds.length} service type(s) deleted successfully, but ${failedIds.length} failed due to various errors`
             );
           }
-        });
-
-        await Promise.all(deletePromises);
-
-        // Update the local state to remove deleted service types
-        setServiceTypes((prevServiceTypes) =>
-          prevServiceTypes.filter(
-            (serviceType) => !serviceTypeIds.includes(serviceType.id)
-          )
-        );
-
-        // Clear selection after successful deletion
-        setSelectedServiceTypes((prev) =>
-          prev.filter((id) => !serviceTypeIds.includes(id))
-        );
-
-        toast.success(
-          `Successfully deleted ${serviceTypeIds.length} service type(s)`
-        );
+        } else if (deletedIds.length === 0 && failedIds.length > 0) {
+          // All deletions failed
+          const inUseCount = failedIds.filter((f) =>
+            f.reason.includes("being used")
+          ).length;
+          if (inUseCount === failedIds.length) {
+            throw new Error(
+              "Cannot delete: All selected service types are currently being used by workshops"
+            );
+          } else {
+            throw new Error(
+              "Failed to delete service types due to server errors"
+            );
+          }
+        }
       } catch (error) {
-        console.error("Error deleting service types:", error);
-        toast.error(
-          "Error deleting service types: " +
-            (error instanceof Error ? error.message : "Unknown error")
-        );
-        setError(
-          error instanceof Error
-            ? error.message
-            : "Failed to delete service types"
-        );
+        console.error("Error in delete process:", error);
         throw error;
       } finally {
         setLoading(false);
       }
     },
-    [currentUser]
+    [currentUser, serviceTypes]
+  );
+
+  /**
+   * Check if service types can be deleted by testing for usage in workshops
+   */
+  const checkServiceTypesCanBeDeleted = useCallback(
+    async (
+      serviceTypeIds: string[]
+    ): Promise<{
+      canDelete: string[];
+      cannotDelete: Array<{ id: string; name: string; reason: string }>;
+    }> => {
+      if (!currentUser) {
+        throw new Error("Authentication required");
+      }
+
+      if (serviceTypeIds.length === 0) {
+        return { canDelete: [], cannotDelete: [] };
+      }
+
+      try {
+        const authToken = await currentUser.getIdToken();
+        if (!API_KEY) {
+          throw new Error("API key is missing");
+        }
+
+        const canDelete: string[] = [];
+        const cannotDelete: Array<{
+          id: string;
+          name: string;
+          reason: string;
+        }> = [];
+
+        console.log("🔍 Checking which service types can be deleted...");
+
+        // Check each service type by making a test call to see if it's in use
+        for (const serviceTypeId of serviceTypeIds) {
+          const serviceType = serviceTypes.find(
+            (st) => st.id === serviceTypeId
+          );
+          const serviceName = serviceType?.name || serviceTypeId;
+
+          try {
+            // Check if workshops are using this service type
+            console.log(
+              `🔍 Checking usage for service type: ${serviceName} (${serviceTypeId})`
+            );
+
+            const checkResponse = await fetch(
+              `${API_BASE_URL}/workshops?serviceTypeId=${serviceTypeId}&limit=1`,
+              {
+                method: "GET",
+                headers: {
+                  "x-api-key": API_KEY,
+                  Authorization: `Bearer ${authToken}`,
+                } as HeadersInit,
+              }
+            );
+
+            if (checkResponse.ok) {
+              const data = await checkResponse.json();
+              const workshopsCount = data.workshops?.length || 0;
+
+              if (workshopsCount > 0) {
+                console.log(
+                  `❌ Service type ${serviceName} is in use by ${workshopsCount} workshop(s)`
+                );
+                cannotDelete.push({
+                  id: serviceTypeId,
+                  name: serviceName,
+                  reason: "Service type is currently being used by workshops",
+                });
+              } else {
+                console.log(`✅ Service type ${serviceName} is safe to delete`);
+                canDelete.push(serviceTypeId);
+              }
+            } else {
+              console.warn(
+                `⚠️ Could not check usage for ${serviceName}, assuming safe to delete`
+              );
+              canDelete.push(serviceTypeId);
+            }
+          } catch (error) {
+            console.warn(`⚠️ Error checking ${serviceName}:`, error);
+            // If check fails, assume it can be deleted (fallback)
+            canDelete.push(serviceTypeId);
+          }
+        }
+
+        console.log("🔍 Check results:", {
+          canDelete: canDelete.length,
+          cannotDelete: cannotDelete.length,
+        });
+        return { canDelete, cannotDelete };
+      } catch (error) {
+        console.error("Error checking service types for deletion:", error);
+        // Fallback: assume all can be deleted if check fails
+        return {
+          canDelete: serviceTypeIds,
+          cannotDelete: [],
+        };
+      }
+    },
+    [currentUser, serviceTypes]
   );
 
   /**
@@ -560,6 +702,7 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
     selectedServiceTypes,
     loading,
     error,
+    pagination,
     editingServiceType,
     openServiceTypeDialog,
     fetchServiceTypes,
@@ -568,11 +711,11 @@ export const useServiceTypes = (): UseServiceTypesReturn => {
     handleAddServiceType,
     handleEditServiceType,
     handleDeleteServiceTypes,
+    checkServiceTypesCanBeDeleted,
     handleSelectAll,
     handleSelectServiceType,
     setEditingServiceType,
     setOpenServiceTypeDialog,
     setError,
-    handleSetPercentage,
   };
 };

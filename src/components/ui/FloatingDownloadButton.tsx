@@ -43,6 +43,9 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
           .map((key) => ({ label: key, key }))
       : []);
 
+  // Generate PDF headers (exclude Arabic columns)
+  const pdfHeaders = csvHeaders.filter((header) => !header.key.includes("_ar"));
+
   // Filter data based on column visibility
   const getVisibleData = () => {
     if (!columnVisibility) return data;
@@ -110,6 +113,9 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
     try {
       const pdf = new jsPDF("l", "mm", "a4"); // Landscape orientation for better table fit
 
+      // Set encoding for UTF-8 support
+      pdf.setFont("helvetica");
+
       // Add logo
       try {
         // Create an image element to load the logo
@@ -140,13 +146,13 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
       pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 50, 22);
       pdf.text(`Page data: ${visibleData.length} rows displayed`, 50, 28);
 
-      // Table configuration (moved down to make room for header)
-      const startY = 40;
+      // Table configuration
+      const startY = 35;
       const pageWidth = pdf.internal.pageSize.width;
       const pageHeight = pdf.internal.pageSize.height;
       const margin = 10;
       const tableWidth = pageWidth - margin * 2;
-      const colWidth = tableWidth / csvHeaders.length;
+      const colWidth = tableWidth / pdfHeaders.length;
       const rowHeight = 8;
 
       let currentY = startY;
@@ -163,7 +169,7 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
       pdf.setDrawColor(200, 200, 200);
       pdf.rect(margin, currentY - 2, tableWidth, rowHeight);
 
-      csvHeaders.forEach((header, index) => {
+      pdfHeaders.forEach((header, index) => {
         const x = margin + index * colWidth;
         pdf.text(header.label, x + 2, currentY + 4);
 
@@ -207,7 +213,7 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
           pdf.rect(margin, currentY - 2, tableWidth, rowHeight, "F");
           pdf.rect(margin, currentY - 2, tableWidth, rowHeight);
 
-          csvHeaders.forEach((header, index) => {
+          pdfHeaders.forEach((header, index) => {
             const x = margin + index * colWidth;
             pdf.text(header.label, x + 2, currentY + 4);
             if (index > 0) {
@@ -228,12 +234,12 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
         // Row border
         pdf.rect(margin, currentY - 2, tableWidth, rowHeight);
 
-        csvHeaders.forEach((header, index) => {
+        pdfHeaders.forEach((header, index) => {
           const x = margin + index * colWidth;
           let cellValue = String(row[header.key] || "");
 
           // Truncate long values to fit in cell
-          const maxLength = Math.floor(colWidth / 2);
+          const maxLength = Math.floor(colWidth / 2.5);
           if (cellValue.length > maxLength) {
             cellValue = cellValue.substring(0, maxLength - 3) + "...";
           }
@@ -272,8 +278,19 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
     return processedRow;
   });
 
+  const handlePDFDownload = async () => {
+    try {
+      await generatePDF();
+    } catch (error) {
+      console.error("PDF generation failed:", error);
+      toast.error("Failed to generate PDF. Please try again.");
+    }
+  };
+
   const handleCSVDownload = () => {
-    toast.success("CSV download started!");
+    toast.success(
+      "Excel download started! ✅ Full Arabic text support included."
+    );
     setIsOpen(false);
   };
 
@@ -294,13 +311,13 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
               size="icon"
               variant="secondary"
               className="h-12 w-12 rounded-full shadow-lg hover:shadow-xl bg-red-500 hover:bg-red-600 text-white border-0"
-              onClick={() => generatePDF().catch(console.error)}
+              onClick={handlePDFDownload}
               title="Download as PDF"
             >
               <FileText className="h-5 w-5" />
             </Button>
 
-            {/* CSV Download Button */}
+            {/* CSV/Excel Download Button */}
             <CSVLink
               data={processedData}
               headers={csvHeaders}
@@ -312,7 +329,7 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
                 size="icon"
                 variant="secondary"
                 className="h-12 w-12 rounded-full shadow-lg hover:shadow-xl bg-green-500 hover:bg-green-600 text-white border-0"
-                title="Download as CSV"
+                title="Download as Excel (Includes Arabic columns)"
               >
                 <FileSpreadsheet className="h-5 w-5" />
               </Button>

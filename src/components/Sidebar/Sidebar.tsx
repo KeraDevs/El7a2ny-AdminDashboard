@@ -6,8 +6,6 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSidebar } from "@/contexts/SidebarContext";
 import {
-  ChevronDown,
-  LayoutDashboard,
   Users,
   Boxes,
   ShoppingBag,
@@ -20,13 +18,16 @@ import {
   UserCircle,
   Car,
 } from "lucide-react";
+import { FaChevronDown } from "react-icons/fa";
+
+import { TbLayoutDashboardFilled } from "react-icons/tb";
 
 import { SidebarSection } from "@/types/navigation";
 
 export const sidebarSections: SidebarSection[] = [
   {
     name: "Dashboard",
-    icon: <LayoutDashboard className="h-4 w-4" />,
+    icon: <TbLayoutDashboardFilled className="h-4 w-4" />,
     href: "/dashboard",
   },
   {
@@ -120,7 +121,7 @@ const SidebarItem = ({
             {section.icon}
             <span>{section.name}</span>
           </div>
-          <ChevronDown
+          <FaChevronDown
             className={`h-4 w-4 transition-transform ${
               isOpen ? "rotate-180" : ""
             }`}
@@ -183,7 +184,7 @@ const UserDropdown = ({
         <div className="flex-1 text-left">
           <p className="text-sm font-medium text-foreground">{full_name}</p>
         </div>
-        <ChevronDown
+        <TbLayoutDashboardFilled
           className={`h-4 w-4 transition-transform ${
             isOpen ? "rotate-180" : ""
           }`}
