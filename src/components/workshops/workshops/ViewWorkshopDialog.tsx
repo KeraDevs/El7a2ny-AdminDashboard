@@ -12,14 +12,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Building,
+  Building2,
   MapPin,
-  Mail,
-  Phone,
-  CalendarIcon,
+  Calendar,
   CheckCircle,
   XCircle,
-  Activity,
+  AlertCircle,
 } from "lucide-react";
 
 interface ViewWorkshopDialogProps {
@@ -66,7 +64,7 @@ export const ViewWorkshopDialog: React.FC<ViewWorkshopDialogProps> = ({
             variant="outline"
             className="bg-amber-100 text-amber-800 border-amber-300"
           >
-            <Activity className="mr-1 h-3 w-3" /> Busy
+            <AlertCircle className="mr-1 h-3 w-3" /> Busy
           </Badge>
         );
       case "closed":
@@ -153,12 +151,12 @@ export const ViewWorkshopDialog: React.FC<ViewWorkshopDialogProps> = ({
                   className="h-24 w-24 rounded-full object-cover"
                 />
               ) : (
-                <Building className="h-12 w-12 text-blue-600" />
+                <Building2 className="h-12 w-12 text-blue-600" />
               )}
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-1 col-span-3">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1 col-span-2">
               <h4 className="text-sm font-medium text-muted-foreground">
                 Workshop Name
               </h4>
@@ -167,25 +165,10 @@ export const ViewWorkshopDialog: React.FC<ViewWorkshopDialogProps> = ({
 
             <div className="space-y-1">
               <h4 className="text-sm font-medium text-muted-foreground">
-                Email
-              </h4>
-              <p className="text-sm flex items-center gap-1">
-                <Mail className="h-3.5 w-3.5 text-blue-600" />
-                <a
-                  href={`mailto:${workshopData.email}`}
-                  className="text-blue-600 hover:underline"
-                >
-                  {workshopData.email}
-                </a>
-              </p>
-            </div>
-
-            <div className="space-y-1">
-              <h4 className="text-sm font-medium text-muted-foreground">
                 Phone
               </h4>
               <p className="text-sm flex items-center gap-1">
-                <Phone className="h-3.5 w-3.5 text-green-600" />
+                <MapPin className="h-3.5 w-3.5 text-green-600" />
                 <a
                   href={`tel:${getPrimaryPhone()}`}
                   className="text-blue-600 hover:underline"
@@ -216,31 +199,14 @@ export const ViewWorkshopDialog: React.FC<ViewWorkshopDialogProps> = ({
               <span>{workshopData.address}</span>
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <h4 className="text-sm font-medium text-muted-foreground">
-                Ratings
-              </h4>
-              <p className="text-sm flex items-center">
-                <span className="font-semibold">
-                  {workshopData.ratings || 0}
-                </span>
-                <span className="text-yellow-500 ml-1">★</span>
-                <span className="text-xs text-gray-500 ml-2">
-                  ({workshopData.totalReviews || 0} reviews)
-                </span>
-              </p>
-            </div>
-
-            <div className="space-y-1">
-              <h4 className="text-sm font-medium text-muted-foreground">
-                Created Date
-              </h4>
-              <p className="text-sm flex items-center gap-1">
-                <CalendarIcon className="h-3.5 w-3.5 text-gray-600" />
-                {new Date(workshopData.createdAt).toLocaleDateString()}
-              </p>
-            </div>
+          <div className="space-y-1">
+            <h4 className="text-sm font-medium text-muted-foreground">
+              Created Date
+            </h4>
+            <p className="text-sm flex items-center gap-1">
+              <Calendar className="h-3.5 w-3.5 text-gray-600" />
+              {new Date(workshopData.createdAt).toLocaleDateString()}
+            </p>
           </div>
           <div className="space-y-2">
             <h4 className="text-sm font-medium text-muted-foreground">

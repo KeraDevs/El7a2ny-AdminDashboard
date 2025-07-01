@@ -10,12 +10,10 @@ import toast from "react-hot-toast";
 // Define the API data structure for type safety
 interface ApiWorkshopData {
   name?: string;
-  email?: string;
   address?: string;
   latitude?: number | null;
   longitude?: number | null;
   status?: string;
-  active_status?: string;
   phone_numbers?: {
     deleteMany?: Record<string, unknown>;
     createMany?: {
@@ -23,20 +21,21 @@ interface ApiWorkshopData {
         phone_number: string;
         type: string;
         is_primary: boolean;
+        id?: string; // Include id field as required by API
       }>;
     };
   };
-  labels?: {
+  operating_hours?: {
     deleteMany?: Record<string, unknown>;
-    create?: Array<{
-      label: {
-        create: {
-          name: string;
-        };
-      };
-    }>;
+    createMany?: {
+      data: Array<{
+        day: string;
+        open_time: string;
+        close_time: string;
+        is_closed: boolean;
+      }>;
+    };
   };
-  services?: string[];
   [key: string]: unknown;
 }
 
@@ -133,6 +132,18 @@ export const useWorkshops = (): UseWorkshopsReturn => {
     }
   }, [currentUser]);
 
+  // Generate a unique ID for phone numbers
+  const generatePhoneId = () => {
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+      /[xy]/g,
+      function (c) {
+        const r = (Math.random() * 16) | 0;
+        const v = c == "x" ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      }
+    );
+  };
+
   // Format workshop data for API submission
   const formatWorkshopForApi = (workshopData: Partial<Workshop>) => {
     // Set owner_id to current user if not specified
@@ -142,64 +153,64 @@ export const useWorkshops = (): UseWorkshopsReturn => {
       throw new Error("Owner ID is required for workshop creation");
     }
 
-    // Format phone numbers
+    // Format phone numbers with required ID field - exactly matching Swagger structure
     const phoneNumbers =
       workshopData.phoneNumbers && workshopData.phoneNumbers.length > 0
         ? {
             createMany: {
               data: workshopData.phoneNumbers.map((phone: PhoneNumber) => ({
                 phone_number: phone.phone_number,
-                type: phone.type,
+                type: phone.type.toUpperCase(), // Ensure uppercase for enum
                 is_primary: phone.is_primary,
+                id: generatePhoneId(), // Generate unique ID as required by API
               })),
             },
           }
-        : undefined;
+        : {
+            createMany: {
+              data: [], // Ensure structure exists even if empty
+            },
+          };
 
-    // Format labels (if any)
-    const labels =
-      workshopData.labels && workshopData.labels.length > 0
-        ? {
-            create: workshopData.labels.map((label: string) => ({
-              label: {
-                create: {
-                  name: label,
-                },
-              },
-            })),
-          }
-        : undefined;
-
-    // Format operating hours (default is empty)
+    // Format operating hours with required structure - exactly matching Swagger
     const operatingHours = {
       createMany: {
-        data: [],
+        data: [
+          {
+            day: "MONDAY",
+            open_time: "1970-01-01T09:00:00",
+            close_time: "1970-01-01T17:00:00",
+            is_closed: false,
+          },
+          {
+            day: "TUESDAY",
+            open_time: "1970-01-01T09:00:00",
+            close_time: "1970-01-01T17:00:00",
+            is_closed: false,
+          },
+        ],
       },
     };
 
     const latitude =
       workshopData.latitude !== undefined && workshopData.latitude !== null
-        ? Number(workshopData.latitude)
-        : null;
+        ? Number(Number(workshopData.latitude).toFixed(8))
+        : 35.3457823; // Default latitude from your example
 
     const longitude =
       workshopData.longitude !== undefined && workshopData.longitude !== null
-        ? Number(workshopData.longitude)
-        : null;
-    // Build the final API request payload
+        ? Number(Number(workshopData.longitude).toFixed(8))
+        : -120.42458676; // Default longitude from your example
+
+    // Build the final API request payload - exactly matching Swagger structure
     return {
       name: workshopData.name || "",
-      owner_id: ownerId,
-      email: workshopData.email || "",
       address: workshopData.address || "",
-      latitude: latitude,
-      longitude: longitude,
-      status: (workshopData.status || "open").toUpperCase(),
-      active_status: (workshopData.active_status || "pending").toUpperCase(),
+      status: (workshopData.status || "Open").toUpperCase(), // Match Swagger case
       phone_numbers: phoneNumbers,
       operating_hours: operatingHours,
-      labels: labels,
-      services: workshopData.services || [],
+      latitude: latitude,
+      longitude: longitude,
     };
   };
 
@@ -283,49 +294,70 @@ export const useWorkshops = (): UseWorkshopsReturn => {
         throw new Error("API key is missing");
       }
 
-      // Format API data
-      // For PATCH requests, we only include fields that have changed
-      const apiData: ApiWorkshopData = {
-        name: workshopData.name,
-        email: workshopData.email,
-        address: workshopData.address,
-        latitude: workshopData.latitude,
-        longitude: workshopData.longitude,
-        status: workshopData.status?.toUpperCase(),
-        active_status: workshopData.active_status?.toUpperCase(),
-        // Only include phone_numbers if they've been modified
-        ...(workshopData.phoneNumbers
-          ? {
-              phone_numbers: {
-                deleteMany: {},
-                createMany: {
-                  data: workshopData.phoneNumbers.map((phone) => ({
-                    phone_number: phone.phone_number,
-                    type: phone.type,
-                    is_primary: phone.is_primary,
-                  })),
-                },
+      // Format API data for PATCH request - simpler structure for updates
+      const apiData: ApiWorkshopData = {};
+
+      // Only include fields that should be updated
+      if (workshopData.name !== undefined) {
+        apiData.name = workshopData.name;
+      }
+
+      if (workshopData.address !== undefined) {
+        apiData.address = workshopData.address;
+      }
+
+      if (workshopData.status !== undefined) {
+        apiData.status = workshopData.status.toUpperCase();
+      }
+
+      if (workshopData.latitude !== undefined) {
+        apiData.latitude = workshopData.latitude
+          ? Number(Number(workshopData.latitude).toFixed(8))
+          : null;
+      }
+
+      if (workshopData.longitude !== undefined) {
+        apiData.longitude = workshopData.longitude
+          ? Number(Number(workshopData.longitude).toFixed(8))
+          : null;
+      }
+
+      // Handle phone numbers if they've been modified
+      if (workshopData.phoneNumbers) {
+        apiData.phone_numbers = {
+          deleteMany: {},
+          createMany: {
+            data: workshopData.phoneNumbers.map((phone) => ({
+              phone_number: phone.phone_number,
+              type: phone.type.toUpperCase(),
+              is_primary: phone.is_primary,
+              id: generatePhoneId(),
+            })),
+          },
+        };
+      }
+
+      // Handle operating hours - provide default structure if needed
+      if (!apiData.operating_hours) {
+        apiData.operating_hours = {
+          createMany: {
+            data: [
+              {
+                day: "MONDAY",
+                open_time: "1970-01-01T09:00:00",
+                close_time: "1970-01-01T17:00:00",
+                is_closed: false,
               },
-            }
-          : {}),
-        // Only include labels if they've been modified
-        ...(workshopData.labels
-          ? {
-              labels: {
-                deleteMany: {},
-                create: workshopData.labels.map((label) => ({
-                  label: {
-                    create: {
-                      name: label,
-                    },
-                  },
-                })),
+              {
+                day: "TUESDAY",
+                open_time: "1970-01-01T09:00:00",
+                close_time: "1970-01-01T17:00:00",
+                is_closed: false,
               },
-            }
-          : {}),
-        // Only include services if they've been modified
-        ...(workshopData.services ? { services: workshopData.services } : {}),
-      };
+            ],
+          },
+        };
+      }
 
       // Remove undefined fields
       Object.keys(apiData).forEach((key) => {
@@ -333,6 +365,8 @@ export const useWorkshops = (): UseWorkshopsReturn => {
           delete apiData[key];
         }
       });
+
+      console.log("Sending edit data:", JSON.stringify(apiData, null, 2));
 
       const response = await fetch(
         `${API_BASE_URL}/workshops/${workshopData.id}`,
@@ -354,6 +388,7 @@ export const useWorkshops = (): UseWorkshopsReturn => {
           errorMessage =
             errorResponse.message ||
             `Failed to update workshop (${response.status})`;
+          console.error("Edit error details:", errorResponse);
         } catch {
           // If JSON parsing fails, use status text
           errorMessage = `Failed to update workshop: ${response.status} ${response.statusText}`;
@@ -365,6 +400,7 @@ export const useWorkshops = (): UseWorkshopsReturn => {
       await fetchWorkshops();
       toast.success("Workshop updated successfully");
     } catch (editError) {
+      console.error("Edit workshop error:", editError);
       toast.error(
         editError instanceof Error
           ? editError.message

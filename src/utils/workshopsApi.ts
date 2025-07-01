@@ -7,7 +7,6 @@ export const mapApiWorkshopToFrontend = (
 ): Workshop => ({
   id: apiWorkshop.id,
   parentId: apiWorkshop.parent_id,
-  email: apiWorkshop.email,
   ownerId: apiWorkshop.owner_id,
   name: apiWorkshop.name,
   address: apiWorkshop.address,
@@ -27,10 +26,8 @@ export const mapApiWorkshopToFrontend = (
       ...phone,
       type: phone.type.toUpperCase() as PhoneNumber["type"],
     })) || [],
-  services: apiWorkshop.services || [],
-  ratings: 10,
-  totalReviews: 20,
-  labels: apiWorkshop.labels || [],
+  services: [], // Services are not provided by the API
+  labels: apiWorkshop.labels?.map((labelObj) => labelObj.label.name) || [],
   owner_id: apiWorkshop.owner_id,
 });
 

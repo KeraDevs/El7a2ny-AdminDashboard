@@ -38,13 +38,11 @@ const WorkshopsList: React.FC = () => {
   const [columnVisibility, setColumnVisibility] =
     useState<WorkshopColumnVisibility>({
       name: true,
-      email: true,
       address: true,
       phone: true,
       status: true,
       createdDate: true,
-      ratings: true,
-      services: true,
+      services: false, // Services are not available from API
     });
 
   const [sortConfig, setSortConfig] = useState<SortConfig>({
@@ -110,12 +108,7 @@ const WorkshopsList: React.FC = () => {
     if (!searchQuery) return sortedWorkshops;
 
     return sortedWorkshops.filter((workshop) => {
-      const searchFields = [
-        workshop.name,
-        workshop.email,
-        workshop.address,
-        workshop.status,
-      ];
+      const searchFields = [workshop.name, workshop.address, workshop.status];
 
       return searchFields.some(
         (field) =>
@@ -288,7 +281,6 @@ const WorkshopsList: React.FC = () => {
         data={paginatedWorkshops.map((workshop) => ({
           id: workshop.id,
           name: workshop.name,
-          email: workshop.email,
           phone: workshop.phoneNumbers?.[0]?.phone_number
             ? `+${String(workshop.phoneNumbers[0].phone_number)}`
             : "",
@@ -297,23 +289,18 @@ const WorkshopsList: React.FC = () => {
           createdDate: workshop.createdAt
             ? new Date(workshop.createdAt).toLocaleDateString()
             : "",
-          rating: workshop.ratings || "Not rated",
           services: workshop.services?.length || 0,
-          totalReviews: workshop.totalReviews || 0,
         }))}
         filename={`workshops-page-${currentPage}`}
         pageName="Workshops Management"
         headers={[
           { label: "ID", key: "id" },
           { label: "Workshop Name", key: "name" },
-          { label: "Email", key: "email" },
           { label: "Phone", key: "phone" },
           { label: "Address", key: "address" },
           { label: "Status", key: "status" },
           { label: "Created Date", key: "createdDate" },
-          { label: "Rating", key: "rating" },
           { label: "Services Count", key: "services" },
-          { label: "Total Reviews", key: "totalReviews" },
         ]}
       />
     </div>

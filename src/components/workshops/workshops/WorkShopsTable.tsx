@@ -1,20 +1,17 @@
 import React from "react";
 import { PhoneNumber } from "@/types/workshopTypes";
 import {
-  ChevronsUpDown,
   Edit,
   Eye,
   Loader2,
-  Mail,
   MapPin,
-  Phone,
   Trash2,
   Wrench,
-  Activity,
-  Building,
   CheckCircle,
   XCircle,
   AlertCircle,
+  Building2,
+  Filter,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -72,7 +69,7 @@ export const WorkshopsTable: React.FC<WorkshopsTableProps> = ({
             variant="outline"
             className="bg-amber-100 text-amber-800 border-amber-300"
           >
-            <Activity className="mr-1 h-3 w-3" /> Busy
+            <CheckCircle className="mr-1 h-3 w-3" /> Busy
           </Badge>
         );
       case "closed":
@@ -159,24 +156,7 @@ export const WorkshopsTable: React.FC<WorkshopsTableProps> = ({
               >
                 <div className="flex items-center gap-1">
                   Workshop Name
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
                   {sortConfig.key === "name" && (
-                    <span className="ml-1">
-                      {sortConfig.direction === "asc" ? "↑" : "↓"}
-                    </span>
-                  )}
-                </div>
-              </TableHead>
-            )}
-            {columnVisibility.email && (
-              <TableHead
-                className="cursor-pointer"
-                onClick={() => handleSort("email")}
-              >
-                <div className="flex items-center gap-1">
-                  Email
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
-                  {sortConfig.key === "email" && (
                     <span className="ml-1">
                       {sortConfig.direction === "asc" ? "↑" : "↓"}
                     </span>
@@ -191,7 +171,6 @@ export const WorkshopsTable: React.FC<WorkshopsTableProps> = ({
               >
                 <div className="flex items-center gap-1">
                   Address
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
                   {sortConfig.key === "address" && (
                     <span className="ml-1">
                       {sortConfig.direction === "asc" ? "↑" : "↓"}
@@ -204,7 +183,7 @@ export const WorkshopsTable: React.FC<WorkshopsTableProps> = ({
               <TableHead className="cursor-pointer">
                 <div className="flex items-center gap-1">
                   Phone
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
+                  <Filter className="h-3 w-3 text-muted-foreground" />
                 </div>
               </TableHead>
             )}
@@ -215,24 +194,7 @@ export const WorkshopsTable: React.FC<WorkshopsTableProps> = ({
               >
                 <div className="flex items-center gap-1">
                   Status
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
                   {sortConfig.key === "status" && (
-                    <span className="ml-1">
-                      {sortConfig.direction === "asc" ? "↑" : "↓"}
-                    </span>
-                  )}
-                </div>
-              </TableHead>
-            )}
-            {columnVisibility.ratings && (
-              <TableHead
-                className="cursor-pointer"
-                onClick={() => handleSort("ratings")}
-              >
-                <div className="flex items-center gap-1">
-                  Ratings
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
-                  {sortConfig.key === "ratings" && (
                     <span className="ml-1">
                       {sortConfig.direction === "asc" ? "↑" : "↓"}
                     </span>
@@ -248,7 +210,6 @@ export const WorkshopsTable: React.FC<WorkshopsTableProps> = ({
               >
                 <div className="flex items-center gap-1">
                   Created Date
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
                   {sortConfig.key === "createdAt" && (
                     <span className="ml-1">
                       {sortConfig.direction === "asc" ? "↑" : "↓"}
@@ -304,21 +265,10 @@ export const WorkshopsTable: React.FC<WorkshopsTableProps> = ({
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                        <Building className="h-4 w-4" />
+                        <Building2 className="h-4 w-4" />
                       </div>
                       {workshop.name}
                     </div>
-                  </TableCell>
-                )}
-                {columnVisibility.email && (
-                  <TableCell>
-                    <a
-                      href={`mailto:${workshop.email}`}
-                      className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline w-fit"
-                    >
-                      <Mail className="h-3.5 w-3.5" />
-                      {workshop.email}
-                    </a>
                   </TableCell>
                 )}
                 {columnVisibility.address && (
@@ -337,7 +287,7 @@ export const WorkshopsTable: React.FC<WorkshopsTableProps> = ({
                       href={`tel:${getPrimaryPhone(workshop.phoneNumbers)}`}
                       className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:underline w-fit"
                     >
-                      <Phone className="h-3.5 w-3.5" />
+                      <MapPin className="h-3.5 w-3.5" />
                       <code className="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md text-xs font-mono">
                         {getPrimaryPhone(workshop.phoneNumbers)}
                       </code>
@@ -351,21 +301,6 @@ export const WorkshopsTable: React.FC<WorkshopsTableProps> = ({
                       <div className="mt-1">
                         {getActiveStatusBadge(workshop.active_status)}
                       </div>
-                    </div>
-                  </TableCell>
-                )}
-                {columnVisibility.ratings && (
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <div className="flex items-center">
-                        <span className="font-semibold">
-                          {workshop.ratings || 0}
-                        </span>
-                        <span className="text-yellow-500 ml-1">★</span>
-                      </div>
-                      <span className="text-xs text-gray-500">
-                        ({workshop.totalReviews || 0} reviews)
-                      </span>
                     </div>
                   </TableCell>
                 )}

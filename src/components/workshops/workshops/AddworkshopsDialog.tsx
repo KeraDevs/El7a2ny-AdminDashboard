@@ -45,7 +45,6 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
   // Workshop form data state
   const [formData, setFormData] = useState<Partial<Workshop>>({
     name: "",
-    email: "",
     address: "",
     phoneNumbers: [
       {
@@ -74,7 +73,6 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
       setActiveTab("basic");
       setFormData({
         name: "",
-        email: "",
         address: "",
         phoneNumbers: [
           {
@@ -186,7 +184,6 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
       const workshopData = {
         name: formData.name,
         address: formData.address || "",
-        email: formData.email || "",
         status: formData.status || "open",
         ownerId: selectedOwnerId,
         phoneNumbers: formData.phoneNumbers || [],
@@ -242,25 +239,6 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
                   required
                 />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-blue-50/50">
-                <MapPin className="h-4 w-4 text-blue-500" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="workshop@example.com"
-                  value={formData.email || ""}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  className="border-none bg-transparent focus-visible:ring-0 p-0"
-                  required
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Note: Email is stored locally and not sent to the API
-              </p>
             </div>
 
             <div className="space-y-2">
