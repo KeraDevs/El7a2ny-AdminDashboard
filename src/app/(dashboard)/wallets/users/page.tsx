@@ -39,7 +39,7 @@ import {
   IconRefresh,
 } from "@tabler/icons-react";
 import { useWallets } from "@/hooks/_useWallets";
-import { Wallet, formatBalance, getNumericBalance } from "@/types/walletTypes";
+import { Wallet, formatBalance } from "@/types/walletTypes";
 import WalletDetailsDialog from "@/components/wallets/WalletDetailsDialog";
 import AddMoneyDialog from "@/components/wallets/AddMoneyDialog";
 import WalletStatusDialog from "@/components/wallets/WalletStatusDialog";
@@ -199,12 +199,12 @@ export default function UserWalletsPage() {
 
     try {
       await handleUpdateWalletStatus(selectedWallet.id, {
-        status: status as any,
+        status: status as "active" | "inactive" | "suspended" | "frozen",
       });
       toast.success("Wallet status updated successfully");
       setShowStatusDialog(false);
       setSelectedWallet(null);
-    } catch (err) {
+    } catch {
       toast.error("Failed to update wallet status");
     }
   };

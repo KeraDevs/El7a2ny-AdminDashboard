@@ -8,15 +8,14 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import {
   Users,
   Boxes,
-  ShoppingBag,
   ClipboardList,
   Wallet,
-  MessageCircle,
-  BarChart,
-  Ticket,
   LogOut,
   UserCircle,
   Car,
+  ChartPie,
+  Landmark,
+  History,
 } from "lucide-react";
 import { FaChevronDown } from "react-icons/fa";
 
@@ -31,7 +30,7 @@ export const sidebarSections: SidebarSection[] = [
     href: "/dashboard",
   },
   {
-    name: "Users Management",
+    name: "Users",
     icon: <Users className="h-4 w-4" />,
     subsections: [
       { name: "Users List", href: "/users" },
@@ -39,7 +38,7 @@ export const sidebarSections: SidebarSection[] = [
     ],
   },
   {
-    name: "Workshops Management",
+    name: "Workshops",
     icon: <Boxes className="h-4 w-4" />,
     subsections: [
       { name: "Workshops List", href: "/workshops" },
@@ -52,8 +51,8 @@ export const sidebarSections: SidebarSection[] = [
     href: "/service-types",
   },
   {
-    name: "Requests History",
-    icon: <ClipboardList className="h-4 w-4" />,
+    name: "Requests",
+    icon: <History className="h-4 w-4" />,
     href: "/requests",
   },
 
@@ -74,29 +73,14 @@ export const sidebarSections: SidebarSection[] = [
     ],
   },
   {
-    name: "Chats",
-    icon: <MessageCircle className="h-4 w-4" />,
-    href: "/chats",
-  },
-  {
     name: "Revenue",
-    icon: <BarChart className="h-4 w-4" />,
+    icon: <Landmark className="h-4 w-4" />,
     href: "/revenue",
   },
   {
     name: "Analytics",
-    icon: <BarChart className="h-4 w-4" />,
+    icon: <ChartPie className="h-4 w-4" />,
     href: "/analytics",
-  },
-  {
-    name: "Vouchers",
-    icon: <Ticket className="h-4 w-4" />,
-    href: "/vouchers",
-  },
-  {
-    name: "Marketplace",
-    icon: <ShoppingBag className="h-4 w-4" />,
-    href: "/marketplace",
   },
 ];
 

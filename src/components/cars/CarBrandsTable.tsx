@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, Eye, Edit, Trash2 } from "lucide-react";
+import { ChevronUp, Eye, Edit, Trash2, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 
 interface CarBrandsTableProps {
@@ -66,7 +66,7 @@ export const CarBrandsTable: React.FC<CarBrandsTableProps> = ({
           (sortConfig.direction === "asc" ? (
             <ChevronUp className="h-4 w-4" />
           ) : (
-            <ChevronDownIcon className="h-4 w-4" />
+            <ChevronDown className="h-4 w-4" />
           ))}
       </div>
     </TableHead>

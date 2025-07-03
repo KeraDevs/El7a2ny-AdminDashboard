@@ -6,19 +6,16 @@ import { useUsers } from "@/hooks/_useUsers";
 import { useAuth } from "@/contexts/AuthContext";
 import { User } from "@/types/userTypes";
 import { toast } from "react-hot-toast";
-import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import { FaUsers, FaUserPlus, FaCog } from "react-icons/fa";
-import { BiTrendingUp } from "react-icons/bi";
+import { Loader2, Users, UserPlus, Settings, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { UsersTableHeader } from "@/components/users/UsersTableHeader";
 import { UsersTable } from "@/components/users/UsersTable";
+import { UsersPagination } from "@/components/users/UsersPagination";
 import { EditUserDialog } from "@/components/users/EditUserDialog";
 import { ViewUserDialog } from "@/components/users/ViewUserDialog";
-import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
-import { DataPagination } from "@/components/ui/DataPagination";
 
-// FaUsers Statistics Component
+// Users Statistics Component
 const UsersStats = ({ users }: { users: User[] }) => {
   const totalUsers = users.length;
   const activeUsers = users.filter((u) => u.userType === "customer").length;
@@ -34,9 +31,9 @@ const UsersStats = ({ users }: { users: User[] }) => {
 
   const stats = [
     {
-      title: "Total FaUsers",
+      title: "Total Users",
       value: totalUsers.toString(),
-      icon: FaUsers,
+      icon: Users,
       description: "All registered users",
       trend: "+12.5%",
       color: "from-blue-500 to-blue-600",
@@ -45,16 +42,16 @@ const UsersStats = ({ users }: { users: User[] }) => {
     {
       title: "Active Customers",
       value: activeUsers.toString(),
-      icon: FaUserPlus,
+      icon: UserPlus,
       description: "Customer accounts",
       trend: "+8.2%",
       color: "from-green-500 to-green-600",
       bgColor: "from-green-50 to-green-100",
     },
     {
-      title: "Admin FaUsers",
+      title: "Admin Users",
       value: adminUsers.toString(),
-      icon: FaCog,
+      icon: Settings,
       description: "Admin accounts",
       trend: "+2.1%",
       color: "from-purple-500 to-purple-600",
@@ -63,7 +60,7 @@ const UsersStats = ({ users }: { users: User[] }) => {
     {
       title: "Recent Joins",
       value: recentUsers.toString(),
-      icon: BiTrendingUp,
+      icon: TrendingUp,
       description: "Last 30 days",
       trend: "+15.3%",
       color: "from-orange-500 to-orange-600",
@@ -298,7 +295,7 @@ const UsersList: React.FC = () => {
     ) {
       try {
         await handleDeleteUsers();
-        toast.success("FaUsers deleted successfully");
+        toast.success("Users deleted successfully");
       } catch {
         toast.error("Failed to delete users");
       }
@@ -309,7 +306,7 @@ const UsersList: React.FC = () => {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="flex flex-col items-center gap-2">
-          <AiOutlineLoading3Quarters className="h-8 w-8 animate-spin text-primary" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="text-muted-foreground text-sm">
             Checking authentication...
           </p>
@@ -345,7 +342,7 @@ const UsersList: React.FC = () => {
       >
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-            FaUsers Management
+            Users Management
           </h1>
           <p className="text-muted-foreground">
             Manage your users and their permissions
@@ -383,16 +380,15 @@ const UsersList: React.FC = () => {
             users={users}
             onDelete={handleDelete}
           />
-          <div className="border-t">
-            <DataPagination
+          <div className="p-4 pt-0">
+            <UsersPagination
               currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
               totalPages={totalPages}
-              totalItems={filteredUsers.length}
-              itemsPerPage={rowsPerPage}
-              onPageChange={setCurrentPage}
-              onItemsPerPageChange={setRowsPerPage}
-              itemType="users"
-              loading={loading}
+              rowsPerPage={rowsPerPage}
+              setRowsPerPage={setRowsPerPage}
+              filteredUsers={filteredUsers}
+              selectedUsers={selectedUsers}
             />
           </div>
         </Card>
@@ -414,38 +410,6 @@ const UsersList: React.FC = () => {
             handleEdit(viewUserData);
           }
         }}
-      />
-
-      {/* Floating Download Button */}
-      <FloatingDownloadButton
-        data={paginatedUsers.map((user) => ({
-          id: user.id,
-          name: user.fullName || `${user.first_name} ${user.last_name}`,
-          email: user.email,
-          phone: user.phone ? `+${String(user.phone)}` : "",
-          gender: user.gender,
-          userType: user.userType,
-          joinDate: user.createdAt
-            ? new Date(user.createdAt).toLocaleDateString()
-            : "",
-          isActive: user.isActive ? "Active" : "Inactive",
-          nationalNumber: String(user.nationalNumber || ""),
-          labels: user.labels?.join(", ") || "",
-        }))}
-        filename={`users-page-${currentPage}`}
-        pageName="FaUsers Management"
-        headers={[
-          { label: "ID", key: "id" },
-          { label: "Full Name", key: "name" },
-          { label: "Email", key: "email" },
-          { label: "Phone", key: "phone" },
-          { label: "Gender", key: "gender" },
-          { label: "User Type", key: "userType" },
-          { label: "Join Date", key: "joinDate" },
-          { label: "Status", key: "isActive" },
-          { label: "National Number", key: "nationalNumber" },
-          { label: "Labels", key: "labels" },
-        ]}
       />
     </div>
   );

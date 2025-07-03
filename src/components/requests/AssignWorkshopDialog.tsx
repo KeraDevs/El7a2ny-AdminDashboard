@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Building, MapPin, Star } from "lucide-react";
+import { Building, MapPin } from "lucide-react";
 import { AssignWorkshopDialogProps } from "@/types/workshopTypes";
 
 const AssignWorkshopDialog = ({
@@ -66,11 +66,14 @@ const AssignWorkshopDialog = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Vehicle:</span>
-                <span className="text-sm">{request.vehicle}</span>
+                <span className="text-sm">
+                  {request.vehicleModel} ({request.vehicleYear}) -{" "}
+                  {request.vehicleLicensePlate}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Service:</span>
-                <span className="text-sm">{request.service}</span>
+                <span className="text-sm">{request.serviceName}</span>
               </div>
             </div>
           </div>
@@ -90,9 +93,6 @@ const AssignWorkshopDialog = ({
                     <div className="flex items-center gap-2">
                       <Building className="h-4 w-4 text-blue-500" />
                       <span>{workshop.name}</span>
-                      <span className="text-xs text-muted-foreground ml-1">
-                        ({workshop.rating} ⭐)
-                      </span>
                     </div>
                   </SelectItem>
                 ))}
@@ -121,16 +121,15 @@ const AssignWorkshopDialog = ({
                           Location:
                         </span>
                         <span className="text-sm flex items-center gap-1">
-                          <MapPin className="h-3 w-3" /> {workshop.location}
+                          <MapPin className="h-3 w-3" /> {workshop.address}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm text-muted-foreground">
-                          Rating:
+                          Status:
                         </span>
                         <span className="text-sm flex items-center gap-1">
-                          <Star className="h-3 w-3 text-yellow-500" />
-                          {workshop.rating}/5
+                          {workshop.status}
                         </span>
                       </div>
                     </div>

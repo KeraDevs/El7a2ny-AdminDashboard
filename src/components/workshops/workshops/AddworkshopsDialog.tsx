@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Workshop } from "@/types/workshopTypes";
-import { API_KEY, API_BASE_URL } from "@/utils/config";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "react-hot-toast";
 import { Loader2, Plus, MapPin, Building2, Users } from "lucide-react";

@@ -172,6 +172,20 @@ export const mapApiRequestToFrontend = (
   workshopProfilePic: apiRequest.workshops.profile_pic,
 });
 
+export interface RequestDetailsDialogProps {
+  request: ServiceRequest;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export interface RequestsTableProps {
+  requests: ServiceRequest[];
+  totalRequests: number;
+  onView: (request: ServiceRequest) => void;
+  onEdit: (request: ServiceRequest) => void;
+  onAssign: (request: ServiceRequest) => void;
+}
+
 // Status color mapping
 export const getStatusColor = (status: ServiceRequest["status"]): string => {
   switch (status) {

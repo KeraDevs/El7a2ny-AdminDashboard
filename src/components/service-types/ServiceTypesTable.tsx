@@ -128,12 +128,12 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
             </TableHead>
             <SortableHeader column="name">Name</SortableHeader>
             <SortableHeader column="name_ar">Name Ar</SortableHeader>
-            <SortableHeader column="category">Category</SortableHeader>
+            <SortableHeader column="service_category">Category</SortableHeader>
             <SortableHeader column="description">Description</SortableHeader>
             <SortableHeader column="description_ar">
               Description Ar
             </SortableHeader>
-            <SortableHeader column="createdAt">Created At</SortableHeader>
+            <SortableHeader column="created_at">Created At</SortableHeader>
             <TableHead className="w-32 sm:w-48">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -170,7 +170,7 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
                       <span>{serviceType.name}</span>
                       {/* Show category on mobile */}
                       <span className="text-xs text-muted-foreground sm:hidden">
-                        {serviceType.category}
+                        {serviceType.service_category}
                       </span>
                     </div>
                   </TableCell>
@@ -183,7 +183,7 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
 
                   <TableCell className="text-muted-foreground hidden sm:table-cell">
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                      {serviceType.category}
+                      {serviceType.service_category}
                     </span>
                   </TableCell>
 
@@ -203,12 +203,12 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
                     <div className="flex flex-col">
                       <span>
                         {format(
-                          new Date(serviceType.createdAt),
+                          new Date(serviceType.created_at),
                           "MMM dd, yyyy"
                         )}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {format(new Date(serviceType.createdAt), "HH:mm")}
+                        {format(new Date(serviceType.created_at), "HH:mm")}
                       </span>
                     </div>
                   </TableCell>

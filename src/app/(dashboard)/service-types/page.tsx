@@ -123,13 +123,6 @@ const ServiceTypesList: React.FC = () => {
     return serviceTypesCopy;
   }, [serviceTypes, sortConfig]);
 
-  // Search handler - trigger server-side search
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    // Reset to first page when searching
-    fetchServiceTypes(1, pagination.limit, query);
-  };
-
   // Handle search query changes with debouncing
   useEffect(() => {
     const timeoutId = setTimeout(() => {
