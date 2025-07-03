@@ -373,7 +373,6 @@ const CarRegionsPage: React.FC = () => {
           created_at: region.created_at || "",
         }))}
         filename="car-regions"
-        pageName="Car Regions Management Report"
       />
     </div>
   );

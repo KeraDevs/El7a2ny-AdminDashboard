@@ -416,7 +416,6 @@ const ServiceTypesList: React.FC = () => {
           updated_at: service.updated_at || "",
         }))}
         filename="service-types"
-        pageName="Service Types Management Report"
         columnVisibility={{
           name: columnVisibility.name ?? true,
           name_ar: columnVisibility.name_ar ?? true,

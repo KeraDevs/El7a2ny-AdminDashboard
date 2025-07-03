@@ -672,7 +672,6 @@ export default function HistoryPage() {
           created_at: request.created_at || "",
         }))}
         filename="service-history"
-        pageName="Service History Report"
       />
     </div>
   );

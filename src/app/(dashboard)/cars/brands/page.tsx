@@ -436,7 +436,6 @@ const CarBrandsList: React.FC = () => {
             : "",
         }))}
         filename={`car-brands-page-${currentPage}`}
-        pageName="Car Brands Management"
         columnVisibility={{
           id: true,
           name: columnVisibility.name,

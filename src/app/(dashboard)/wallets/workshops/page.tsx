@@ -611,7 +611,6 @@ export default function WorkshopWalletsPage() {
           last_transaction: workshop.lastTransaction || "",
         }))}
         filename="workshop-wallets"
-        pageName="Workshop Wallets Management Report"
       />
     </div>
   );

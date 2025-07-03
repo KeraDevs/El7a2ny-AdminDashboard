@@ -292,7 +292,6 @@ const WorkshopsList: React.FC = () => {
           services: workshop.services?.length || 0,
         }))}
         filename={`workshops-page-${currentPage}`}
-        pageName="Workshops Management"
         headers={[
           { label: "ID", key: "id" },
           { label: "Workshop Name", key: "name" },

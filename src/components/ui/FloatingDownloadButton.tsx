@@ -2,37 +2,27 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, FileText, FileSpreadsheet } from "lucide-react";
+import { Download, FileSpreadsheet } from "lucide-react";
 import { Button } from "./button";
 import { CSVLink } from "react-csv";
-import jsPDF from "jspdf";
 import { toast } from "react-hot-toast";
 
 interface FloatingDownloadButtonProps {
   data: Array<Record<string, string | number | boolean | null | undefined>>;
   filename: string;
   headers?: Array<{ label: string; key: string }>;
-  pdfTitle?: string;
-  pageName?: string; // New prop for dynamic page name
   className?: string;
-  columnVisibility?: Record<string, boolean | undefined>; // New prop for column visibility
+  columnVisibility?: Record<string, boolean | undefined>;
 }
 
 export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
   data,
   filename,
   headers,
-  pdfTitle,
-  pageName,
   className = "",
   columnVisibility,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-
-  // Generate dynamic title based on page name
-  const dynamicTitle = pageName
-    ? `${pageName} Report`
-    : pdfTitle || `${filename} Report`;
 
   // Generate CSV headers automatically if not provided
   const csvHeaders =
@@ -42,9 +32,6 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
           .filter((key) => !columnVisibility || columnVisibility[key] !== false)
           .map((key) => ({ label: key, key }))
       : []);
-
-  // Generate PDF headers (exclude Arabic columns)
-  const pdfHeaders = csvHeaders.filter((header) => !header.key.includes("_ar"));
 
   // Filter data based on column visibility
   const getVisibleData = () => {
@@ -108,163 +95,6 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
     return cleanPhone;
   };
 
-  // Generate PDF with proper table formatting
-  const generatePDF = async () => {
-    try {
-      const pdf = new jsPDF("l", "mm", "a4"); // Landscape orientation for better table fit
-
-      // Set encoding for UTF-8 support
-      pdf.setFont("helvetica");
-
-      // Add logo
-      try {
-        // Create an image element to load the logo
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-          img.src = "/images/logo.png";
-        });
-
-        // Add logo to PDF (top-left corner)
-        const logoWidth = 30;
-        const logoHeight = 20;
-        pdf.addImage(img, "PNG", 10, 5, logoWidth, logoHeight);
-      } catch (error) {
-        console.warn("Could not load logo:", error);
-        // Continue without logo if it fails to load
-      }
-
-      // Add title (moved down to make room for logo)
-      pdf.setFontSize(18);
-      pdf.text(dynamicTitle, 50, 15);
-
-      // Add date and page info
-      pdf.setFontSize(10);
-      pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 50, 22);
-      pdf.text(`Page data: ${visibleData.length} rows displayed`, 50, 28);
-
-      // Table configuration
-      const startY = 35;
-      const pageWidth = pdf.internal.pageSize.width;
-      const pageHeight = pdf.internal.pageSize.height;
-      const margin = 10;
-      const tableWidth = pageWidth - margin * 2;
-      const colWidth = tableWidth / pdfHeaders.length;
-      const rowHeight = 8;
-
-      let currentY = startY;
-
-      // Draw table headers
-      pdf.setFontSize(8);
-      pdf.setFont("helvetica", "bold");
-
-      // Header background
-      pdf.setFillColor(240, 240, 240);
-      pdf.rect(margin, currentY - 2, tableWidth, rowHeight, "F");
-
-      // Header borders
-      pdf.setDrawColor(200, 200, 200);
-      pdf.rect(margin, currentY - 2, tableWidth, rowHeight);
-
-      pdfHeaders.forEach((header, index) => {
-        const x = margin + index * colWidth;
-        pdf.text(header.label, x + 2, currentY + 4);
-
-        // Vertical lines
-        if (index > 0) {
-          pdf.line(x, currentY - 2, x, currentY + rowHeight - 2);
-        }
-      });
-
-      currentY += rowHeight + 2;
-
-      // Draw data rows
-      pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(7);
-
-      for (let rowIndex = 0; rowIndex < processedData.length; rowIndex++) {
-        const row = processedData[rowIndex];
-        // Check if we need a new page
-        if (currentY + rowHeight > pageHeight - 20) {
-          pdf.addPage();
-
-          // Add logo to new page
-          try {
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-            await new Promise((resolve) => {
-              img.onload = resolve;
-              img.onerror = resolve; // Continue even if logo fails
-              img.src = "/images/logo.png";
-            });
-            pdf.addImage(img, "PNG", 10, 5, 30, 20);
-          } catch {
-            // Continue without logo if it fails
-          }
-
-          currentY = 35;
-
-          // Redraw headers on new page
-          pdf.setFont("helvetica", "bold");
-          pdf.setFillColor(240, 240, 240);
-          pdf.rect(margin, currentY - 2, tableWidth, rowHeight, "F");
-          pdf.rect(margin, currentY - 2, tableWidth, rowHeight);
-
-          pdfHeaders.forEach((header, index) => {
-            const x = margin + index * colWidth;
-            pdf.text(header.label, x + 2, currentY + 4);
-            if (index > 0) {
-              pdf.line(x, currentY - 2, x, currentY + rowHeight - 2);
-            }
-          });
-
-          currentY += rowHeight + 2;
-          pdf.setFont("helvetica", "normal");
-        }
-
-        // Row background (alternating)
-        if (rowIndex % 2 === 0) {
-          pdf.setFillColor(250, 250, 250);
-          pdf.rect(margin, currentY - 2, tableWidth, rowHeight, "F");
-        }
-
-        // Row border
-        pdf.rect(margin, currentY - 2, tableWidth, rowHeight);
-
-        pdfHeaders.forEach((header, index) => {
-          const x = margin + index * colWidth;
-          let cellValue = String(row[header.key] || "");
-
-          // Truncate long values to fit in cell
-          const maxLength = Math.floor(colWidth / 2.5);
-          if (cellValue.length > maxLength) {
-            cellValue = cellValue.substring(0, maxLength - 3) + "...";
-          }
-
-          pdf.text(cellValue, x + 2, currentY + 4);
-
-          // Vertical lines
-          if (index > 0) {
-            pdf.line(x, currentY - 2, x, currentY + rowHeight - 2);
-          }
-        });
-
-        currentY += rowHeight;
-      } // End of for loop
-
-      // Save the PDF
-      pdf.save(`${filename}.pdf`);
-      toast.success("PDF downloaded successfully!");
-      setIsOpen(false);
-    } catch (error) {
-      toast.error("Error generating PDF");
-      console.error("PDF generation error:", error);
-    }
-  };
-
   // Process data for CSV export with proper formatting
   const processedData = visibleData.map((row) => {
     const processedRow: Record<string, string> = {};
@@ -277,15 +107,6 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
     });
     return processedRow;
   });
-
-  const handlePDFDownload = async () => {
-    try {
-      await generatePDF();
-    } catch (error) {
-      console.error("PDF generation failed:", error);
-      toast.error("Failed to generate PDF. Please try again.");
-    }
-  };
 
   const handleCSVDownload = () => {
     toast.success(
@@ -306,17 +127,6 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
             transition={{ duration: 0.2 }}
             className="flex flex-col items-center gap-3 mb-4"
           >
-            {/* PDF Download Button */}
-            <Button
-              size="icon"
-              variant="secondary"
-              className="h-12 w-12 rounded-full shadow-lg hover:shadow-xl bg-red-500 hover:bg-red-600 text-white border-0"
-              onClick={handlePDFDownload}
-              title="Download as PDF"
-            >
-              <FileText className="h-5 w-5" />
-            </Button>
-
             {/* CSV/Excel Download Button */}
             <CSVLink
               data={processedData}

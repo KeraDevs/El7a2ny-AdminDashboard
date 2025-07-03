@@ -501,7 +501,6 @@ const Cars: React.FC = () => {
           exotic: car.exotic ? "Yes" : "No",
         }))}
         filename="users-cars"
-        pageName="User Cars"
         headers={[
           { key: "brand", label: "Brand" },
           { key: "model", label: "Model" },
