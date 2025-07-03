@@ -55,20 +55,7 @@ export const useCarBrands = (): UseCarBrandsReturn => {
       }
 
       const result = await response.json();
-      console.log("=== FETCH BRANDS DEBUG ===");
-      console.log("API Response:", result);
-      console.log("Is Array:", Array.isArray(result));
-      console.log("Brands count:", Array.isArray(result) ? result.length : 0);
-      if (Array.isArray(result) && result.length > 0) {
-        console.log("First brand sample:", result[0]);
-        console.log(
-          "Brand IDs:",
-          result.map((b) => `${b.id} (${typeof b.id})`)
-        );
-      }
-      console.log("===========================");
 
-      // Assuming the API returns an array of brands directly
       setBrands(Array.isArray(result) ? result : []);
     } catch {
       toast.error("Error fetching car brands!");
@@ -169,17 +156,6 @@ export const useCarBrands = (): UseCarBrandsReturn => {
 
       const url = `${API_BASE_URL}/car/brands/${brandData.id}`;
 
-      console.log("=== EDIT BRAND DEBUG START ===");
-      console.log("Brand ID:", brandData.id);
-      console.log("Brand ID type:", typeof brandData.id);
-      console.log("API_BASE_URL:", API_BASE_URL);
-      console.log("Complete URL:", url);
-      console.log("Request body:", JSON.stringify(requestBody, null, 2));
-      console.log("API Key present:", !!API_KEY);
-      console.log("Auth token present:", !!authToken);
-
-      // Test if the brand exists with a GET request first
-      console.log("Testing brand existence with GET request...");
       const testResponse = await fetch(url, {
         method: "GET",
         headers: {

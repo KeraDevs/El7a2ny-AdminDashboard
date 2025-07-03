@@ -14,6 +14,7 @@ import { UsersTable } from "@/components/users/UsersTable";
 import { UsersPagination } from "@/components/users/UsersPagination";
 import { EditUserDialog } from "@/components/users/EditUserDialog";
 import { ViewUserDialog } from "@/components/users/ViewUserDialog";
+import { ColumnVisibility, SortConfig } from "@/types/userTypes";
 
 // Users Statistics Component
 const UsersStats = ({ users }: { users: User[] }) => {
@@ -106,21 +107,6 @@ const UsersStats = ({ users }: { users: User[] }) => {
       ))}
     </div>
   );
-};
-
-export type ColumnVisibility = {
-  name: boolean;
-  email: boolean;
-  phone: boolean;
-  gender: boolean;
-  userType: boolean;
-  labels: boolean;
-  joinDate?: boolean;
-};
-
-export type SortConfig = {
-  key: keyof User | null;
-  direction: "asc" | "desc";
 };
 
 const UsersList: React.FC = () => {

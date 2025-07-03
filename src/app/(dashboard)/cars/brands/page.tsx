@@ -222,13 +222,6 @@ const CarBrandsList: React.FC = () => {
   };
 
   const handleEditClick = (brand: CarBrand) => {
-    console.log("=== HANDLE EDIT CLICK DEBUG ===");
-    console.log("Brand received from table:", brand);
-    console.log("Brand ID:", brand.id, "Type:", typeof brand.id);
-    console.log("Brand object keys:", Object.keys(brand));
-    console.log("Full brand object:", JSON.stringify(brand, null, 2));
-    console.log("===============================");
-
     setSelectedBrandForEdit(brand);
     setIsEditDialogOpen(true);
   };

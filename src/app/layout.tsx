@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/tools/theme-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import { Toaster } from "react-hot-toast";
+import { useEffect } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,8 +23,22 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Set document title on client side
+  useEffect(() => {
+    document.title = "El7a2ny Admin Dashboard";
+  }, []);
+
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <title>El7a2ny Admin Dashboard</title>
+        <meta
+          name="description"
+          content="El7a2ny Admin Dashboard - Manage your platform"
+        />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

@@ -1,277 +1,245 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Vehicle } from "@/types/vehicleTypes";
+import { useUsersCars } from "@/hooks/_useUsersCars";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  CarWithDetails,
+  ColumnVisibility,
+  defaultColumnVisibility,
+} from "@/types/carTypes";
 import { toast } from "react-hot-toast";
-import {
-  Loader2,
-  Car,
-  Calendar,
-  Star,
-  MoreHorizontal,
-  Eye,
-  Edit,
-  Trash2 as Trash,
-  Search,
-  Filter,
-} from "lucide-react";
-import { FaCar, FaTools } from "react-icons/fa";
-import { SiToyota, SiBmw, SiHonda, SiMercedes, SiNissan } from "react-icons/si";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { IconRefresh as TablerRefresh } from "@tabler/icons-react";
-import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
-import { DataPagination } from "@/components/ui/DataPagination";
+import { Loader2, Car } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
-// Mock data for cars
-const mockCars: Vehicle[] = [
-  {
-    id: "1",
-    brand_id: "toyota_001",
-    model: "Camry",
-    year: 2023,
-    license_plate: "ABC-1234",
-    vin_number: "1HGBH41JXMN109186",
-    car_type: "Sedan",
-    turbo: false,
-    exotic: false,
-  },
-  {
-    id: "2",
-    brand_id: "bmw_001",
-    model: "X5",
-    year: 2022,
-    license_plate: "XYZ-5678",
-    vin_number: "WBAFR9C50BC123456",
-    car_type: "SUV",
-    turbo: true,
-    exotic: true,
-  },
-  {
-    id: "3",
-    brand_id: "honda_001",
-    model: "Civic",
-    year: 2021,
-    license_plate: "DEF-9012",
-    vin_number: "19XFC2F59CE012345",
-    car_type: "Hatchback",
-    turbo: false,
-    exotic: false,
-  },
-  {
-    id: "4",
-    brand_id: "mercedes_001",
-    model: "C-Class",
-    year: 2024,
-    license_plate: "GHI-3456",
-    vin_number: "WDDGF4HB0CA123456",
-    car_type: "Sedan",
-    turbo: true,
-    exotic: true,
-  },
-  {
-    id: "5",
-    brand_id: "nissan_001",
-    model: "Altima",
-    year: 2020,
-    license_plate: "JKL-7890",
-    vin_number: "1N4AL3AP0LC123456",
-    car_type: "Sedan",
-    turbo: false,
-    exotic: false,
-  },
-];
+import { UsersCarsTableHeader } from "@/components/users/UsersCarsTableHeader";
+import { UsersCarsTable } from "@/components/users/UsersCarsTable";
+import { UsersCarsPagination } from "@/components/users/UsersCarsPagination";
+import { UsersCarsStats } from "@/components/users/UsersCarsStats";
+import { EditCarDialog } from "@/components/users/EditCarDialog";
+import { ViewCarDialog } from "@/components/users/ViewCarDialog";
 
-// Cars Statistics Component
-const CarsStats = ({ cars }: { cars: Vehicle[] }) => {
-  const totalCars = cars.length;
-  const turboCars = cars.filter((c) => c.turbo).length;
-  const exoticCars = cars.filter((c) => c.exotic).length;
-  const recentCars = cars.filter((c) => c.year >= 2022).length;
-  const stats = [
-    {
-      title: "Total Cars",
-      value: totalCars.toString(),
-      icon: Car,
-      description: "All registered vehicles",
-      trend: "+15.2%",
-      color: "from-blue-500 to-blue-600",
-      bgColor: "from-blue-50 to-blue-100",
-    },
-    {
-      title: "Turbo Cars",
-      value: turboCars.toString(),
-      icon: FaTools,
-      description: "Turbocharged vehicles",
-      trend: "+8.7%",
-      color: "from-red-500 to-red-600",
-      bgColor: "from-red-50 to-red-100",
-    },
-    {
-      title: "Exotic Cars",
-      value: exoticCars.toString(),
-      icon: Star,
-      description: "Luxury vehicles",
-      trend: "+12.3%",
-      color: "from-purple-500 to-purple-600",
-      bgColor: "from-purple-50 to-purple-100",
-    },
-    {
-      title: "Recent Models",
-      value: recentCars.toString(),
-      icon: Calendar,
-      description: "2022 and newer",
-      trend: "+23.1%",
-      color: "from-green-500 to-green-600",
-      bgColor: "from-green-50 to-green-100",
-    },
-  ];
+interface SortConfig {
+  key: keyof CarWithDetails | "owner" | "brand";
+  direction: "asc" | "desc";
+}
 
-  return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-      {stats.map((stat, index) => (
-        <motion.div
-          key={stat.title}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
-        >
-          <Card
-            className={`border-0 shadow-md bg-gradient-to-br ${stat.bgColor} hover:shadow-lg transition-all duration-300`}
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div
-                className={`text-2xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}
-              >
-                {stat.value}
-              </div>
-              <div className="flex items-center justify-between mt-1">
-                <p className="text-xs text-muted-foreground">
-                  {stat.description}
-                </p>
-                <span className="text-xs text-green-600 font-medium">
-                  {stat.trend}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      ))}
-    </div>
+const UsersCarsPage: React.FC = () => {
+  const { usersCars, loading, error, fetchUserCars } = useUsersCars();
+  const { currentUser, isAuthorized, loading: authLoading } = useAuth();
+
+  // State management
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>(
+    defaultColumnVisibility
   );
-};
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    key: "created_at",
+    direction: "desc",
+  });
+  const [selectedCars, setSelectedCars] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
 
-const Cars: React.FC = () => {
-  const [cars] = useState<Vehicle[]>(mockCars);
-  const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const getBrandName = (brandId: string) => {
-    const brandMap: { [key: string]: string } = {
-      toyota_001: "Toyota",
-      bmw_001: "BMW",
-      honda_001: "Honda",
-      mercedes_001: "Mercedes-Benz",
-      nissan_001: "Nissan",
-    };
-    return brandMap[brandId] || "Unknown";
-  };
-  const getBrandIcon = (brandId: string) => {
-    const iconMap: {
-      [key: string]: React.ComponentType<{ className?: string }>;
-    } = {
-      toyota_001: SiToyota,
-      bmw_001: SiBmw,
-      honda_001: SiHonda,
-      mercedes_001: SiMercedes,
-      nissan_001: SiNissan,
-    };
-    return iconMap[brandId] || FaCar;
-  };
+  // Dialog states
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [editCarData, setEditCarData] = useState<CarWithDetails | null>(null);
+  const [viewCarData, setViewCarData] = useState<CarWithDetails | null>(null);
 
-  const getCarTypeColor = (carType: string) => {
-    const colors: { [key: string]: string } = {
-      Sedan: "bg-blue-100 text-blue-800",
-      SUV: "bg-green-100 text-green-800",
-      Hatchback: "bg-purple-100 text-purple-800",
-      Coupe: "bg-orange-100 text-orange-800",
-      Convertible: "bg-pink-100 text-pink-800",
-    };
-    return colors[carType] || "bg-gray-100 text-gray-800";
-  };
+  // Initialize data
+  useEffect(() => {
+    if (currentUser && !loading && usersCars.length === 0) {
+      fetchUserCars();
+    }
+  }, [currentUser, loading, usersCars.length, fetchUserCars]);
 
-  const filteredCars = useMemo(() => {
-    return cars.filter((car) => {
-      const matchesSearch =
-        car.model.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        getBrandName(car.brand_id)
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        car.license_plate.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        car.vin_number.toLowerCase().includes(searchQuery.toLowerCase());
+  // Sorted cars
+  const sortedCars = useMemo(() => {
+    if (!usersCars || !Array.isArray(usersCars)) {
+      return [];
+    }
 
-      const matchesType = typeFilter === "all" || car.car_type === typeFilter;
+    return [...usersCars].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
 
-      return matchesSearch && matchesType;
+      // Handle nested properties
+      if (sortConfig.key === "owner") {
+        aValue = `${a.owner?.first_name || ""} ${
+          a.owner?.last_name || ""
+        }`.trim();
+        bValue = `${b.owner?.first_name || ""} ${
+          b.owner?.last_name || ""
+        }`.trim();
+      } else if (sortConfig.key === "brand") {
+        aValue = a.brand?.name || "";
+        bValue = b.brand?.name || "";
+      } else {
+        aValue = a[sortConfig.key];
+        bValue = b[sortConfig.key];
+      }
+
+      if (aValue == null) return 1;
+      if (bValue == null) return -1;
+
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        return sortConfig.direction === "asc"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sortConfig.direction === "asc"
+          ? aValue - bValue
+          : bValue - aValue;
+      }
+
+      return 0;
     });
-  }, [cars, searchQuery, typeFilter]);
+  }, [usersCars, sortConfig]);
 
+  // Filtered cars
+  const filteredCars = useMemo(() => {
+    if (!searchQuery) return sortedCars;
+
+    return sortedCars.filter((car) => {
+      const searchFields = [
+        car.model,
+        car.license_plate,
+        car.vin_number,
+        car.year?.toString(),
+        car.brand?.name,
+        car.owner?.first_name,
+        car.owner?.last_name,
+        car.owner?.email,
+        car.owner?.phone,
+      ];
+
+      return searchFields.some(
+        (field) =>
+          field &&
+          field.toString().toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    });
+  }, [sortedCars, searchQuery]);
+
+  // Paginated cars
   const paginatedCars = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredCars.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredCars, currentPage, itemsPerPage]);
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    return filteredCars.slice(startIndex, startIndex + rowsPerPage);
+  }, [filteredCars, currentPage, rowsPerPage]);
 
-  const totalPages = Math.ceil(filteredCars.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredCars.length / rowsPerPage);
 
-  const handleRefresh = async () => {
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      toast.success("Cars data refreshed");
-    }, 1000);
+  // Event handlers
+  const handleSort = (key: keyof CarWithDetails | "owner" | "brand") => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig.key === key) {
+        return {
+          key,
+          direction: prevConfig.direction === "asc" ? "desc" : "asc",
+        };
+      }
+      return { key, direction: "asc" };
+    });
   };
+
+  const handleSelectCar = (carId: string) => {
+    setSelectedCars((prev) =>
+      prev.includes(carId)
+        ? prev.filter((id) => id !== carId)
+        : [...prev, carId]
+    );
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedCars(paginatedCars.map((car) => car.id));
+    } else {
+      setSelectedCars([]);
+    }
+  };
+
+  const handleEdit = (car: CarWithDetails) => {
+    setEditCarData(car);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleView = (car: CarWithDetails) => {
+    setViewCarData(car);
+    setIsViewDialogOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      // Here you would implement the actual save logic
+      toast.success("Car updated successfully");
+      setIsEditDialogOpen(false);
+      await fetchUserCars(); // Refresh data
+    } catch {
+      toast.error("Failed to update car");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (selectedCars.length === 0) {
+      toast.error("No cars selected");
+      return;
+    }
+
+    if (
+      window.confirm(
+        `Are you sure you want to delete ${selectedCars.length} car(s)?`
+      )
+    ) {
+      try {
+        // Here you would implement the actual delete logic
+        toast.success("Cars deleted successfully");
+        setSelectedCars([]);
+        await fetchUserCars(); // Refresh data
+      } catch {
+        toast.error("Failed to delete cars");
+      }
+    }
+  };
+
+  // Loading states
+  if (authLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground text-sm">
+            Checking authentication...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthorized || !currentUser) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center p-6 max-w-md">
+          <h2 className="text-xl font-semibold mb-2">
+            Authentication Required
+          </h2>
+          <p className="text-muted-foreground">
+            You need to be logged in to view this page. Please log in and try
+            again.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div
+      className="container mx-auto p-4 space-y-4 overflow-y-auto"
+      style={{ scrollbarGutter: "stable" }}
+    >
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -279,25 +247,15 @@ const Cars: React.FC = () => {
       >
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-            Cars Management
+            Users Cars Management
           </h1>
           <p className="text-muted-foreground">
-            Manage vehicle inventory and information
+            View and manage all user vehicles
           </p>
         </div>
-        <Button
-          onClick={handleRefresh}
-          disabled={loading}
-          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
-        >
-          <TablerRefresh
-            className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
-          />
-          Refresh
-        </Button>
       </motion.div>
 
-      <CarsStats cars={cars} />
+      <UsersCarsStats cars={usersCars as CarWithDetails[]} />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -305,215 +263,67 @@ const Cars: React.FC = () => {
         transition={{ delay: 0.3 }}
         className="space-y-4"
       >
-        <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Car className="h-5 w-5" />
-                  Cars List
-                </CardTitle>
-                <CardDescription>
-                  View and manage all registered vehicles
-                </CardDescription>
-              </div>
-              <div className="flex gap-2 flex-wrap">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search cars..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 w-64"
-                  />
-                </div>
-                <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger className="w-40">
-                    <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="Sedan">Sedan</SelectItem>
-                    <SelectItem value="SUV">SUV</SelectItem>
-                    <SelectItem value="Hatchback">Hatchback</SelectItem>
-                    <SelectItem value="Coupe">Coupe</SelectItem>
-                    <SelectItem value="Convertible">Convertible</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Brand & Model</TableHead>
-                    <TableHead>Year</TableHead>
-                    <TableHead>License Plate</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Features</TableHead>
-                    <TableHead>VIN</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
-                        <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                        <p className="text-muted-foreground mt-2">
-                          Loading cars...
-                        </p>
-                      </TableCell>
-                    </TableRow>
-                  ) : paginatedCars.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
-                        <Car className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground">No cars found</p>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    paginatedCars.map((car) => (
-                      <TableRow
-                        key={car.id}
-                        className="hover:bg-gradient-to-r hover:from-blue-50/30 hover:to-purple-50/30 dark:hover:from-gray-800/50 dark:hover:to-gray-700/50 transition-all duration-300"
-                      >
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                              {(() => {
-                                const IconComponent = getBrandIcon(
-                                  car.brand_id
-                                );
-                                return (
-                                  <IconComponent className="h-5 w-5 text-white" />
-                                );
-                              })()}
-                            </div>
-                            <div>
-                              <div className="font-medium">
-                                {getBrandName(car.brand_id)}
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                {car.model}
-                              </div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="font-medium">
-                            {car.year}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
-                            {car.license_plate}
-                          </code>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getCarTypeColor(car.car_type)}>
-                            {car.car_type}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1">
-                            {car.turbo && (
-                              <Badge
-                                variant="outline"
-                                className="text-red-600 border-red-200"
-                              >
-                                <FaTools className="h-3 w-3 mr-1" />
-                                Turbo
-                              </Badge>
-                            )}
-                            {car.exotic && (
-                              <Badge
-                                variant="outline"
-                                className="text-purple-600 border-purple-200"
-                              >
-                                <Star className="h-3 w-3 mr-1" />
-                                Exotic
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <code className="text-xs text-muted-foreground">
-                            {car.vin_number.slice(0, 8)}...
-                          </code>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                <Eye className="h-4 w-4 mr-2" />
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit Car
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-600">
-                                <Trash className="h-4 w-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-
-            <DataPagination
+        <Card className="overflow-hidden">
+          <UsersCarsTableHeader
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            columnVisibility={columnVisibility}
+            setColumnVisibility={setColumnVisibility}
+            refreshData={fetchUserCars}
+            selectedCars={selectedCars}
+            onDelete={handleDelete}
+          />
+          <UsersCarsTable
+            cars={usersCars as CarWithDetails[]}
+            selectedCars={selectedCars}
+            onSelectCar={handleSelectCar}
+            handleSelectAll={handleSelectAll}
+            columnVisibility={columnVisibility}
+            handleEdit={handleEdit}
+            handleView={handleView}
+            onDelete={handleDelete}
+            handleSort={handleSort}
+            searchQuery={searchQuery}
+            loading={loading}
+            paginatedCars={paginatedCars}
+            sortConfig={sortConfig}
+            handleSelectCar={handleSelectCar}
+          />
+          <div className="p-4 pt-0">
+            <UsersCarsPagination
               currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
               totalPages={totalPages}
-              totalItems={filteredCars.length}
-              itemsPerPage={itemsPerPage}
-              onPageChange={setCurrentPage}
-              onItemsPerPageChange={setItemsPerPage}
-              itemType="cars"
-              loading={loading}
+              rowsPerPage={rowsPerPage}
+              setRowsPerPage={setRowsPerPage}
+              filteredCars={filteredCars}
+              selectedCars={selectedCars}
             />
-          </CardContent>
+          </div>
         </Card>
       </motion.div>
 
-      <FloatingDownloadButton
-        data={paginatedCars.map((car) => ({
-          brand: getBrandName(car.brand_id),
-          model: car.model,
-          year: car.year.toString(),
-          license_plate: car.license_plate,
-          vin_number: car.vin_number,
-          car_type: car.car_type,
-          turbo: car.turbo ? "Yes" : "No",
-          exotic: car.exotic ? "Yes" : "No",
-        }))}
-        filename="users-cars"
-        headers={[
-          { key: "brand", label: "Brand" },
-          { key: "model", label: "Model" },
-          { key: "year", label: "Year" },
-          { key: "license_plate", label: "License Plate" },
-          { key: "vin_number", label: "VIN Number" },
-          { key: "car_type", label: "Type" },
-          { key: "turbo", label: "Turbo" },
-          { key: "exotic", label: "Exotic" },
-        ]}
+      <EditCarDialog
+        isOpen={isEditDialogOpen}
+        setIsOpen={setIsEditDialogOpen}
+        carData={editCarData}
+        setCarData={setEditCarData}
+        onSave={handleSaveEdit}
+      />
+
+      <ViewCarDialog
+        isOpen={isViewDialogOpen}
+        setIsOpen={setIsViewDialogOpen}
+        car={viewCarData}
+        onEdit={() => {
+          setIsViewDialogOpen(false);
+          if (viewCarData) {
+            handleEdit(viewCarData);
+          }
+        }}
       />
     </div>
   );
 };
 
-export default Cars;
+export default UsersCarsPage;

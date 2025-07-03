@@ -1,4 +1,3 @@
-import { ColumnVisibility, SortConfig } from "@/app/(dashboard)/users/page";
 import { Vehicle } from "./vehicleTypes";
 import { User as FirebaseUser } from "firebase/auth";
 
@@ -21,6 +20,21 @@ export interface User {
   updatedAt: string;
   vehicle?: Vehicle;
 }
+
+export type ColumnVisibility = {
+  name: boolean;
+  email: boolean;
+  phone: boolean;
+  gender: boolean;
+  userType: boolean;
+  labels: boolean;
+  joinDate?: boolean;
+};
+
+export type SortConfig = {
+  key: keyof User | null;
+  direction: "asc" | "desc";
+};
 
 // Define user data interface for authentication context
 export interface UserData {
@@ -63,14 +77,14 @@ export interface UsersTableProps {
   paginatedUsers: User[];
   columnVisibility: ColumnVisibility;
   sortConfig: SortConfig;
-  handleSort: (key: keyof User) => void;
   selectedUsers: string[];
+  searchQuery: string;
+  users: User[];
+  handleSort: (key: keyof User) => void;
   handleSelectAll: (checked: boolean) => void;
   handleSelectUser: (userId: string) => void;
   handleEdit: (user: User) => void;
   handleView: (user: User) => void;
-  searchQuery: string;
-  users: User[];
   onDelete: () => void;
 }
 
