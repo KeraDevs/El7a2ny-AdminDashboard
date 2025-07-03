@@ -1,17 +1,5 @@
 import React from "react";
-import {
-  ChevronsUpDown,
-  Edit,
-  Eye,
-  Loader2,
-  Trash2,
-  PercentIcon,
-  Clock,
-  DollarSign,
-  CheckCircle,
-  Wrench,
-  FileText,
-} from "lucide-react";
+import { Edit, Eye, Loader2, Trash2, Settings } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -39,14 +27,12 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
   searchQuery,
   serviceTypes,
   onDelete,
-  onSetPercentage,
 }) => {
   const visibleColumnCount =
     Object.values(columnVisibility).filter(Boolean).length + 2;
 
-  // Get category badge - updated to match API response format
+  // Get category badge
   const getCategoryBadge = (category: string) => {
-    // API returns service_category field rather than category
     switch (category?.toLowerCase()) {
       case "maintenance":
         return (
@@ -54,16 +40,7 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
             variant="outline"
             className="bg-blue-100 text-blue-800 border-blue-300"
           >
-            <Wrench className="h-3.5 w-3.5 mr-1" /> Maintenance
-          </Badge>
-        );
-      case "repair":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-amber-100 text-amber-800 border-amber-300"
-          >
-            <Wrench className="h-3.5 w-3.5 mr-1" /> Repair
+            Maintenance
           </Badge>
         );
       case "tuning":
@@ -72,7 +49,7 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
             variant="outline"
             className="bg-purple-100 text-purple-800 border-purple-300"
           >
-            <Wrench className="h-3.5 w-3.5 mr-1" /> Tuning
+            Tuning
           </Badge>
         );
       case "emergency":
@@ -81,7 +58,7 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
             variant="outline"
             className="bg-red-100 text-red-800 border-red-300"
           >
-            <FileText className="h-3.5 w-3.5 mr-1" /> Emergency
+            Emergency
           </Badge>
         );
       case "check_car_services":
@@ -90,7 +67,7 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
             variant="outline"
             className="bg-green-100 text-green-800 border-green-300"
           >
-            <FileText className="h-3.5 w-3.5 mr-1" /> Check Car Services
+            Check Car Services
           </Badge>
         );
       default:
@@ -125,9 +102,23 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
                 onClick={() => handleSort("name")}
               >
                 <div className="flex items-center gap-1">
-                  Name
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
+                  Name (EN)
                   {sortConfig.key === "name" && (
+                    <span className="ml-1">
+                      {sortConfig.direction === "asc" ? "↑" : "↓"}
+                    </span>
+                  )}
+                </div>
+              </TableHead>
+            )}
+            {columnVisibility.name_ar && (
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => handleSort("name_ar")}
+              >
+                <div className="flex items-center gap-1">
+                  Name (AR)
+                  {sortConfig.key === "name_ar" && (
                     <span className="ml-1">
                       {sortConfig.direction === "asc" ? "↑" : "↓"}
                     </span>
@@ -141,8 +132,7 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
                 onClick={() => handleSort("description")}
               >
                 <div className="flex items-center gap-1">
-                  Description
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
+                  Description (EN)
                   {sortConfig.key === "description" && (
                     <span className="ml-1">
                       {sortConfig.direction === "asc" ? "↑" : "↓"}
@@ -151,15 +141,14 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
                 </div>
               </TableHead>
             )}
-            {columnVisibility.basePrice && (
+            {columnVisibility.description_ar && (
               <TableHead
                 className="cursor-pointer"
-                onClick={() => handleSort("basePrice")}
+                onClick={() => handleSort("description_ar")}
               >
                 <div className="flex items-center gap-1">
-                  Base Price
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
-                  {sortConfig.key === "basePrice" && (
+                  Description (AR)
+                  {sortConfig.key === "description_ar" && (
                     <span className="ml-1">
                       {sortConfig.direction === "asc" ? "↑" : "↓"}
                     </span>
@@ -167,47 +156,14 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
                 </div>
               </TableHead>
             )}
-            {columnVisibility.category && (
+            {columnVisibility.service_category && (
               <TableHead
                 className="cursor-pointer"
-                onClick={() => handleSort("category")}
+                onClick={() => handleSort("service_category")}
               >
                 <div className="flex items-center gap-1">
                   Category
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
-                  {sortConfig.key === "category" && (
-                    <span className="ml-1">
-                      {sortConfig.direction === "asc" ? "↑" : "↓"}
-                    </span>
-                  )}
-                </div>
-              </TableHead>
-            )}
-            {columnVisibility.estimatedDuration && (
-              <TableHead
-                className="cursor-pointer"
-                onClick={() => handleSort("estimatedDuration")}
-              >
-                <div className="flex items-center gap-1">
-                  Duration
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
-                  {sortConfig.key === "estimatedDuration" && (
-                    <span className="ml-1">
-                      {sortConfig.direction === "asc" ? "↑" : "↓"}
-                    </span>
-                  )}
-                </div>
-              </TableHead>
-            )}
-            {columnVisibility.isActive && (
-              <TableHead
-                className="cursor-pointer"
-                onClick={() => handleSort("isActive")}
-              >
-                <div className="flex items-center gap-1">
-                  Status
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
-                  {sortConfig.key === "isActive" && (
+                  {sortConfig.key === "service_category" && (
                     <span className="ml-1">
                       {sortConfig.direction === "asc" ? "↑" : "↓"}
                     </span>
@@ -222,7 +178,6 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
               >
                 <div className="flex items-center gap-1">
                   Created Date
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
                   {sortConfig.key === "created_at" && (
                     <span className="ml-1">
                       {sortConfig.direction === "asc" ? "↑" : "↓"}
@@ -231,7 +186,22 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
                 </div>
               </TableHead>
             )}
-            <TableHead>Actions</TableHead>
+            {columnVisibility.updated_at && (
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => handleSort("updated_at")}
+              >
+                <div className="flex items-center gap-1">
+                  Updated Date
+                  {sortConfig.key === "updated_at" && (
+                    <span className="ml-1">
+                      {sortConfig.direction === "asc" ? "↑" : "↓"}
+                    </span>
+                  )}
+                </div>
+              </TableHead>
+            )}
+            <TableHead className="text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -280,72 +250,67 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                        <Wrench className="h-4 w-4" />
+                        <Settings className="h-4 w-4" />
                       </div>
-                      {serviceType.name}
-                      {serviceType.service_types_percentage?.percentage && (
-                        <Badge variant="secondary" className="ml-2">
-                          <PercentIcon className="h-3 w-3 mr-1" />
-                          {serviceType.service_types_percentage.percentage}%
-                        </Badge>
-                      )}
+                      <div className="max-w-[200px]">
+                        <div className="truncate" title={serviceType.name}>
+                          {serviceType.name}
+                        </div>
+                      </div>
+                    </div>
+                  </TableCell>
+                )}
+                {columnVisibility.name_ar && (
+                  <TableCell className="font-medium">
+                    <div className="max-w-[200px]">
+                      <div
+                        className="truncate text-right"
+                        title={serviceType.name_ar}
+                        dir="rtl"
+                      >
+                        {serviceType.name_ar || "غير متوفر"}
+                      </div>
                     </div>
                   </TableCell>
                 )}
                 {columnVisibility.description && (
                   <TableCell>
-                    <div
-                      className="max-w-[250px] truncate"
-                      title={serviceType.description}
-                    >
-                      {serviceType.description || "No description"}
+                    <div className="max-w-[250px]">
+                      <div className="truncate" title={serviceType.description}>
+                        {serviceType.description || "No description"}
+                      </div>
                     </div>
                   </TableCell>
                 )}
-                {columnVisibility.basePrice && (
+                {columnVisibility.description_ar && (
                   <TableCell>
-                    <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                      <DollarSign className="h-3.5 w-3.5" />
-                      <span className="font-mono">
-                        {/* API doesn't provide basePrice, using placeholder for now */}
-                        {serviceType.service_types_percentage?.percentage ||
-                          "N/A"}
-                        %
-                      </span>
+                    <div className="max-w-[250px]">
+                      <div
+                        className="truncate text-right"
+                        title={serviceType.description_ar}
+                        dir="rtl"
+                      >
+                        {serviceType.description_ar || "لا يوجد وصف"}
+                      </div>
                     </div>
                   </TableCell>
                 )}
-                {columnVisibility.category && (
+                {columnVisibility.service_category && (
                   <TableCell>
                     {getCategoryBadge(serviceType.service_category)}
-                  </TableCell>
-                )}
-                {columnVisibility.estimatedDuration && (
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                      <Clock className="h-3.5 w-3.5" />
-                      <span>
-                        {/* API doesn't provide duration, using placeholder */}
-                        N/A
-                      </span>
-                    </div>
-                  </TableCell>
-                )}
-                {columnVisibility.isActive && (
-                  <TableCell>
-                    {/* API doesn't provide active status, assuming all are active */}
-                    <Badge
-                      variant="outline"
-                      className="bg-green-100 text-green-800 border-green-300"
-                    >
-                      <CheckCircle className="h-3.5 w-3.5 mr-1" /> Active
-                    </Badge>
                   </TableCell>
                 )}
                 {columnVisibility.created_at && (
                   <TableCell>
                     {serviceType.created_at
                       ? new Date(serviceType.created_at).toLocaleDateString()
+                      : "N/A"}
+                  </TableCell>
+                )}
+                {columnVisibility.updated_at && (
+                  <TableCell>
+                    {serviceType.updated_at
+                      ? new Date(serviceType.updated_at).toLocaleDateString()
                       : "N/A"}
                   </TableCell>
                 )}
@@ -384,19 +349,9 @@ export const ServiceTypesTable: React.FC<ServiceTypesTableProps> = ({
           </div>
           <div className="flex gap-2">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={onSetPercentage}
-              className="transition-all hover:bg-blue-500 hover:text-white"
-              disabled={loading}
-            >
-              <PercentIcon className="mr-2 h-4 w-4" />
-              Set Percentage
-            </Button>
-            <Button
               variant="destructive"
               size="sm"
-              onClick={onDelete}
+              onClick={() => onDelete(selectedServiceTypes[0])}
               disabled={loading}
               className="transition-all hover:bg-red-600"
             >

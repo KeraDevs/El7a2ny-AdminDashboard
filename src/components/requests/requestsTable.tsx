@@ -16,17 +16,9 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Car, Calendar } from "lucide-react";
-import { ServiceRequest } from "@/app/(dashboard)/requests/page";
 import RequestStatusBadge from "./RequestStatusBadge";
 import RequestUrgencyBadge from "./RequestUrgencyBadge";
-
-interface RequestsTableProps {
-  requests: ServiceRequest[];
-  totalRequests: number;
-  onView: (request: ServiceRequest) => void;
-  onEdit: (request: ServiceRequest) => void;
-  onAssign: (request: ServiceRequest) => void;
-}
+import { RequestsTableProps } from "@/types/requestTypes";
 
 const RequestsTable = ({
   requests,
@@ -66,23 +58,37 @@ const RequestsTable = ({
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Car className="h-4 w-4" />
-                    {request.vehicle}
+                    {request.vehicleModel} ({request.vehicleYear})
                   </div>
                 </TableCell>
-                <TableCell>{request.service}</TableCell>
+                <TableCell>{request.serviceName}</TableCell>
                 <TableCell>
-                  <RequestStatusBadge status={request.status} />
+                  <RequestStatusBadge
+                    status={
+                      request.status === "New"
+                        ? "pending"
+                        : request.status === "Pending"
+                        ? "pending"
+                        : request.status === "In Progress"
+                        ? "in-progress"
+                        : request.status === "Completed"
+                        ? "completed"
+                        : request.status === "Cancelled"
+                        ? "cancelled"
+                        : "pending"
+                    }
+                  />
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
-                    {new Date(request.date).toLocaleDateString()}
+                    {new Date(request.requestedAt).toLocaleDateString()}
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    {request.workshop ? (
-                      request.workshop
+                    {request.workshopName ? (
+                      request.workshopName
                     ) : (
                       <span className="text-muted-foreground italic text-sm">
                         Not assigned
@@ -91,7 +97,15 @@ const RequestsTable = ({
                   </div>
                 </TableCell>
                 <TableCell>
-                  <RequestUrgencyBadge urgency={request.urgency} />
+                  <RequestUrgencyBadge
+                    urgency={
+                      request.priority === "medium"
+                        ? "normal"
+                        : request.priority === null
+                        ? "normal"
+                        : request.priority
+                    }
+                  />
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-2">

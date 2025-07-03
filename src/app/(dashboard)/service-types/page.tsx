@@ -5,6 +5,7 @@ import { useServiceTypes } from "@/hooks/_useServices";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
+import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
 
 import { ServiceTypesTableHeader } from "@/components/workshops/services/ServiceTypeHeader";
 import { ServiceTypesTable } from "@/components/workshops/services/ServiceTypeTable";
@@ -12,7 +13,6 @@ import ServiceTypesPagination from "@/components/workshops/services/ServiceTypeP
 import EditServiceTypeDialog from "@/components/workshops/services/EditServiceTypeDialog";
 import ViewServiceTypeDialog from "@/components/workshops/services/ViewServiceTypeDialog";
 import DeleteServiceTypeDialog from "@/components/workshops/services/DeleteServiceTypeDialog";
-import SetPercentageDialog from "@/components/workshops/services/SetPercecntageDialog";
 import {
   ServiceTypeColumnVisibility,
   SortConfig,
@@ -25,28 +25,32 @@ const ServiceTypesList: React.FC = () => {
     serviceTypes,
     loading,
     error,
+    pagination,
     fetchServiceTypes,
     selectedServiceTypes,
     handleSelectAll,
     handleSelectServiceType,
     handleDeleteServiceTypes,
+    checkServiceTypesCanBeDeleted,
     handleEditServiceType,
     handleAddServiceType,
-    handleSetPercentage,
   } = useServiceTypes();
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  // Remove local pagination states since we're using server-side pagination
+  // const [currentPage, setCurrentPage] = useState(1);
+  // const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // Use pagination from hooks
   const [searchQuery, setSearchQuery] = useState("");
   const [columnVisibility, setColumnVisibility] =
     useState<ServiceTypeColumnVisibility>({
       name: true,
+      name_ar: true,
       description: true,
-      basePrice: true,
-      category: true,
-      estimatedDuration: true,
+      description_ar: true,
+      service_category: true,
       created_at: true,
-      isActive: true,
+      updated_at: false,
     });
 
   const [sortConfig, setSortConfig] = useState<SortConfig>({
@@ -62,14 +66,12 @@ const ServiceTypesList: React.FC = () => {
     useState<ServiceType | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isSetPercentageDialogOpen, setIsSetPercentageDialogOpen] =
-    useState(false);
 
   // Initial data load when component mounts
   useEffect(() => {
     if (isAuthorized && currentUser) {
       console.log("Authorized, fetching service types");
-      fetchServiceTypes().catch((err) => {
+      fetchServiceTypes(1, 10).catch((err) => {
         console.error("Error fetching service types:", err);
         toast.error("Failed to fetch service types");
       });
@@ -88,7 +90,7 @@ const ServiceTypesList: React.FC = () => {
     }
   }, [error]);
 
-  // Apply sorting to the service types
+  // Apply sorting to the service types (keep client-side sorting for better UX)
   const sortedServiceTypes = useMemo(() => {
     console.log("Sorting service types:", serviceTypes.length);
     const serviceTypesCopy = [...serviceTypes];
@@ -121,32 +123,37 @@ const ServiceTypesList: React.FC = () => {
     return serviceTypesCopy;
   }, [serviceTypes, sortConfig]);
 
-  // Filter service types based on search query
-  const filteredServiceTypes = useMemo(() => {
-    if (!searchQuery) return sortedServiceTypes;
+  // Handle search query changes with debouncing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (isAuthorized && currentUser) {
+        fetchServiceTypes(1, pagination.limit, searchQuery);
+      }
+    }, 300); // 300ms debounce
 
-    return sortedServiceTypes.filter((serviceType) => {
-      const searchFields = [
-        serviceType.name,
-        serviceType.description,
-        serviceType.category,
-      ];
+    return () => clearTimeout(timeoutId);
+  }, [
+    searchQuery,
+    isAuthorized,
+    currentUser,
+    fetchServiceTypes,
+    pagination.limit,
+  ]);
 
-      return searchFields.some(
-        (field) =>
-          field &&
-          field.toString().toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    });
-  }, [sortedServiceTypes, searchQuery]);
+  // Use server-side data directly - no client-side filtering needed
+  const paginatedServiceTypes = sortedServiceTypes;
 
-  // Get current page of service types
-  const paginatedServiceTypes = useMemo(() => {
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    return filteredServiceTypes.slice(startIndex, startIndex + rowsPerPage);
-  }, [filteredServiceTypes, currentPage, rowsPerPage]);
+  // Pagination handlers
+  const handlePageChange = (page: React.SetStateAction<number>) => {
+    const newPage = typeof page === "function" ? page(pagination.page) : page;
+    fetchServiceTypes(newPage, pagination.limit, searchQuery);
+  };
 
-  const totalPages = Math.ceil(filteredServiceTypes.length / rowsPerPage);
+  const handleLimitChange = (limit: React.SetStateAction<number>) => {
+    const newLimit =
+      typeof limit === "function" ? limit(pagination.limit) : limit;
+    fetchServiceTypes(1, newLimit, searchQuery);
+  };
 
   // Handle sorting
   const handleSort = (key: keyof ServiceType) => {
@@ -189,43 +196,94 @@ const ServiceTypesList: React.FC = () => {
   // Handle delete
   const handleDelete = async () => {
     try {
-      console.log("Deleting service types:", selectedServiceTypes);
-      await handleDeleteServiceTypes(selectedServiceTypes);
-      toast.success(
-        selectedServiceTypes.length > 1
-          ? "Service types deleted successfully"
-          : "Service type deleted successfully"
+      console.log("Selected service types for deletion:", selectedServiceTypes);
+      console.log(
+        "Available service types:",
+        serviceTypes.map((st) => ({ id: st.id, name: st.name }))
       );
-      setIsDeleteDialogOpen(false);
+
+      if (selectedServiceTypes.length === 0) {
+        toast.error("No service types selected for deletion");
+        return;
+      }
+
+      // Show loading toast while checking
+      const loadingToast = toast.loading(
+        "🔍 Checking which service types can be deleted..."
+      );
+
+      try {
+        // Pre-check which service types can be deleted
+        const { canDelete, cannotDelete } = await checkServiceTypesCanBeDeleted(
+          selectedServiceTypes
+        );
+
+        // Dismiss loading toast
+        toast.dismiss(loadingToast);
+
+        console.log("Pre-check results:", { canDelete, cannotDelete });
+
+        if (cannotDelete.length > 0) {
+          const cannotDeleteNames = cannotDelete
+            .map((item) => item.name)
+            .join(", ");
+
+          if (canDelete.length > 0) {
+            // Mixed case: some can be deleted, some cannot
+            const canDeleteNames = canDelete
+              .map((id) => {
+                const serviceType = serviceTypes.find((st) => st.id === id);
+                return serviceType?.name || id;
+              })
+              .join(", ");
+
+            const proceed = window.confirm(
+              `⚠️ Some service types cannot be deleted because they are being used by workshops.\n\n` +
+                `❌ Cannot delete: ${cannotDeleteNames}\n\n` +
+                `✅ Can delete: ${canDeleteNames}\n\n` +
+                `Would you like to proceed with deleting only the available ones?`
+            );
+
+            if (!proceed) {
+              return;
+            }
+
+            // Proceed with only deletable ones
+            await handleDeleteServiceTypes(canDelete);
+            toast.success(
+              `Successfully deleted ${canDelete.length} service type(s)`
+            );
+          } else {
+            // All selected items cannot be deleted
+            toast.error(
+              `❌ Cannot delete any selected service types: ${cannotDeleteNames}.\nThey are currently being used by workshops.`,
+              { duration: 6000 }
+            );
+            return;
+          }
+        } else {
+          // All can be deleted, proceed normally
+          await handleDeleteServiceTypes(selectedServiceTypes);
+          toast.success(
+            selectedServiceTypes.length === 1
+              ? "Service type deleted successfully"
+              : `${selectedServiceTypes.length} service types deleted successfully`
+          );
+        }
+
+        // Close dialog and refresh data after successful deletion
+        setIsDeleteDialogOpen(false);
+        await fetchServiceTypes(pagination.page, pagination.limit, searchQuery);
+      } catch (checkError) {
+        // Dismiss loading toast if still showing
+        toast.dismiss(loadingToast);
+        throw checkError;
+      }
     } catch (error) {
       console.error("Failed to delete service types:", error);
-      toast.error("Failed to delete service types");
-    }
-  };
-
-  // Handle percentage update
-  const handlePercentageUpdate = async (percentage: number) => {
-    try {
-      console.log(
-        "Updating percentage for service types:",
-        selectedServiceTypes,
-        percentage
-      );
-      // Update percentage for all selected service types
-      await Promise.all(
-        selectedServiceTypes.map((id) =>
-          handleSetPercentage(id, Number(percentage.toFixed(2)))
-        )
-      );
-      toast.success(
-        selectedServiceTypes.length > 1
-          ? "Percentage modifiers updated successfully"
-          : "Percentage modifier updated successfully"
-      );
-      setIsSetPercentageDialogOpen(false);
-    } catch (error) {
-      console.error("Failed to update percentage modifier:", error);
-      toast.error("Failed to update percentage modifier");
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      toast.error(`Failed to delete service types: ${errorMessage}`);
     }
   };
 
@@ -280,9 +338,10 @@ const ServiceTypesList: React.FC = () => {
         columnVisibility={columnVisibility}
         setColumnVisibility={setColumnVisibility}
         onAddServiceType={handleAddServiceType}
-        refreshData={fetchServiceTypes}
+        refreshData={() =>
+          fetchServiceTypes(pagination.page, pagination.limit, searchQuery)
+        }
         selectedServiceTypes={selectedServiceTypes}
-        onSetPercentage={() => setIsSetPercentageDialogOpen(true)}
         onDelete={() => setIsDeleteDialogOpen(true)}
       />
 
@@ -300,16 +359,16 @@ const ServiceTypesList: React.FC = () => {
         searchQuery={searchQuery}
         serviceTypes={serviceTypes}
         onDelete={() => setIsDeleteDialogOpen(true)}
-        onSetPercentage={() => setIsSetPercentageDialogOpen(true)}
       />
 
       <ServiceTypesPagination
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-        totalPages={totalPages}
-        rowsPerPage={rowsPerPage}
-        setRowsPerPage={setRowsPerPage}
-        filteredServiceTypes={filteredServiceTypes}
+        currentPage={pagination.page}
+        setCurrentPage={handlePageChange}
+        totalPages={Math.ceil(pagination.total / pagination.limit)}
+        rowsPerPage={pagination.limit}
+        setRowsPerPage={handleLimitChange}
+        totalItems={pagination.total}
+        currentItems={paginatedServiceTypes.length}
         selectedServiceTypes={selectedServiceTypes}
       />
 
@@ -345,13 +404,27 @@ const ServiceTypesList: React.FC = () => {
         ServiceTypes={serviceTypes}
       />
 
-      {/* Set Percentage Dialog */}
-      <SetPercentageDialog
-        isOpen={isSetPercentageDialogOpen}
-        setIsOpen={setIsSetPercentageDialogOpen}
-        serviceTypeIds={selectedServiceTypes}
-        onSetPercentage={handlePercentageUpdate}
-        ServiceTypes={serviceTypes}
+      {/* Floating Download Button */}
+      <FloatingDownloadButton
+        data={paginatedServiceTypes.map((service) => ({
+          name: service.name || "",
+          name_ar: service.name_ar || "",
+          description: service.description || "",
+          description_ar: service.description_ar || "",
+          service_category: service.service_category || "",
+          created_at: service.created_at || "",
+          updated_at: service.updated_at || "",
+        }))}
+        filename="service-types"
+        columnVisibility={{
+          name: columnVisibility.name ?? true,
+          name_ar: columnVisibility.name_ar ?? true,
+          description: columnVisibility.description ?? true,
+          description_ar: columnVisibility.description_ar ?? true,
+          service_category: columnVisibility.service_category ?? true,
+          created_at: columnVisibility.created_at ?? true,
+          updated_at: columnVisibility.updated_at ?? true,
+        }}
       />
     </div>
   );

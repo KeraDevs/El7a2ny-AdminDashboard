@@ -1,27 +1,17 @@
-import React from "react";
-import { Search, Download, Trash2, RefreshCw, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ServiceTypesTableHeaderProps } from "@/types/serviceTypes";
+import { Plus, RefreshCw, Search, Trash2 } from "lucide-react";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
 
-interface CarRegionsTableHeaderProps {
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  selectedCount: number;
-  onDelete: () => void;
-  onRefresh: () => void;
-  onAddRegion: () => void;
-  onExport?: () => void;
-  loading: boolean;
-}
-
-export const CarRegionsTableHeader: React.FC<CarRegionsTableHeaderProps> = ({
+export const ServiceTypesTableHeader: React.FC<
+  ServiceTypesTableHeaderProps
+> = ({
   searchQuery,
   setSearchQuery,
   selectedCount,
   onDelete,
   onRefresh,
-  onAddRegion,
-  onExport,
+  onAddServiceType,
   loading,
 }) => {
   return (
@@ -31,14 +21,13 @@ export const CarRegionsTableHeader: React.FC<CarRegionsTableHeaderProps> = ({
         <div className="relative flex-1 min-w-[200px] max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            placeholder="Search regions..."
+            placeholder="Search service types..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
           />
         </div>
       </div>
-
       {/* Action Buttons */}
       <div className="flex flex-wrap items-center gap-2">
         {selectedCount > 0 && (
@@ -64,17 +53,11 @@ export const CarRegionsTableHeader: React.FC<CarRegionsTableHeaderProps> = ({
           />
           <span className="hidden sm:inline">Refresh</span>
         </Button>
-        {/* Export Button */}
-        {onExport && (
-          <Button variant="outline" size="sm" onClick={onExport}>
-            <Download className="h-4 w-4 sm:mr-1" />
-            <span className="hidden sm:inline">Export</span>
-          </Button>
-        )}
-        {/* Add Region Button */}
-        <Button size="sm" onClick={onAddRegion}>
+
+        {/* Add Service Type */}
+        <Button size="sm" onClick={onAddServiceType}>
           <Plus className="h-4 w-4 sm:mr-1" />
-          <span className="hidden sm:inline">Add Region</span>
+          <span className="hidden sm:inline">Add Service Type</span>
         </Button>
       </div>
     </div>

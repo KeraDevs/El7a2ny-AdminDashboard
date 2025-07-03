@@ -26,7 +26,6 @@ export const useCarBrands = (): UseCarBrandsReturn => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  // Fetch all car brands
   const fetchBrands = useCallback(async () => {
     if (!currentUser) {
       setError("Authentication required");
@@ -71,11 +70,8 @@ export const useCarBrands = (): UseCarBrandsReturn => {
 
       // Assuming the API returns an array of brands directly
       setBrands(Array.isArray(result) ? result : []);
-    } catch (error) {
+    } catch {
       toast.error("Error fetching car brands!");
-      setError(
-        error instanceof Error ? error.message : "Failed to fetch brands"
-      );
       setBrands([]);
     } finally {
       setLoading(false);
@@ -140,11 +136,8 @@ export const useCarBrands = (): UseCarBrandsReturn => {
 
       setBrands((prev) => [...prev, newBrand]);
       toast.success("Car brand added successfully");
-    } catch (error) {
-      console.error("Add Brand Error:", error);
+    } catch {
       toast.error("Error adding car brand");
-      setError(error instanceof Error ? error.message : "Failed to add brand");
-      throw error;
     } finally {
       setLoading(false);
     }

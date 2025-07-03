@@ -2,15 +2,7 @@ import React, { useState, useEffect } from "react";
 import { CreateServiceTypeData } from "@/types/serviceTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "react-hot-toast";
-import {
-  Loader2,
-  ClipboardCheck,
-  Wrench,
-  Clock,
-  Timer,
-  PoundSterling,
-  TagIcon,
-} from "lucide-react";
+import { Loader2, FileText, Wrench, Globe } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,8 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox";
 
 interface AddServiceTypeDialogProps {
   onAddServiceType: (serviceTypeData: CreateServiceTypeData) => Promise<void>;
@@ -41,19 +31,13 @@ interface AddServiceTypeDialogProps {
   onSuccess?: () => Promise<void>;
 }
 
-// Define form data interface for better type safety
+// Define form data interface for API compatibility
 interface ServiceTypeFormData {
   name: string;
   name_ar?: string;
   description?: string;
   description_ar?: string;
-  service_category: "maintenance" | "repair" | "inspection" | "custom";
-  basePrice?: number;
-  estimatedDuration?: number;
-  percentageModifier?: number;
-  isActive: boolean;
-  requiresSpecialist?: boolean;
-  compatibleVehicleTypes?: string[];
+  service_category: string;
 }
 
 export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
@@ -63,105 +47,116 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
   onSuccess,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState("basic");
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const { currentUser } = useAuth();
 
   // Use the proper form data interface
   const [formData, setFormData] = useState<ServiceTypeFormData>({
     name: "",
+    name_ar: "",
     description: "",
-    service_category: "maintenance",
-    isActive: true,
+    description_ar: "",
+    service_category: "",
   });
 
   // Reset form when dialog closes
   useEffect(() => {
     if (!isOpen) {
-      setActiveTab("basic");
       setFormData({
         name: "",
+        name_ar: "",
         description: "",
-        service_category: "maintenance",
-        isActive: true,
+        description_ar: "",
+        service_category: "",
       });
+      setErrors({});
     }
   }, [isOpen]);
 
   // Handle changes to form inputs with proper typing
   const handleInputChange = (
     field: keyof ServiceTypeFormData,
-    value: unknown
+    value: string
   ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
+
+    // Clear error when user types
+    if (errors[field]) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: "",
+      }));
+    }
+  };
+
+  // Validate form
+  const validateForm = (): boolean => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = "Service name is required";
+    }
+
+    if (!formData.service_category) {
+      newErrors.service_category = "Category is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   // Handle form submission
   const handleSubmit = async () => {
-    if (!currentUser) {
-      toast.error("Authentication required");
+    if (!validateForm()) {
       return;
     }
 
-    if (!formData.name) {
-      toast.error("Service type name is required");
+    if (!currentUser) {
+      toast.error("Authentication required");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      // Transform form data to match CreateServiceTypeData interface
+      // Prepare data for API (remove empty optional fields)
       const createData: CreateServiceTypeData = {
-        name: formData.name,
-        name_ar: formData.name_ar,
-        description: formData.description,
-        description_ar: formData.description_ar,
+        name: formData.name.trim(),
         service_category: formData.service_category,
       };
 
+      // Add optional fields only if they have values
+      if (formData.name_ar?.trim()) {
+        createData.name_ar = formData.name_ar.trim();
+      }
+      if (formData.description?.trim()) {
+        createData.description = formData.description.trim();
+      }
+      if (formData.description_ar?.trim()) {
+        createData.description_ar = formData.description_ar.trim();
+      }
+
       await onAddServiceType(createData);
 
-      toast.success("Service type added successfully");
+      toast.success("Service type created successfully");
       setIsOpen(false);
 
       if (onSuccess) {
         await onSuccess();
       }
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Service type creation failed"
-      );
+      console.error("Error creating service type:", error);
+      if (error instanceof Error) {
+        toast.error(`Failed to create service type: ${error.message}`);
+      } else {
+        toast.error("Failed to create service type");
+      }
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // List of common vehicle types for checkbox selection
-  const vehicleTypes = [
-    { id: "sedan", label: "Sedan" },
-    { id: "suv", label: "SUV" },
-    { id: "truck", label: "Truck" },
-    { id: "van", label: "Van" },
-    { id: "coupe", label: "Coupe" },
-    { id: "hatchback", label: "Hatchback" },
-    { id: "wagon", label: "Wagon" },
-    { id: "convertible", label: "Convertible" },
-    { id: "motorcycle", label: "Motorcycle" },
-  ];
-
-  // Handle vehicle type checkbox changes
-  const handleVehicleTypeChange = (vehicleType: string, checked: boolean) => {
-    const currentTypes = formData.compatibleVehicleTypes || [];
-
-    setFormData((prev) => ({
-      ...prev,
-      compatibleVehicleTypes: checked
-        ? [...currentTypes, vehicleType]
-        : currentTypes.filter((type) => type !== vehicleType),
-    }));
   };
 
   return (
@@ -174,199 +169,111 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="basic">Basic Info</TabsTrigger>
-            <TabsTrigger value="advanced">Advanced Options</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="basic" className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Service Type Name *</Label>
-              <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-blue-50/50">
-                <Wrench className="h-4 w-4 text-blue-500" />
-                <Input
-                  id="name"
-                  placeholder="Service type name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
-                  className="border-none bg-transparent focus-visible:ring-0 p-0"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <div className="flex items-start gap-2 border rounded-md px-3 py-2 bg-gray-50/50">
-                <ClipboardCheck className="h-4 w-4 text-gray-500 mt-2" />
-                <Textarea
-                  id="description"
-                  placeholder="Describe the service type..."
-                  value={formData.description || ""}
-                  onChange={(e) =>
-                    handleInputChange("description", e.target.value)
-                  }
-                  className="border-none bg-transparent focus-visible:ring-0 p-0 min-h-[100px]"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="basePrice">Base Price (EGP)</Label>
-                <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-green-50/50">
-                  <PoundSterling className="h-4 w-4 text-green-500" />
-                  <Input
-                    id="basePrice"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={formData.basePrice || ""}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "basePrice",
-                        parseFloat(e.target.value) || 0
-                      )
-                    }
-                    className="border-none bg-transparent focus-visible:ring-0 p-0"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="service_category">Category *</Label>
-                <Select
-                  value={formData.service_category}
-                  onValueChange={(value) =>
-                    handleInputChange(
-                      "service_category",
-                      value as
-                        | "maintenance"
-                        | "repair"
-                        | "inspection"
-                        | "custom"
-                    )
-                  }
-                >
-                  <SelectTrigger
-                    id="service_category"
-                    className="bg-purple-50/50"
-                  >
-                    <TagIcon className="h-4 w-4 text-purple-500 mr-2" />
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="maintenance">Maintenance</SelectItem>
-                    <SelectItem value="repair">Repair</SelectItem>
-                    <SelectItem value="inspection">Inspection</SelectItem>
-                    <SelectItem value="custom">Custom</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="estimatedDuration">
-                Estimated Duration (minutes)
-              </Label>
-              <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-amber-50/50">
-                <Clock className="h-4 w-4 text-amber-500" />
-                <Input
-                  id="estimatedDuration"
-                  type="number"
-                  min="1"
-                  placeholder="60"
-                  value={formData.estimatedDuration || ""}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "estimatedDuration",
-                      parseInt(e.target.value) || 60
-                    )
-                  }
-                  className="border-none bg-transparent focus-visible:ring-0 p-0"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isActive"
-                checked={formData.isActive}
-                onCheckedChange={(checked) =>
-                  handleInputChange("isActive", !!checked)
-                }
+        <div className="space-y-6 py-4">
+          {/* English Name */}
+          <div className="space-y-2">
+            <Label htmlFor="name">Service Type Name (English) *</Label>
+            <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-blue-50/50">
+              <Wrench className="h-4 w-4 text-blue-500" />
+              <Input
+                id="name"
+                placeholder="Service type name in English"
+                value={formData.name}
+                onChange={(e) => handleInputChange("name", e.target.value)}
+                className="border-none bg-transparent focus-visible:ring-0 p-0"
+                required
+                disabled={isSubmitting}
               />
-              <Label htmlFor="isActive">
-                Active service type (available for selection)
-              </Label>
             </div>
-          </TabsContent>
+            {errors.name && (
+              <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+            )}
+          </div>
 
-          <TabsContent value="advanced" className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="percentageModifier">
-                Price Modifier Percentage (%)
-              </Label>
-              <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-blue-50/50">
-                <Timer className="h-4 w-4 text-blue-500" />
-                <Input
-                  id="percentageModifier"
-                  type="number"
-                  min="-100"
-                  max="100"
-                  placeholder="0"
-                  value={formData.percentageModifier || ""}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "percentageModifier",
-                      parseFloat(e.target.value) || 0
-                    )
-                  }
-                  className="border-none bg-transparent focus-visible:ring-0 p-0"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Apply a percentage modifier to the base price. Positive values
-                increase the price, negative values decrease it.
+          {/* Arabic Name */}
+          <div className="space-y-2">
+            <Label htmlFor="name_ar">Service Type Name (Arabic)</Label>
+            <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-emerald-50/50">
+              <Globe className="h-4 w-4 text-emerald-500" />
+              <Input
+                id="name_ar"
+                placeholder="اسم نوع الخدمة بالعربية"
+                value={formData.name_ar}
+                onChange={(e) => handleInputChange("name_ar", e.target.value)}
+                className="border-none bg-transparent focus-visible:ring-0 p-0"
+                dir="rtl"
+                disabled={isSubmitting}
+              />
+            </div>
+          </div>
+
+          {/* English Description */}
+          <div className="space-y-2">
+            <Label htmlFor="description">Description (English)</Label>
+            <div className="flex items-start gap-2 border rounded-md px-3 py-2 bg-gray-50/50">
+              <FileText className="h-4 w-4 text-gray-500 mt-2" />
+              <Textarea
+                id="description"
+                placeholder="Describe the service type in English..."
+                value={formData.description}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
+                className="border-none bg-transparent focus-visible:ring-0 p-0 min-h-[80px]"
+                disabled={isSubmitting}
+              />
+            </div>
+          </div>
+
+          {/* Arabic Description */}
+          <div className="space-y-2">
+            <Label htmlFor="description_ar">Description (Arabic)</Label>
+            <div className="flex items-start gap-2 border rounded-md px-3 py-2 bg-emerald-50/50">
+              <Globe className="h-4 w-4 text-emerald-500 mt-2" />
+              <Textarea
+                id="description_ar"
+                placeholder="وصف نوع الخدمة بالعربية..."
+                value={formData.description_ar}
+                onChange={(e) =>
+                  handleInputChange("description_ar", e.target.value)
+                }
+                className="border-none bg-transparent focus-visible:ring-0 p-0 min-h-[80px]"
+                dir="rtl"
+                disabled={isSubmitting}
+              />
+            </div>
+          </div>
+
+          {/* Category */}
+          <div className="space-y-2">
+            <Label htmlFor="service_category">Category *</Label>
+            <Select
+              value={formData.service_category}
+              onValueChange={(value) =>
+                handleInputChange("service_category", value)
+              }
+              disabled={isSubmitting}
+            >
+              <SelectTrigger id="service_category" className="bg-purple-50/50">
+                <Wrench className="h-4 w-4 text-purple-500 mr-2" />
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Maintenance">Maintenance</SelectItem>
+                <SelectItem value="Tuning">Tuning</SelectItem>
+                <SelectItem value="Emergency">Emergency</SelectItem>
+                <SelectItem value="Check_Car_Services">
+                  Check Car Services
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.service_category && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.service_category}
               </p>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="requiresSpecialist"
-                checked={formData.requiresSpecialist || false}
-                onCheckedChange={(checked) =>
-                  handleInputChange("requiresSpecialist", !!checked)
-                }
-              />
-              <Label htmlFor="requiresSpecialist">
-                Requires specialist technician
-              </Label>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Compatible Vehicle Types</Label>
-              <div className="border rounded-md p-3 grid grid-cols-3 gap-2">
-                {vehicleTypes.map((type) => (
-                  <div key={type.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`vt-${type.id}`}
-                      checked={(formData.compatibleVehicleTypes || []).includes(
-                        type.id
-                      )}
-                      onCheckedChange={(checked) =>
-                        handleVehicleTypeChange(type.id, !!checked)
-                      }
-                    />
-                    <Label htmlFor={`vt-${type.id}`}>{type.label}</Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+            )}
+          </div>
+        </div>
 
         <DialogFooter>
           <Button
@@ -391,3 +298,5 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
     </Dialog>
   );
 };
+
+export default AddServiceTypeDialog;

@@ -72,9 +72,7 @@ export interface ApiUser {
 
 export interface ApiWorkshopsList {
   apiWorkshop: User;
-  services: never[];
   id: string;
-  email: string;
   parent_id: string | null;
   owner_id: string;
   name: string;
@@ -106,7 +104,17 @@ export interface ApiWorkshopsList {
   operating_hours: OperatingHour[];
   workers: WorkshopWorker[];
   supported_brands: CarBrand[];
-  labels: string[];
+  labels: {
+    workshop_id: string;
+    label_id: string;
+    created_at: string;
+    label: {
+      id: string;
+      name: string;
+      created_at: string;
+      updated_at: string;
+    };
+  }[];
 }
 
 export interface ApiUserResponse {

@@ -1,5 +1,4 @@
 import React from "react";
-import { ServiceType } from "@/types/serviceTypes";
 import {
   Pagination,
   PaginationContent,
@@ -23,7 +22,8 @@ export interface ServiceTypesPaginationProps {
   totalPages: number;
   rowsPerPage: number;
   setRowsPerPage: React.Dispatch<React.SetStateAction<number>>;
-  filteredServiceTypes: ServiceType[];
+  totalItems: number;
+  currentItems: number;
   selectedServiceTypes: string[];
 }
 
@@ -33,20 +33,16 @@ export const ServiceTypesPagination: React.FC<ServiceTypesPaginationProps> = ({
   totalPages,
   rowsPerPage,
   setRowsPerPage,
-  filteredServiceTypes,
+  totalItems,
+  currentItems,
   selectedServiceTypes,
 }) => {
   return (
     <div className="flex items-center justify-between">
       <div className="text-sm text-muted-foreground">
         Showing
-        <strong>
-          {Math.min(
-            rowsPerPage,
-            filteredServiceTypes.length - (currentPage - 1) * rowsPerPage
-          )}
-        </strong>
-        of <strong>{filteredServiceTypes.length}</strong> service types
+        <strong>{currentItems}</strong>
+        of <strong>{totalItems}</strong> service types
         {selectedServiceTypes.length > 0 && (
           <span>
             (<strong>{selectedServiceTypes.length}</strong> selected)

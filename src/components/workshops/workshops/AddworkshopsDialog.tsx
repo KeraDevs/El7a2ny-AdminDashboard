@@ -1,19 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Workshop } from "@/types/workshopTypes";
-import { API_KEY, API_BASE_URL } from "@/utils/config";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "react-hot-toast";
-import {
-  Loader2,
-  PlusCircle,
-  Mail,
-  Phone,
-  Building,
-  User,
-  MapPin,
-  Plus,
-  X,
-} from "lucide-react";
+import { Loader2, Plus, MapPin, Building2, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,7 +44,6 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
   // Workshop form data state
   const [formData, setFormData] = useState<Partial<Workshop>>({
     name: "",
-    email: "",
     address: "",
     phoneNumbers: [
       {
@@ -84,7 +72,6 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
       setActiveTab("basic");
       setFormData({
         name: "",
-        email: "",
         address: "",
         phoneNumbers: [
           {
@@ -192,108 +179,24 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
     setIsSubmitting(true);
 
     try {
-      const authToken = await currentUser.getIdToken();
-
-      // Create the request payload matching the Swagger API schema
-      // UPDATED: Changed arrays to objects with nested createMany structure
-      const requestData = {
+      // Prepare workshop data for the hook
+      const workshopData = {
         name: formData.name,
         address: formData.address || "",
         status: formData.status || "open",
-        owner_id: selectedOwnerId,
-        // Correct structure: object with createMany
-        phone_numbers: {
-          createMany: {
-            data:
-              formData.phoneNumbers?.map((phone) => ({
-                phone_number: phone.phone_number,
-                type: "MOBILE",
-                is_primary: phone.is_primary,
-              })) || [],
-          },
-        },
-        // Correct structure: object with createMany
-        operating_hours: {
-          createMany: {
-            data: [
-              {
-                day: "MONDAY",
-                open_time: "1970-01-01T09:00:00", // Added full ISO format with date
-                close_time: "1970-01-01T17:00:00",
-                is_closed: false,
-              },
-              {
-                day: "TUESDAY",
-                open_time: "1970-01-01T09:00:00",
-                close_time: "1970-01-01T17:00:00",
-                is_closed: false,
-              },
-            ],
-          },
-        },
+        ownerId: selectedOwnerId,
+        phoneNumbers: formData.phoneNumbers || [],
         latitude: formData.latitude || 0,
         longitude: formData.longitude || 0,
       };
 
-      console.log(
-        "Sending request data:",
-        JSON.stringify(requestData, null, 2)
-      );
+      // Use the hook's method to add the workshop
+      await onAddWorkshop(workshopData);
 
-      // Call the API to create the workshop
-      const response = await fetch(`${API_BASE_URL}/workshops`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": API_KEY || "",
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify(requestData),
-      });
-
-      const responseText = await response.text();
-      console.log("API Response:", responseText);
-
-      if (!response.ok) {
-        let errorMessage;
-        try {
-          const errorData = JSON.parse(responseText);
-          errorMessage =
-            errorData.message || `Workshop creation failed: ${response.status}`;
-          console.error(
-            "Validation errors:",
-            errorData.errors || "No detailed errors"
-          );
-        } catch {
-          errorMessage = `Workshop creation failed: ${response.status} - ${responseText}`;
-        }
-        throw new Error(errorMessage);
-      }
-
-      // Parse the response to get the created workshop
-      let createdWorkshop;
-      try {
-        createdWorkshop = JSON.parse(responseText);
-      } catch {
-        console.warn("Could not parse response as JSON:", responseText);
-        // Include locally stored data for client-side use
-        createdWorkshop = {
-          ...formData,
-          owner_id: selectedOwnerId,
-          email: formData.email,
-        };
-      }
-
-      // Update the parent component with the new workshop
-      await onAddWorkshop(createdWorkshop);
-
-      toast.success("Workshop added successfully");
       setIsOpen(false);
     } catch (error) {
       console.error("Workshop creation error:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Workshop creation failed"
-      );
+      // Error handling is done in the hook
     } finally {
       setIsSubmitting(false);
     }
@@ -303,7 +206,7 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
+          <Plus className="mr-2 h-4 w-4" />
           Add Workshop
         </Button>
       </DialogTrigger>
@@ -325,7 +228,7 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
             <div className="space-y-2">
               <Label htmlFor="name">Workshop Name *</Label>
               <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-blue-50/50">
-                <Building className="h-4 w-4 text-blue-500" />
+                <Building2 className="h-4 w-4 text-blue-500" />
                 <Input
                   id="name"
                   placeholder="Workshop name"
@@ -338,29 +241,10 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-blue-50/50">
-                <Mail className="h-4 w-4 text-blue-500" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="workshop@example.com"
-                  value={formData.email || ""}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  className="border-none bg-transparent focus-visible:ring-0 p-0"
-                  required
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Note: Email is stored locally and not sent to the API
-              </p>
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="owner">Workshop Owner *</Label>
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-violet-50/50 flex-1">
-                  <User className="h-4 w-4 text-violet-500" />
+                  <Users className="h-4 w-4 text-violet-500" />
                   <div className="flex-1 overflow-hidden">
                     {selectedOwnerId ? (
                       <div className="text-sm font-medium">
@@ -421,7 +305,7 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
               {formData.phoneNumbers?.map((phone, index) => (
                 <div key={index} className="flex items-center gap-2">
                   <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-amber-50/50 flex-1">
-                    <Phone className="h-4 w-4 text-amber-500" />
+                    <Plus className="h-4 w-4 text-amber-500" />
                     <Input
                       placeholder="Phone number"
                       value={phone.phone_number}
@@ -449,7 +333,7 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
                         onClick={() => removePhoneNumber(index)}
                         className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-100"
                       >
-                        <X className="h-4 w-4" />
+                        <Plus className="h-4 w-4" />
                       </Button>
                     )}
                   </div>

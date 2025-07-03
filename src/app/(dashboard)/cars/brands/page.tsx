@@ -12,10 +12,11 @@ import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 
 import { CarBrandsTableHeader } from "@/components/cars/CarBrandsTableHeader";
 import { CarBrandsTable } from "@/components/cars/CarBrandsTable";
-import { CarBrandsPagination } from "@/components/cars/CarBrandsPagination";
 import { AddCarBrandDialog } from "@/components/cars/AddCarBrandDialog";
 import { EditCarBrandDialog } from "@/components/cars/EditCarBrandDialog";
 import { ViewCarBrandDialog } from "@/components/cars/ViewCarBrandDialog";
+import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
+import { DataPagination } from "@/components/ui/DataPagination";
 
 // Car Brands Statistics Component
 const CarBrandsStats = ({ brands }: { brands: CarBrand[] }) => {
@@ -241,6 +242,11 @@ const CarBrandsList: React.FC = () => {
     setIsAddDialogOpen(false);
     fetchBrands();
   };
+
+  const handleRefresh = () => {
+    fetchBrands();
+    toast.success("Brands refreshed successfully");
+  };
   const handleEditSuccess = () => {
     setIsEditDialogOpen(false);
     setSelectedBrandForEdit(null);
@@ -301,7 +307,7 @@ const CarBrandsList: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-2">Access Denied</h2>{" "}
+          <h2 className="text-2xl font-semibold mb-2">Access Denied</h2>
           <p className="text-muted-foreground">
             You don&apos;t have permission to access car brands management.
           </p>
@@ -312,7 +318,6 @@ const CarBrandsList: React.FC = () => {
 
   return (
     <div className="space-y-6 p-6">
-      {" "}
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -331,6 +336,8 @@ const CarBrandsList: React.FC = () => {
         setSearchQuery={setSearchQuery}
         selectedCount={selectedBrands.length}
         onDelete={handleBulkDeleteClick}
+        onAdd={() => setIsAddDialogOpen(true)}
+        onRefresh={handleRefresh}
       />
       {/* Table */}
       <CarBrandsTable
@@ -347,13 +354,15 @@ const CarBrandsList: React.FC = () => {
         loading={loading}
       />
       {/* Pagination */}
-      <CarBrandsPagination
+      <DataPagination
         currentPage={currentPage}
         totalPages={totalPages}
-        rowsPerPage={rowsPerPage}
         totalItems={filteredAndSortedBrands.length}
+        itemsPerPage={rowsPerPage}
         onPageChange={setCurrentPage}
-        onRowsPerPageChange={setRowsPerPage}
+        onItemsPerPageChange={setRowsPerPage}
+        itemType="brands"
+        loading={loading}
       />
       {/* Dialogs */}
       <AddCarBrandDialog
@@ -412,6 +421,38 @@ const CarBrandsList: React.FC = () => {
           {error}
         </div>
       )}
+      {/* Floating Download Button */}
+      <FloatingDownloadButton
+        data={paginatedBrands.map((brand) => ({
+          id: brand.id,
+          name: brand.name,
+          description: brand.description || "",
+          regionsCount: brand.brand_regions?.length || 0,
+          createdDate: brand.created_at
+            ? new Date(brand.created_at).toLocaleDateString()
+            : "",
+          updatedDate: brand.updated_at
+            ? new Date(brand.updated_at).toLocaleDateString()
+            : "",
+        }))}
+        filename={`car-brands-page-${currentPage}`}
+        columnVisibility={{
+          id: true,
+          name: columnVisibility.name,
+          description: true,
+          regionsCount: columnVisibility.regionsCount,
+          createdDate: columnVisibility.createdAt,
+          updatedDate: true,
+        }}
+        headers={[
+          { label: "ID", key: "id" },
+          { label: "Brand Name", key: "name" },
+          { label: "Description", key: "description" },
+          { label: "Regions Count", key: "regionsCount" },
+          { label: "Created Date", key: "createdDate" },
+          { label: "Updated Date", key: "updatedDate" },
+        ]}
+      />
     </div>
   );
 };

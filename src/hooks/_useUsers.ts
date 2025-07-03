@@ -16,7 +16,7 @@ export const useUsers = (): UseUsersReturn => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [openUserDialog, setOpenUserDialog] = useState(false);
 
-  // Fetching All Users
+  // Fetching All Users with proper pagination
   const fetchUsers = useCallback(async () => {
     if (!currentUser) {
       setError("Authentication required");
@@ -32,30 +32,19 @@ export const useUsers = (): UseUsersReturn => {
         throw new Error("API key is missing");
       }
 
-      // Initial fetch to get the first batch
-      const response = await fetch(`${API_BASE_URL}/users`, {
-        headers: {
-          "x-api-key": API_KEY,
-          Authorization: `Bearer ${authToken}`,
-        } as HeadersInit,
-      });
+      let allUsers: User[] = [];
+      let hasMore = true;
+      let offset = 0;
+      const pageSize = 50;
 
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch users: ${response.status} ${response.statusText}`
-        );
-      }
+      console.log("Starting to fetch users with pagination...");
 
-      const Result: ApiResponse = await response.json();
-      let allUsers = (Result.users || []).map(mapApiUserToFrontend);
-      console.log("Fetched initial users:", allUsers);
-
-      let hasMore = Result.hasMore;
-      let offset = 50;
-
+      // Fetch all users in batches
       while (hasMore) {
-        const nextPageResponse = await fetch(
-          `${API_BASE_URL}/users?skip=${offset}&take=50`,
+        console.log(`Fetching users batch: skip=${offset}, take=${pageSize}`);
+
+        const response = await fetch(
+          `${API_BASE_URL}/users?skip=${offset}&take=${pageSize}`,
           {
             headers: {
               "x-api-key": API_KEY,
@@ -64,26 +53,35 @@ export const useUsers = (): UseUsersReturn => {
           }
         );
 
-        if (!nextPageResponse.ok) {
+        if (!response.ok) {
           throw new Error(
-            `Failed to fetch users page: ${nextPageResponse.status}`
+            `Failed to fetch users: ${response.status} ${response.statusText}`
           );
         }
 
-        const nextPageResult: ApiResponse = await nextPageResponse.json();
-        const nextPageUsers = (nextPageResult.users || []).map(
-          mapApiUserToFrontend
-        );
+        const result: ApiResponse = await response.json();
+        const batchUsers = (result.users || []).map(mapApiUserToFrontend);
 
-        allUsers = [...allUsers, ...nextPageUsers];
-        hasMore = nextPageResult.hasMore;
-        offset += 50;
+        console.log(`Fetched ${batchUsers.length} users in this batch`);
 
-        if (nextPageUsers.length === 0) {
+        allUsers = [...allUsers, ...batchUsers];
+        hasMore = result.hasMore;
+        offset += pageSize;
+
+        // Safety check to prevent infinite loops
+        if (batchUsers.length === 0) {
+          console.log("No more users returned, stopping pagination");
           break;
+        }
+
+        // If we got less than the page size, we've reached the end
+        if (batchUsers.length < pageSize) {
+          console.log("Received less than page size, assuming end reached");
+          hasMore = false;
         }
       }
 
+      console.log(`Total users fetched: ${allUsers.length}`);
       setUsers(allUsers);
     } catch (error) {
       toast.error("Error fetching users!");
@@ -114,10 +112,15 @@ export const useUsers = (): UseUsersReturn => {
       let allWorkers: User[] = [];
       let hasMore = true;
       let offset = 0;
+      const pageSize = 50;
+
+      console.log("Starting to fetch workers with pagination...");
 
       while (hasMore) {
+        console.log(`Fetching workers batch: skip=${offset}, take=${pageSize}`);
+
         const response = await fetch(
-          `${API_BASE_URL}/users?type=worker&skip=${offset}&take=50`,
+          `${API_BASE_URL}/users?type=worker&skip=${offset}&take=${pageSize}`,
           {
             headers: {
               "x-api-key": API_KEY,
@@ -133,17 +136,28 @@ export const useUsers = (): UseUsersReturn => {
         }
 
         const result: ApiResponse = await response.json();
-        const mappedUsers = (result.users || []).map(mapApiUserToFrontend);
+        const batchWorkers = (result.users || []).map(mapApiUserToFrontend);
 
-        allWorkers = [...allWorkers, ...mappedUsers];
+        console.log(`Fetched ${batchWorkers.length} workers in this batch`);
+
+        allWorkers = [...allWorkers, ...batchWorkers];
         hasMore = result.hasMore;
-        offset += 50;
+        offset += pageSize;
 
-        if (mappedUsers.length === 0) {
+        // Safety check to prevent infinite loops
+        if (batchWorkers.length === 0) {
+          console.log("No more workers returned, stopping pagination");
           break;
+        }
+
+        // If we got less than the page size, we've reached the end
+        if (batchWorkers.length < pageSize) {
+          console.log("Received less than page size, assuming end reached");
+          hasMore = false;
         }
       }
 
+      console.log(`Total workers fetched: ${allWorkers.length}`);
       setUsers(allWorkers);
     } catch (err) {
       toast.error("Error fetching workers:");

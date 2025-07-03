@@ -1,5 +1,8 @@
 import React from "react";
-import { ServiceType } from "@/types/serviceTypes";
+import {
+  ServiceType,
+  getServiceCategoryDisplayName,
+} from "@/types/serviceTypes";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Calendar, Wrench, Tag, Info, Clock } from "lucide-react";
+import { Edit, Calendar, Wrench, FileText, Globe } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 // Updated interface to match the actual data structure
@@ -40,86 +43,57 @@ const ViewServiceTypeDialog: React.FC<ViewServiceTypeDialogProps> = ({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Service name and status */}
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">{serviceType.name}</h3>
-            <Badge
-              variant={serviceType.isActive ? "default" : "secondary"}
-              className={
-                serviceType.isActive
-                  ? "bg-green-100 text-green-800 border-green-300"
-                  : "bg-red-100 text-red-800 border-red-300"
-              }
-            >
-              {serviceType.isActive ? "Active" : "Inactive"}
-            </Badge>
+          {/* Service name */}
+          <div className="space-y-2">
+            <h3 className="text-lg font-medium flex items-center gap-2">
+              <Wrench className="h-5 w-5 text-blue-500" />
+              {serviceType.name}
+            </h3>
+            {serviceType.name_ar && (
+              <p className="text-sm text-muted-foreground" dir="rtl">
+                {serviceType.name_ar}
+              </p>
+            )}
           </div>
 
           <Separator />
 
           {/* Service details section */}
           <div className="space-y-4">
-            {/* Description */}
-            <div className="flex items-start gap-2">
-              <Info className="h-4 w-4 text-blue-500 mt-0.5" />
-              <div>
-                <h4 className="text-sm font-medium">Description</h4>
-                <p className="text-sm text-muted-foreground">
-                  {serviceType.description || "No description provided"}
-                </p>
+            {/* English Description */}
+            {serviceType.description && (
+              <div className="flex items-start gap-2">
+                <FileText className="h-4 w-4 text-blue-500 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="text-sm font-medium">Description</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {serviceType.description}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Price */}
-            <div className="flex items-start gap-2">
-              <Tag className="h-4 w-4 text-green-500 mt-0.5" />
-              <div>
-                <h4 className="text-sm font-medium">Percentage</h4>
-                <p className="text-sm font-semibold">
-                  {serviceType.service_types_percentage?.percentage || "0"}%
-                </p>
+            {/* Arabic Description */}
+            {serviceType.description_ar && (
+              <div className="flex items-start gap-2">
+                <Globe className="h-4 w-4 text-emerald-500 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="text-sm font-medium">Arabic Description</h4>
+                  <p className="text-sm text-muted-foreground" dir="rtl">
+                    {serviceType.description_ar}
+                  </p>
+                </div>
               </div>
-            </div>
-
-            {/* Duration */}
-            <div className="flex items-start gap-2">
-              <Clock className="h-4 w-4 text-amber-500 mt-0.5" />
-              <div>
-                <h4 className="text-sm font-medium">Last Updated</h4>
-                <p className="text-sm">
-                  {new Date(serviceType.updated_at).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
+            )}
 
             {/* Category */}
             <div className="flex items-start gap-2">
-              <Wrench className="h-4 w-4 text-indigo-500 mt-0.5" />
+              <Wrench className="h-4 w-4 text-purple-500 mt-0.5" />
               <div>
                 <h4 className="text-sm font-medium">Category</h4>
-                <p className="text-sm capitalize">
-                  {serviceType.service_category}
-                </p>
-              </div>
-            </div>
-
-            {/* Languages */}
-            <div className="flex items-start gap-2">
-              <Tag className="h-4 w-4 text-purple-500 mt-0.5" />
-              <div>
-                <h4 className="text-sm font-medium">Languages</h4>
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {serviceType.name_ar && (
-                    <Badge variant="outline" className="text-xs">
-                      Arabic Name: {serviceType.name_ar}
-                    </Badge>
-                  )}
-                  {serviceType.description_ar && (
-                    <Badge variant="outline" className="text-xs">
-                      Arabic Description Available
-                    </Badge>
-                  )}
-                </div>
+                <Badge variant="outline" className="mt-1">
+                  {getServiceCategoryDisplayName(serviceType.service_category)}
+                </Badge>
               </div>
             </div>
 
@@ -135,6 +109,28 @@ const ViewServiceTypeDialog: React.FC<ViewServiceTypeDialogProps> = ({
                       year: "numeric",
                       month: "short",
                       day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* Last Updated */}
+            <div className="flex items-start gap-2">
+              <Calendar className="h-4 w-4 text-amber-500 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-medium">Last Updated</h4>
+                <p className="text-sm">
+                  {new Date(serviceType.updated_at).toLocaleDateString(
+                    undefined,
+                    {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
                     }
                   )}
                 </p>
