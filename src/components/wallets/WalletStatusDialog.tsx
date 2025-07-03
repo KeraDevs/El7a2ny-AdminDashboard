@@ -19,12 +19,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { IconEdit, IconWallet, IconAlertTriangle } from "@tabler/icons-react";
 import { Wallet, formatBalance } from "@/types/walletTypes";
+import toast from "react-hot-toast";
 
 interface WalletStatusDialogProps {
   wallet: Wallet | null;
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (status: string) => Promise<void>;
+  onConfirm: (
+    status: "active" | "inactive" | "suspended" | "frozen"
+  ) => Promise<void>;
 }
 
 const statusOptions = [
@@ -61,8 +64,21 @@ export default function WalletStatusDialog({
   onClose,
   onConfirm,
 }: WalletStatusDialogProps) {
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [selectedStatus, setSelectedStatus] = useState<
+    "active" | "inactive" | "suspended" | "frozen" | ""
+  >("");
   const [loading, setLoading] = useState(false);
+
+  const handleStatusChange = (value: string) => {
+    if (
+      value === "active" ||
+      value === "inactive" ||
+      value === "suspended" ||
+      value === "frozen"
+    ) {
+      setSelectedStatus(value);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!selectedStatus || !wallet) return;
@@ -72,8 +88,8 @@ export default function WalletStatusDialog({
       await onConfirm(selectedStatus);
       setSelectedStatus("");
       onClose();
-    } catch (error) {
-      // Error handling is done in parent component
+    } catch {
+      toast.error("Failed to update wallet status");
     } finally {
       setLoading(false);
     }
@@ -130,7 +146,7 @@ export default function WalletStatusDialog({
           {/* New Status Selection */}
           <div className="space-y-2">
             <Label htmlFor="status">New Status *</Label>
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <Select value={selectedStatus} onValueChange={handleStatusChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select new status" />
               </SelectTrigger>

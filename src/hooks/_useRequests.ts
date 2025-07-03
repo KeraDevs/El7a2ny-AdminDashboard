@@ -157,13 +157,8 @@ export const useRequests = (): UseRequestsReturn => {
       }
 
       setRequests(allRequests);
-    } catch (error) {
+    } catch {
       toast.error("Error fetching service requests!");
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to fetch service requests"
-      );
       setRequests([]);
     } finally {
       setLoading(false);
@@ -255,13 +250,8 @@ export const useRequests = (): UseRequestsReturn => {
 
         const result = await response.json();
         setRequests(result.requests || []);
-      } catch (error) {
+      } catch {
         toast.error("Error fetching workshop requests!");
-        setError(
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch workshop requests"
-        );
         setRequests([]);
       } finally {
         setLoading(false);
@@ -323,11 +313,8 @@ export const useRequests = (): UseRequestsReturn => {
       }
 
       setWorkshops(allWorkshops);
-    } catch (error) {
+    } catch {
       toast.error("Error fetching workshops!");
-      setError(
-        error instanceof Error ? error.message : "Failed to fetch workshops"
-      );
       setWorkshops([]);
     } finally {
       setLoading(false);

@@ -83,7 +83,7 @@ export default function AddMoneyDialog({
         onSuccess();
         onClose();
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to add money to wallet");
     }
   };

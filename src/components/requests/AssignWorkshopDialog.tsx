@@ -15,16 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { ServiceRequest, Workshop } from "@/app/(dashboard)/requests/page";
 import { Building, MapPin, Star } from "lucide-react";
-
-interface AssignWorkshopDialogProps {
-  request: ServiceRequest;
-  workshops: Workshop[];
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (requestId: string, workshopId: string) => void;
-}
+import { AssignWorkshopDialogProps } from "@/types/workshopTypes";
 
 const AssignWorkshopDialog = ({
   request,

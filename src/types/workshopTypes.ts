@@ -1,3 +1,4 @@
+import { ServiceRequest } from "./requestTypes";
 import { User } from "./userTypes";
 
 export interface Workshop {
@@ -18,6 +19,13 @@ export interface Workshop {
   services: string[];
   labels: string[];
   owner_id: string;
+}
+export interface AssignWorkshopDialogProps {
+  request: ServiceRequest;
+  workshops: Workshop[];
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (requestId: string, workshopId: string) => void;
 }
 
 export interface WorkshopFormProps {

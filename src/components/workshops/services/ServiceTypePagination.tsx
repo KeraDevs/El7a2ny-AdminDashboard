@@ -1,5 +1,4 @@
 import React from "react";
-import { ServiceType } from "@/types/serviceTypes";
 import {
   Pagination,
   PaginationContent,

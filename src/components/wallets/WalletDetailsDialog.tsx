@@ -32,7 +32,7 @@ import {
   IconHistory,
   IconRefresh,
 } from "@tabler/icons-react";
-import { Wallet, WalletTransaction, formatBalance } from "@/types/walletTypes";
+import { Wallet, formatBalance } from "@/types/walletTypes";
 import { useWallets } from "@/hooks/_useWallets";
 
 interface WalletDetailsDialogProps {

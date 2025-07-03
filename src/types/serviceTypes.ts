@@ -33,6 +33,9 @@ export interface ServiceTypePercentage {
 }
 
 export interface ServiceType {
+  basePrice: number;
+  service_types_percentage: ServiceTypePercentage | null;
+  percentageModifier: number;
   id: string;
   name: string;
   name_ar?: string;

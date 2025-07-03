@@ -59,11 +59,8 @@ export const useCarRegions = (): UseCarRegionsReturn => {
       const result = await response.json();
       // Assuming the API returns an array of regions directly
       setRegions(Array.isArray(result) ? result : []);
-    } catch (error) {
+    } catch {
       toast.error("Error fetching car regions!");
-      setError(
-        error instanceof Error ? error.message : "Failed to fetch regions"
-      );
       setRegions([]);
     } finally {
       setLoading(false);
@@ -105,10 +102,8 @@ export const useCarRegions = (): UseCarRegionsReturn => {
       const newRegion = await response.json();
       setRegions((prev) => [...prev, newRegion]);
       toast.success("Car region added successfully");
-    } catch (error) {
+    } catch {
       toast.error("Error adding car region");
-      setError(error instanceof Error ? error.message : "Failed to add region");
-      throw error;
     } finally {
       setLoading(false);
     }
@@ -161,12 +156,8 @@ export const useCarRegions = (): UseCarRegionsReturn => {
         )
       );
       toast.success("Car region updated successfully");
-    } catch (error) {
+    } catch {
       toast.error("Error editing car region");
-      setError(
-        error instanceof Error ? error.message : "Failed to edit region"
-      );
-      throw error;
     } finally {
       setLoading(false);
     }

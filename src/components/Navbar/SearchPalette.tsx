@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { SearchPaletteProps } from "@/types/navigation";
 import { sidebarSections } from "@/components/Sidebar/Sidebar";
@@ -78,6 +78,16 @@ const SearchPalette = ({ isOpen, onClose }: SearchPaletteProps) => {
     setSelectedIndex(0);
   }, [filteredRoutes]);
 
+  // Handle navigation
+  const handleNavigation = useCallback(
+    (href: string) => {
+      router.push(href);
+      onClose();
+      setQuery(""); // Reset search query
+    },
+    [router, onClose]
+  );
+
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -114,7 +124,7 @@ const SearchPalette = ({ isOpen, onClose }: SearchPaletteProps) => {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, filteredRoutes, selectedIndex, onClose]);
+  }, [isOpen, filteredRoutes, selectedIndex, onClose, handleNavigation]);
 
   // Global shortcut to open/close search
   useEffect(() => {
@@ -132,12 +142,6 @@ const SearchPalette = ({ isOpen, onClose }: SearchPaletteProps) => {
     document.addEventListener("keydown", handleGlobalKeyDown);
     return () => document.removeEventListener("keydown", handleGlobalKeyDown);
   }, [isOpen, onClose]);
-
-  const handleNavigation = (href: string) => {
-    router.push(href);
-    onClose();
-    setQuery(""); // Reset search query
-  };
 
   const handleRouteClick = (route: Route) => {
     handleNavigation(route.href);
@@ -283,7 +287,9 @@ const SearchPalette = ({ isOpen, onClose }: SearchPaletteProps) => {
                       d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                     />
                   </svg>
-                  <p className="text-sm">No pages found for "{query}"</p>
+                  <p className="text-sm">
+                    No pages found for &ldquo;{query}&rdquo;
+                  </p>
                   <p className="text-xs mt-1">
                     Try searching for page names or shortcuts
                   </p>
