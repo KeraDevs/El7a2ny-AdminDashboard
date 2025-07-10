@@ -10,7 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "react-hot-toast";
@@ -41,16 +40,14 @@ export const EditWorkshopServiceDialog: React.FC<
   EditWorkshopServiceDialogProps
 > = ({ isOpen, onClose, service, onSave }) => {
   const [formData, setFormData] = useState<UpdateWorkshopServiceData>({
-    price: 0,
-    is_active: true,
+    percentage: 0,
   });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (service) {
       setFormData({
-        price: service.price,
-        is_active: service.is_active,
+        percentage: service.percentage,
       });
     }
   }, [service]);
@@ -63,8 +60,8 @@ export const EditWorkshopServiceDialog: React.FC<
       return;
     }
 
-    if (formData.price === undefined || formData.price <= 0) {
-      toast.error("Please enter a valid price");
+    if (formData.percentage === undefined || formData.percentage < 0) {
+      toast.error("Please enter a valid percentage");
       return;
     }
 
@@ -81,18 +78,9 @@ export const EditWorkshopServiceDialog: React.FC<
 
   const handleClose = () => {
     setFormData({
-      price: 0,
-      is_active: true,
+      percentage: 0,
     });
     onClose();
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-EG", {
-      style: "currency",
-      currency: "EGP",
-      minimumFractionDigits: 0,
-    }).format(price);
   };
 
   const formatDate = (dateString: string) => {
@@ -193,37 +181,27 @@ export const EditWorkshopServiceDialog: React.FC<
                   </div>
                 </div>
               </div>
-
-              {service.service_type?.basePrice && (
-                <div className="space-y-2">
-                  <Label className="text-sm text-muted-foreground">
-                    Base Price
-                  </Label>
-                  <div className="text-sm font-medium text-blue-600">
-                    {formatPrice(service.service_type.basePrice)}
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
 
           {/* Editable Fields */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="price">Price (EGP) *</Label>
+              <Label htmlFor="percentage">Percentage (%) *</Label>
               <div className="relative">
                 <IconCurrencyDollar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="price"
+                  id="percentage"
                   type="number"
                   min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={formData.price}
+                  max="100"
+                  step="0.1"
+                  placeholder="0.0"
+                  value={formData.percentage}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      price: parseFloat(e.target.value) || 0,
+                      percentage: parseFloat(e.target.value) || 0,
                     }))
                   }
                   className="pl-10"
@@ -232,30 +210,15 @@ export const EditWorkshopServiceDialog: React.FC<
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">
-                  Current: {formatPrice(service.price)}
+                  Current: {service.percentage}%
                 </span>
-                {formData.price !== undefined && formData.price > 0 && (
-                  <span className="text-blue-600">
-                    New: {formatPrice(formData.price)}
-                  </span>
-                )}
+                {formData.percentage !== undefined &&
+                  formData.percentage >= 0 && (
+                    <span className="text-blue-600">
+                      New: {formData.percentage}%
+                    </span>
+                  )}
               </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="is_active"
-                checked={formData.is_active}
-                onCheckedChange={(checked) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    is_active: checked as boolean,
-                  }))
-                }
-              />
-              <Label htmlFor="is_active" className="text-sm font-medium">
-                Active service
-              </Label>
             </div>
           </div>
 
@@ -267,26 +230,11 @@ export const EditWorkshopServiceDialog: React.FC<
             <CardContent className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">
-                  Price Change:
+                  Percentage Change:
                 </span>
                 <span className="text-sm font-medium">
-                  {formatPrice(service.price)} →{" "}
-                  {formatPrice(formData.price || 0)}
+                  {service.percentage}% → {formData.percentage || 0}%
                 </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Status Change:
-                </span>
-                <div className="flex items-center gap-2">
-                  <Badge variant={service.is_active ? "default" : "secondary"}>
-                    {service.is_active ? "Active" : "Inactive"}
-                  </Badge>
-                  <span>→</span>
-                  <Badge variant={formData.is_active ? "default" : "secondary"}>
-                    {formData.is_active ? "Active" : "Inactive"}
-                  </Badge>
-                </div>
               </div>
             </CardContent>
           </Card>

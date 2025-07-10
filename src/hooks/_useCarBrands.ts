@@ -82,8 +82,11 @@ export const useCarBrands = (): UseCarBrandsReturn => {
 
       const requestBody = {
         name: brandData.name,
-        region_ids: brandData.regionIds || [],
+        regionIds: brandData.regionIds || [],
       };
+
+      console.log("Debug - Brand Data received:", brandData);
+      console.log("Debug - Region IDs being sent:", brandData.regionIds);
 
       const url = `${API_BASE_URL}/car/brands`;
       console.log("Add Brand Request:", {
@@ -113,6 +116,8 @@ export const useCarBrands = (): UseCarBrandsReturn => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Add Brand Error Response:", errorText);
+        console.error("Add Brand Error Status:", response.status);
+        console.error("Add Brand Error Headers:", response.headers);
         throw new Error(
           `Failed to add brand, status: ${response.status}. Response: ${errorText}`
         );
@@ -120,6 +125,7 @@ export const useCarBrands = (): UseCarBrandsReturn => {
 
       const newBrand = await response.json();
       console.log("Add Brand Success:", newBrand);
+      console.log("Add Brand Success - Brand regions:", newBrand.brand_regions);
 
       setBrands((prev) => [...prev, newBrand]);
       toast.success("Car brand added successfully");

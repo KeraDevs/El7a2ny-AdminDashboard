@@ -193,7 +193,7 @@ export interface ViewCarRegionDialogProps {
 // Form data types
 export interface CreateCarBrandData {
   name: string;
-  region_ids?: string[];
+  regionIds?: string[];
 }
 
 export interface CreateCarRegionData {
