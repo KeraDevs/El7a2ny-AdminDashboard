@@ -510,7 +510,7 @@ const RequestsHistoryPage = () => {
                               {request.vehicleModel}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {request.vehicleYear} •{" "}
+                              {request.vehicleYear} •
                               {request.vehicleLicensePlate}
                             </p>
                           </div>
@@ -634,7 +634,7 @@ const RequestsHistoryPage = () => {
                       )}
                     </p>
                     <p>
-                      <strong>Requested:</strong>{" "}
+                      <strong>Requested:</strong>
                       {format(selectedRequest.requestedAt, "PPpp")}
                     </p>
                     {selectedRequest.scheduledAt && (
