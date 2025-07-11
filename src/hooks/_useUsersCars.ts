@@ -9,57 +9,75 @@ export const useUsersCars = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [usersCars, setUsersCars] = useState<any[]>([]);
+  const [hasInitialLoad, setHasInitialLoad] = useState<boolean>(false);
 
   // Fetching users cars
-  const fetchUserCars = useCallback(async () => {
-    if (!currentUser) {
-      setError("User not authenticated");
-      return [];
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const authToken = await currentUser.getIdToken();
-      if (!API_KEY) {
-        throw new Error("API_KEY is missing");
+  const fetchUserCars = useCallback(
+    async (forceRefresh = false) => {
+      if (!currentUser) {
+        setError("User not authenticated");
+        return [];
       }
 
-      // Fixed URL construction - removed the leading slash before API_BASE_URL
-      const response = await fetch(`${API_BASE_URL}/vehicles/all`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": API_KEY,
-          Authorization: `Bearer ${authToken}`,
-        } as HeadersInit,
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch Vehicles: ${response.status} ${response.statusText}`
-        );
+      // Prevent infinite loop - only fetch if not already loaded or force refresh
+      if (hasInitialLoad && !forceRefresh) {
+        return;
       }
 
-      const result = await response.json();
-      console.log("Fetched cars data:", result); // Debug log
+      setLoading(true);
+      setError(null);
 
-      // Update state with fetched data
-      setUsersCars(result.vehicles || result || []);
-      return result.vehicles || result || [];
-    } catch (error) {
-      console.error("Error fetching user cars:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      toast.error(`Error fetching user cars: ${errorMessage}`);
-      setError(errorMessage);
-      setUsersCars([]);
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, [currentUser]);
+      try {
+        const authToken = await currentUser.getIdToken();
+        if (!API_KEY) {
+          throw new Error("API_KEY is missing");
+        }
+
+        // Fixed URL construction - removed the leading slash before API_BASE_URL
+        const response = await fetch(`${API_BASE_URL}/vehicles/all`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": API_KEY,
+            Authorization: `Bearer ${authToken}`,
+          } as HeadersInit,
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch Vehicles: ${response.status} ${response.statusText}`
+          );
+        }
+
+        const result = await response.json();
+        console.log("Fetched cars data:", result); // Debug log
+
+        // Update state with fetched data
+        const vehicles = result.vehicles || result || [];
+        setUsersCars(vehicles);
+        setHasInitialLoad(true);
+
+        // Show success message only if we have cars
+        if (vehicles.length > 0) {
+          toast.success(`Loaded ${vehicles.length} user cars`);
+        }
+
+        return vehicles;
+      } catch (error) {
+        console.error("Error fetching user cars:", error);
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+        toast.error(`Error fetching user cars: ${errorMessage}`);
+        setError(errorMessage);
+        setUsersCars([]);
+        setHasInitialLoad(true); // Set to true even on error to prevent infinite loop
+        return [];
+      } finally {
+        setLoading(false);
+      }
+    },
+    [currentUser, hasInitialLoad, usersCars]
+  );
 
   // Add new Car for users
   const addUserCar = useCallback(
@@ -101,6 +119,10 @@ export const useUsersCars = () => {
         // Update state with new car
         setUsersCars((prev) => [...prev, result]);
         toast.success("Car added successfully!");
+
+        // Force refresh to get updated data
+        await fetchUserCars(true);
+
         return result;
       } catch (error) {
         console.error("Error adding user car:", error);
@@ -115,12 +137,21 @@ export const useUsersCars = () => {
     [currentUser]
   );
 
-  // Auto-fetch cars when user is authenticated
+  // Auto-fetch cars when user is authenticated (only once)
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser && !hasInitialLoad) {
       fetchUserCars();
     }
-  }, [currentUser, fetchUserCars]);
+  }, [currentUser, hasInitialLoad, fetchUserCars]);
+
+  // Reset state when user changes
+  useEffect(() => {
+    if (!currentUser) {
+      setUsersCars([]);
+      setHasInitialLoad(false);
+      setError(null);
+    }
+  }, [currentUser]);
 
   return {
     usersCars,
@@ -129,5 +160,7 @@ export const useUsersCars = () => {
     fetchUserCars,
     addUserCar,
     setUsersCars,
+    hasInitialLoad, // Export this so components can check if initial load is complete
+    isEmpty: hasInitialLoad && usersCars.length === 0 && !error, // Helper to check if truly empty
   };
 };
