@@ -4,8 +4,7 @@ export interface WorkshopService {
   id: string;
   workshop_id: string;
   service_type_id: string;
-  percentage: number;
-  is_active: boolean;
+  percentage: number | null;
   created_at: string;
   updated_at: string;
   service_type: ServiceType;
@@ -20,12 +19,10 @@ export interface CreateWorkshopServiceData {
   workshop_id: string;
   service_type_id: string;
   percentage: number;
-  is_active?: boolean;
 }
 
 export interface UpdateWorkshopServiceData {
   percentage?: number;
-  is_active?: boolean;
 }
 
 export interface BatchCreateWorkshopServiceData {
@@ -33,7 +30,6 @@ export interface BatchCreateWorkshopServiceData {
   services: Array<{
     service_type_id: string;
     percentage: number;
-    is_active?: boolean;
   }>;
 }
 
@@ -53,13 +49,12 @@ export interface WorkshopServiceColumnVisibility {
   workshop_name: boolean;
   service_name: boolean;
   percentage: boolean;
-  is_active: boolean;
   created_at: boolean;
   updated_at: boolean;
 }
 
 export interface WorkshopServiceSortConfig {
-  key: keyof WorkshopService | null;
+  key: keyof WorkshopService | "workshop_name" | "service_name" | null;
   direction: "asc" | "desc";
 }
 
@@ -96,6 +91,6 @@ export interface WorkshopServicesTableHeaderProps {
 
 export interface WorkshopServicesStats {
   totalServices: number;
-  averagePercentage: number;
+  averagePercentage: number | null;
   workshopsWithServices: number;
 }

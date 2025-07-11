@@ -87,7 +87,8 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
   });
 
   /**
-   * Fetch workshop services with pagination and filtering
+   * Fetch workshop services by fetching workshops first, then their services
+   * Enhanced to ensure workshop and service type data is populated
    */
   const fetchWorkshopServices = useCallback(
     async (page = 1, limit = 10, searchQuery = "", workshopId = "") => {
@@ -105,107 +106,248 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
           throw new Error("API key is missing");
         }
 
-        const offset = (page - 1) * limit;
-        const params = new URLSearchParams({
-          limit: limit.toString(),
-          offset: offset.toString(),
-        });
+        // First, fetch all workshops
+        let allWorkshops: any[] = [];
+        let hasMore = true;
+        let offset = 0;
+        const pageSize = 50;
 
-        if (searchQuery.trim()) {
-          params.append("search", searchQuery.trim());
-        }
+        console.log("Fetching workshops first...");
 
-        if (workshopId) {
-          params.append("workshop_id", workshopId);
-        }
+        // Fetch all workshops in batches
+        while (hasMore) {
+          const response = await fetch(
+            `${API_BASE_URL}/workshops?skip=${offset}&take=${pageSize}`,
+            {
+              headers: {
+                "x-api-key": API_KEY,
+                Authorization: `Bearer ${authToken}`,
+              },
+            }
+          );
 
-        // Always use the same endpoint, filter by workshop_id via query param
-        const endpoint = `${API_BASE_URL}/workshops/services`;
-
-        const response = await fetch(`${endpoint}?${params}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
-            "x-api-key": API_KEY,
-          },
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`API Error: ${response.status} - ${errorText}`);
-
-          // Handle 404 errors gracefully (no workshop services found or no workshops in DB)
-          if (response.status === 404) {
-            // If there is no workshop in the database, treat as empty result, not an error
-            setWorkshopServices([]);
-            setPagination({
-              page,
-              limit,
-              total: 0,
-              hasMore: false,
-            });
-            setStats({
-              totalServices: 0,
-              averagePercentage: 0,
-              workshopsWithServices: 0,
-            });
-            // Do not set error or show toast
-            return;
+          if (!response.ok) {
+            if (response.status === 404) {
+              console.log("No workshops found");
+              break;
+            }
+            throw new Error(
+              `Failed to fetch workshops: ${response.status} ${response.statusText}`
+            );
           }
 
-          throw new Error(
-            `API Error: ${response.status} - ${response.statusText}`
+          const result = await response.json();
+          const batchWorkshops = result.workshops || [];
+          allWorkshops = [...allWorkshops, ...batchWorkshops];
+          hasMore = result.hasMore;
+          offset += pageSize;
+        }
+
+        console.log(`Found ${allWorkshops.length} workshops`);
+
+        // Now fetch services for each workshop
+        const allServices: WorkshopService[] = [];
+        const workshopsWithServices = new Set<string>();
+
+        // Also fetch service types to ensure we have the complete data
+        let serviceTypesMap = new Map();
+        try {
+          console.log("Fetching service types...");
+          // Try multiple possible endpoints for service types
+          let serviceTypesResponse;
+
+          // First try the most likely endpoint
+          try {
+            serviceTypesResponse = await fetch(
+              `${API_BASE_URL}/service-types`,
+              {
+                headers: {
+                  "x-api-key": API_KEY,
+                  Authorization: `Bearer ${authToken}`,
+                },
+              }
+            );
+          } catch (err) {
+            console.warn(
+              "Primary service-types endpoint failed, trying alternative..."
+            );
+
+            // Try alternative endpoint
+            serviceTypesResponse = await fetch(`${API_BASE_URL}/services`, {
+              headers: {
+                "x-api-key": API_KEY,
+                Authorization: `Bearer ${authToken}`,
+              },
+            });
+          }
+
+          if (serviceTypesResponse && serviceTypesResponse.ok) {
+            const serviceTypesData = await serviceTypesResponse.json();
+            const serviceTypes = Array.isArray(serviceTypesData)
+              ? serviceTypesData
+              : serviceTypesData.serviceTypes ||
+                serviceTypesData.services ||
+                [];
+
+            serviceTypes.forEach((st: any) => {
+              serviceTypesMap.set(st.id, st);
+            });
+            console.log(`Loaded ${serviceTypes.length} service types from API`);
+          } else {
+            console.warn("Failed to fetch service types from API");
+          }
+        } catch (err) {
+          console.warn("Failed to fetch service types:", err);
+        }
+
+        for (const workshop of allWorkshops) {
+          try {
+            // If searching for a specific workshop, skip others
+            if (workshopId && workshop.id !== workshopId) {
+              continue;
+            }
+
+            console.log(`Fetching services for workshop: ${workshop.name}`);
+
+            const servicesResponse = await fetch(
+              `${API_BASE_URL}/workshops/services/get/${workshop.id}`,
+              {
+                headers: {
+                  "x-api-key": API_KEY,
+                  Authorization: `Bearer ${authToken}`,
+                },
+              }
+            );
+
+            if (servicesResponse.ok) {
+              const servicesData = await servicesResponse.json();
+              const services = Array.isArray(servicesData)
+                ? servicesData
+                : servicesData.services || [];
+
+              // Add workshop info to each service and ensure all data is present
+              const servicesWithWorkshop = services.map(
+                (service: any, index: number) => {
+                  // Handle different API response structures
+                  const workshopData =
+                    service.workshops || service.workshop || workshop;
+                  const serviceTypeData =
+                    service.service_types ||
+                    service.service_type ||
+                    serviceTypesMap.get(service.service_type_id);
+
+                  // Get service type name - prioritize service_type name, then category as fallback
+                  const serviceTypeName =
+                    serviceTypeData?.name ||
+                    serviceTypeData?.service_category ||
+                    "Unknown Service";
+
+                  const normalizedServiceType = {
+                    id: service.service_type_id || serviceTypeData?.id || "",
+                    name: serviceTypeName,
+                    description:
+                      serviceTypeData?.description ||
+                      serviceTypeData?.description_ar ||
+                      "",
+                    service_category: serviceTypeData?.service_category || "",
+                  };
+
+                  const normalizedWorkshop = {
+                    id: workshopData.id || workshop.id,
+                    name: workshopData.name || workshop.name,
+                    address: workshopData.address || workshop.address,
+                  };
+
+                  // Ensure each service has a unique ID
+                  const serviceId =
+                    service.id ||
+                    `ws-${normalizedWorkshop.id}-st-${service.service_type_id}` ||
+                    `service-${normalizedWorkshop.id}-${index}`;
+
+                  return {
+                    ...service,
+                    id: serviceId, // Ensure unique ID
+                    percentage: service.percentage ?? 0, // Default to 0 if null
+                    workshop: normalizedWorkshop,
+                    service_type: normalizedServiceType,
+                    workshop_id: normalizedWorkshop.id, // Ensure workshop_id is set
+                    service_type_id: service.service_type_id, // Ensure service_type_id is set
+                  };
+                }
+              );
+
+              allServices.push(...servicesWithWorkshop);
+              if (services.length > 0) {
+                workshopsWithServices.add(workshop.id);
+              }
+              console.log(
+                `Found ${services.length} services for ${workshop.name}`
+              );
+            } else if (servicesResponse.status === 404) {
+              console.log(`No services found for workshop: ${workshop.name}`);
+              // This is expected for workshops without services
+            } else {
+              console.warn(
+                `Failed to fetch services for workshop ${workshop.name}: ${servicesResponse.status}`
+              );
+            }
+          } catch (serviceError) {
+            console.warn(
+              `Error fetching services for workshop ${workshop.name}:`,
+              serviceError
+            );
+            // Continue with other workshops
+          }
+        }
+
+        console.log(`Total services found: ${allServices.length}`);
+
+        // Apply search filter if provided
+        let filteredServices = allServices;
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase();
+          filteredServices = allServices.filter(
+            (service) =>
+              service.workshop?.name?.toLowerCase().includes(query) ||
+              service.service_type?.name?.toLowerCase().includes(query)
           );
         }
 
-        const data: WorkshopServicesResponse = await response.json();
+        // Apply pagination
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const paginatedServices = filteredServices.slice(startIndex, endIndex);
 
-        // Handle empty or invalid response
-        if (!data) {
-          console.warn("Empty response from API");
-          setWorkshopServices([]);
-          setPagination({
-            page,
-            limit,
-            total: 0,
-            hasMore: false,
-          });
-          setStats({
-            totalServices: 0,
-            averagePercentage: 0,
-            workshopsWithServices: 0,
-          });
-          return;
-        }
-
+        // Update state
         if (page === 1) {
-          setWorkshopServices(data.services || []);
+          setWorkshopServices(paginatedServices);
         } else {
-          setWorkshopServices((prev) => [...prev, ...(data.services || [])]);
+          setWorkshopServices((prev) => [...prev, ...paginatedServices]);
         }
 
         setPagination({
           page,
           limit,
-          total: data.pagination?.total || data.services?.length || 0,
-          hasMore: data.pagination?.hasMore || false,
+          total: filteredServices.length,
+          hasMore: endIndex < filteredServices.length,
         });
 
         // Calculate stats
-        const services = data.services || [];
-        const totalPercentage = services.reduce(
-          (sum, s) => sum + s.percentage,
-          0
-        );
-        const uniqueWorkshops = new Set(services.map((s) => s.workshop_id))
-          .size;
+        const validPercentages = filteredServices
+          .map((s) => s.percentage)
+          .filter(
+            (p) => p !== null && p !== undefined && !isNaN(p)
+          ) as number[];
+
+        const totalPercentage = validPercentages.reduce((sum, p) => sum + p, 0);
 
         setStats({
-          totalServices: services.length,
+          totalServices: filteredServices.length,
           averagePercentage:
-            services.length > 0 ? totalPercentage / services.length : 0,
-          workshopsWithServices: uniqueWorkshops,
+            validPercentages.length > 0
+              ? totalPercentage / validPercentages.length
+              : 0,
+          workshopsWithServices: workshopsWithServices.size,
         });
       } catch (err) {
         console.error("Error fetching workshop services:", err);
@@ -229,13 +371,7 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
           workshopsWithServices: 0,
         });
 
-        // Only show toast for non-404 errors (404 means no services exist yet)
-        if (
-          !errorMessage.includes("404") &&
-          !errorMessage.includes("API Error: 404")
-        ) {
-          toast.error("Failed to fetch workshop services");
-        }
+        toast.error("Failed to fetch workshop services");
       } finally {
         setLoading(false);
       }
@@ -275,7 +411,17 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
         );
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          let errorMessage = `HTTP error! status: ${response.status}`;
+          try {
+            const errorData = await response.json();
+            if (errorData.message) {
+              errorMessage = errorData.message;
+            }
+          } catch {
+            // If JSON parsing fails, use the status text
+            errorMessage = `HTTP error! status: ${response.status} - ${response.statusText}`;
+          }
+          throw new Error(errorMessage);
         }
 
         const service: WorkshopService = await response.json();
@@ -294,13 +440,160 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
   );
 
   /**
-   * Fetch services by workshop ID
+   * Fetch services by workshop ID using the correct endpoint
    */
   const fetchServicesByWorkshop = useCallback(
     async (workshopId: string) => {
-      await fetchWorkshopServices(1, 100, "", workshopId);
+      if (!currentUser) {
+        setError("Authentication required");
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const authToken = await currentUser.getIdToken();
+        if (!API_KEY) {
+          throw new Error("API key is missing");
+        }
+
+        const response = await fetch(
+          `${API_BASE_URL}/workshops/services/get/${workshopId}`,
+          {
+            headers: {
+              "x-api-key": API_KEY,
+              Authorization: `Bearer ${authToken}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            // No services found for this workshop
+            setWorkshopServices([]);
+            setPagination({
+              page: 1,
+              limit: 10,
+              total: 0,
+              hasMore: false,
+            });
+            setStats({
+              totalServices: 0,
+              averagePercentage: 0,
+              workshopsWithServices: 0,
+            });
+            return;
+          }
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const services = Array.isArray(data) ? data : data.services || [];
+
+        // Ensure percentage is never null and service_type exists, handle API response structure
+        const normalizedServices = services.map(
+          (service: any, index: number) => {
+            // Handle different API response structures
+            const workshopData = service.workshops || service.workshop;
+            const serviceTypeData =
+              service.service_types || service.service_type;
+
+            // Get service type name - prioritize service_type name, then category as fallback
+            const serviceTypeName =
+              serviceTypeData?.name ||
+              serviceTypeData?.service_category ||
+              "Unknown Service";
+
+            const normalizedServiceType = {
+              id: service.service_type_id || serviceTypeData?.id || "",
+              name: serviceTypeName,
+              description:
+                serviceTypeData?.description ||
+                serviceTypeData?.description_ar ||
+                "",
+              service_category: serviceTypeData?.service_category || "",
+            };
+
+            const normalizedWorkshop = workshopData
+              ? {
+                  id: workshopData.id,
+                  name: workshopData.name,
+                  address: workshopData.address,
+                }
+              : undefined;
+
+            // Generate unique ID if not provided
+            const serviceId =
+              service.id ||
+              `ws-${workshopData?.id || "unknown"}-st-${
+                service.service_type_id
+              }` ||
+              `service-${index}`;
+
+            return {
+              ...service,
+              id: serviceId,
+              percentage: service.percentage ?? 0,
+              service_type: normalizedServiceType,
+              workshop: normalizedWorkshop,
+              workshop_id: workshopData?.id || service.workshop_id,
+              service_type_id: service.service_type_id,
+            };
+          }
+        );
+
+        setWorkshopServices(normalizedServices);
+        setPagination({
+          page: 1,
+          limit: normalizedServices.length,
+          total: normalizedServices.length,
+          hasMore: false,
+        });
+
+        const validPercentages = normalizedServices
+          .map((s: any) => s.percentage)
+          .filter(
+            (p: any) => p !== null && p !== undefined && !isNaN(p)
+          ) as number[];
+
+        const totalPercentage = validPercentages.reduce(
+          (sum: number, p: number) => sum + p,
+          0
+        );
+
+        setStats({
+          totalServices: normalizedServices.length,
+          averagePercentage:
+            validPercentages.length > 0
+              ? totalPercentage / validPercentages.length
+              : 0,
+          workshopsWithServices: normalizedServices.length > 0 ? 1 : 0,
+        });
+      } catch (err) {
+        console.error("Error fetching services by workshop:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch services"
+        );
+
+        // Set empty data
+        setWorkshopServices([]);
+        setPagination({
+          page: 1,
+          limit: 10,
+          total: 0,
+          hasMore: false,
+        });
+        setStats({
+          totalServices: 0,
+          averagePercentage: 0,
+          workshopsWithServices: 0,
+        });
+      } finally {
+        setLoading(false);
+      }
     },
-    [fetchWorkshopServices]
+    [currentUser]
   );
 
   /**
@@ -335,7 +628,17 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
         );
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          let errorMessage = `HTTP error! status: ${response.status}`;
+          try {
+            const errorData = await response.json();
+            if (errorData.message) {
+              errorMessage = errorData.message;
+            }
+          } catch {
+            // If JSON parsing fails, use the status text
+            errorMessage = `HTTP error! status: ${response.status} - ${response.statusText}`;
+          }
+          throw new Error(errorMessage);
         }
 
         const data: WorkshopServicesResponse = await response.json();
@@ -385,7 +688,17 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
         );
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          let errorMessage = `HTTP error! status: ${response.status}`;
+          try {
+            const errorData = await response.json();
+            if (errorData.message) {
+              errorMessage = errorData.message;
+            }
+          } catch {
+            // If JSON parsing fails, use the status text
+            errorMessage = `HTTP error! status: ${response.status} - ${response.statusText}`;
+          }
+          throw new Error(errorMessage);
         }
 
         const data = await response.json();
@@ -432,12 +745,35 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
               Authorization: `Bearer ${authToken}`,
               "x-api-key": API_KEY,
             },
-            body: JSON.stringify(serviceData),
+            body: JSON.stringify({
+              service_type_id: serviceData.service_type_id,
+              percentage: serviceData.percentage,
+            }),
           }
         );
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          let errorMessage = `HTTP error! status: ${response.status}`;
+          try {
+            const errorData = await response.json();
+            if (errorData.message) {
+              errorMessage = errorData.message;
+
+              // Handle specific constraint violations
+              if (
+                errorData.message.includes("Unique constraint failed") ||
+                errorData.message.includes("workshop_id") ||
+                errorData.message.includes("service_type_id")
+              ) {
+                errorMessage =
+                  "This service already exists for the selected workshop. Please choose a different service type.";
+              }
+            }
+          } catch {
+            // If JSON parsing fails, use the status text
+            errorMessage = `HTTP error! status: ${response.status} - ${response.statusText}`;
+          }
+          throw new Error(errorMessage);
         }
 
         const newService: WorkshopService = await response.json();
@@ -457,9 +793,6 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
     [currentUser]
   );
 
-  /**
-   * Batch create workshop services
-   */
   const handleBatchCreateServices = useCallback(
     async (batchData: BatchCreateWorkshopServiceData) => {
       if (!currentUser) {
@@ -485,7 +818,12 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
               Authorization: `Bearer ${authToken}`,
               "x-api-key": API_KEY,
             },
-            body: JSON.stringify({ services: batchData.services }),
+            body: JSON.stringify({
+              services: batchData.services.map((service) => ({
+                service_type_id: service.service_type_id,
+                percentage: service.percentage,
+              })),
+            }),
           }
         );
 
@@ -513,11 +851,20 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
           );
         }
 
-        const newServices: WorkshopService[] = await response.json();
-        setWorkshopServices((prev) => [...newServices, ...prev]);
-        toast.success(
-          `${newServices.length} workshop services added successfully`
-        );
+        const result = await response.json();
+        // Handle the response properly - it might be an array or an object with services array
+        const newServices: WorkshopService[] = Array.isArray(result)
+          ? result
+          : result.services || [];
+
+        if (newServices.length > 0) {
+          setWorkshopServices((prev) => [...newServices, ...prev]);
+          toast.success(
+            `${newServices.length} workshop services added successfully`
+          );
+        } else {
+          toast.success("Workshop services added successfully");
+        }
       } catch (err) {
         console.error("Error batch creating workshop services:", err);
         const errorMessage =
@@ -557,6 +904,12 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
           throw new Error("API key is missing");
         }
 
+        console.log("Updating workshop service:", {
+          workshopId,
+          serviceTypeId,
+          serviceData,
+        });
+
         const response = await fetch(
           `${API_BASE_URL}/workshops/services/${workshopId}/${serviceTypeId}`,
           {
@@ -570,18 +923,48 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
           }
         );
 
+        console.log("Update response status:", response.status);
+
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          let errorMessage = `HTTP error! status: ${response.status}`;
+          try {
+            const errorData = await response.json();
+            console.error("Update error data:", errorData);
+            if (errorData.message) {
+              errorMessage = errorData.message;
+            }
+          } catch {
+            // If JSON parsing fails, use the status text
+            errorMessage = `HTTP error! status: ${response.status} - ${response.statusText}`;
+          }
+          throw new Error(errorMessage);
         }
 
         const updatedService: WorkshopService = await response.json();
+        console.log("Updated service received:", updatedService);
+
+        // Update the service in the list while preserving all existing data
         setWorkshopServices((prev) =>
-          prev.map((service) =>
-            service.workshop_id === workshopId &&
-            service.service_type_id === serviceTypeId
-              ? updatedService
-              : service
-          )
+          prev.map((service) => {
+            if (
+              service.workshop_id === workshopId &&
+              service.service_type_id === serviceTypeId
+            ) {
+              const updated = {
+                ...service, // Preserve existing data (workshop, service_type, etc.)
+                ...updatedService, // Apply the updates
+                service_type: service.service_type, // Ensure service_type is preserved
+                workshop: service.workshop, // Ensure workshop is preserved
+                percentage:
+                  updatedService.percentage ??
+                  serviceData.percentage ??
+                  service.percentage, // Ensure percentage is updated
+              };
+              console.log("Updated service in state:", updated);
+              return updated;
+            }
+            return service;
+          })
         );
         toast.success("Workshop service updated successfully");
       } catch (err) {
@@ -632,7 +1015,17 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
         );
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          let errorMessage = `HTTP error! status: ${response.status}`;
+          try {
+            const errorData = await response.json();
+            if (errorData.message) {
+              errorMessage = errorData.message;
+            }
+          } catch {
+            // If JSON parsing fails, use the status text
+            errorMessage = `HTTP error! status: ${response.status} - ${response.statusText}`;
+          }
+          throw new Error(errorMessage);
         }
 
         setWorkshopServices((prev) =>

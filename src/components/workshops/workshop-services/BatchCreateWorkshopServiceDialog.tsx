@@ -44,7 +44,6 @@ interface ServiceItem {
   id: string;
   service_type_id: string;
   percentage: number;
-  is_active: boolean;
   serviceType?: any;
 }
 
@@ -127,7 +126,6 @@ export const BatchCreateWorkshopServiceDialog: React.FC<
         services: services.map((s) => ({
           service_type_id: s.service_type_id,
           percentage: s.percentage,
-          is_active: s.is_active,
         })),
       };
       await onSave(batchData);
@@ -171,7 +169,6 @@ export const BatchCreateWorkshopServiceDialog: React.FC<
       id: Math.random().toString(36).substr(2, 9),
       service_type_id: "",
       percentage: 10, // Default percentage
-      is_active: true,
     };
     setServices((prev) => [...prev, newService]);
   };

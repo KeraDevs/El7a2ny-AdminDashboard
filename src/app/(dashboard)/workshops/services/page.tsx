@@ -53,7 +53,6 @@ const WorkshopServicesPage: React.FC = () => {
       workshop_name: true,
       service_name: true,
       percentage: true,
-      is_active: true,
       created_at: true,
       updated_at: false,
     });
@@ -95,7 +94,7 @@ const WorkshopServicesPage: React.FC = () => {
         (service) =>
           service.workshop?.name?.toLowerCase().includes(query) ||
           service.service_type?.name?.toLowerCase().includes(query) ||
-          service.percentage.toString().includes(query) ||
+          (service.percentage?.toString() ?? "").includes(query) ||
           service.service_type?.service_category?.toLowerCase().includes(query)
       );
     }
@@ -328,8 +327,7 @@ const WorkshopServicesPage: React.FC = () => {
             workshop_address: service.workshop?.address || "",
             service_name: service.service_type?.name || "Unknown",
             service_category: service.service_type?.service_category || "",
-            percentage: service.percentage,
-            is_active: service.is_active ? "Active" : "Inactive",
+            percentage: service.percentage ?? 0,
             created_at: new Date(service.created_at).toLocaleDateString(),
             updated_at: new Date(service.updated_at).toLocaleDateString(),
           }))}
@@ -341,7 +339,6 @@ const WorkshopServicesPage: React.FC = () => {
             { label: "Service Name", key: "service_name" },
             { label: "Service Category", key: "service_category" },
             { label: "Percentage", key: "percentage" },
-            { label: "Status", key: "is_active" },
             { label: "Created Date", key: "created_at" },
             { label: "Updated Date", key: "updated_at" },
           ]}

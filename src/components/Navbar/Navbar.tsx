@@ -100,13 +100,8 @@ const Navbar = () => {
             >
               <div className="flex items-center gap-2">
                 <Search className="h-4 w-4" />
-                <span className="hidden md:inline">
-                  Type a command or search...
-                </span>
+                <span className="hidden md:inline">Search for pages...</span>
               </div>
-              <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-                <span className="text-xs">⌘</span>K
-              </kbd>
             </button>
 
             {/* Notification Icon */}

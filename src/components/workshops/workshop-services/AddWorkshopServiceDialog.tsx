@@ -10,7 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -40,7 +39,6 @@ export const AddWorkshopServiceDialog: React.FC<
     workshop_id: "",
     service_type_id: "",
     percentage: 0,
-    is_active: true,
   });
   const [loading, setLoading] = useState(false);
   const [selectedWorkshop, setSelectedWorkshop] = useState<any>(null);
@@ -92,7 +90,6 @@ export const AddWorkshopServiceDialog: React.FC<
       workshop_id: "",
       service_type_id: "",
       percentage: 0,
-      is_active: true,
     });
     setSelectedWorkshop(null);
     setSelectedServiceType(null);
@@ -117,14 +114,6 @@ export const AddWorkshopServiceDialog: React.FC<
       );
       setFormData((prev) => ({ ...prev, percentage: basePercentage }));
     }
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-EG", {
-      style: "currency",
-      currency: "EGP",
-      minimumFractionDigits: 0,
-    }).format(price);
   };
 
   return (
@@ -254,23 +243,6 @@ export const AddWorkshopServiceDialog: React.FC<
             )}
           </div>
 
-          {/* Status */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="is_active"
-              checked={formData.is_active}
-              onCheckedChange={(checked) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  is_active: checked as boolean,
-                }))
-              }
-            />
-            <Label htmlFor="is_active" className="text-sm font-medium">
-              Active service
-            </Label>
-          </div>
-
           {/* Summary Card */}
           {selectedWorkshop && selectedServiceType && (
             <Card>
@@ -293,18 +265,6 @@ export const AddWorkshopServiceDialog: React.FC<
                   <span className="text-sm font-medium">
                     {selectedServiceType.name}
                   </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Price:</span>
-                  <span className="text-sm font-medium">
-                    {formatPrice(formData.price)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Status:</span>
-                  <Badge variant={formData.is_active ? "default" : "secondary"}>
-                    {formData.is_active ? "Active" : "Inactive"}
-                  </Badge>
                 </div>
               </CardContent>
             </Card>

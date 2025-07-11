@@ -19,15 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  MoreHorizontal,
-  Eye,
-  Edit,
-  Trash,
-  ArrowUpDown,
-  MapPin,
-  Settings,
-} from "lucide-react";
+import { Eye, Edit, Trash, ArrowUpDown, MapPin, Settings } from "lucide-react";
 import {
   WorkshopServicesTableProps,
   WorkshopService,
@@ -48,7 +40,10 @@ export const WorkshopServicesTable: React.FC<WorkshopServicesTableProps> = ({
   workshopServices,
   onDelete,
 }) => {
-  const formatPercentage = (percentage: number) => {
+  const formatPercentage = (percentage: number | null | undefined) => {
+    if (percentage === null || percentage === undefined || isNaN(percentage)) {
+      return "0.0%";
+    }
     return `${percentage.toFixed(1)}%`;
   };
 
@@ -102,23 +97,20 @@ export const WorkshopServicesTable: React.FC<WorkshopServicesTableProps> = ({
         <Skeleton className="h-4 w-20" />
       </TableCell>
       <TableCell>
-        <Skeleton className="h-4 w-16" />
-      </TableCell>
-      <TableCell>
         <Skeleton className="h-4 w-20" />
       </TableCell>
       <TableCell>
         <Skeleton className="h-4 w-20" />
       </TableCell>
       <TableCell>
-        <Skeleton className="h-4 w-8" />
+        <Skeleton className="h-4 w-20" />
       </TableCell>
     </TableRow>
   );
 
   const NoDataRow = () => (
     <TableRow>
-      <TableCell colSpan={8} className="text-center py-8">
+      <TableCell colSpan={7} className="text-center py-8">
         <div className="flex flex-col items-center gap-2">
           <Settings className="h-12 w-12 text-muted-foreground" />
           <p className="text-muted-foreground">
@@ -162,11 +154,6 @@ export const WorkshopServicesTable: React.FC<WorkshopServicesTableProps> = ({
                 <SortableHeader column="percentage">Percentage</SortableHeader>
               </TableHead>
             )}
-            {columnVisibility.is_active && (
-              <TableHead>
-                <SortableHeader column="is_active">Status</SortableHeader>
-              </TableHead>
-            )}
             {columnVisibility.created_at && (
               <TableHead>
                 <SortableHeader column="created_at">Created</SortableHeader>
@@ -177,19 +164,23 @@ export const WorkshopServicesTable: React.FC<WorkshopServicesTableProps> = ({
                 <SortableHeader column="updated_at">Updated</SortableHeader>
               </TableHead>
             )}
-            <TableHead className="w-[100px]">Actions</TableHead>
+            <TableHead className="w-[150px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {loading ? (
             Array.from({ length: 5 }).map((_, index) => (
-              <LoadingSkeleton key={index} />
+              <LoadingSkeleton key={`loading-skeleton-${index}`} />
             ))
           ) : paginatedWorkshopServices.length === 0 ? (
             <NoDataRow />
           ) : (
             paginatedWorkshopServices.map((service) => (
-              <TableRow key={service.id}>
+              <TableRow
+                key={`service-${service.id || service.workshop_id}-${
+                  service.service_type_id
+                }`}
+              >
                 <TableCell>
                   <Checkbox
                     checked={selectedWorkshopServices.includes(service.id)}
@@ -239,16 +230,6 @@ export const WorkshopServicesTable: React.FC<WorkshopServicesTableProps> = ({
                     </span>
                   </TableCell>
                 )}
-                {columnVisibility.is_active && (
-                  <TableCell>
-                    <Badge
-                      className={getStatusBadgeColor(service.is_active)}
-                      variant="secondary"
-                    >
-                      {service.is_active ? "Active" : "Inactive"}
-                    </Badge>
-                  </TableCell>
-                )}
                 {columnVisibility.created_at && (
                   <TableCell>{formatDate(service.created_at)}</TableCell>
                 )}
@@ -256,39 +237,32 @@ export const WorkshopServicesTable: React.FC<WorkshopServicesTableProps> = ({
                   <TableCell>{formatDate(service.updated_at)}</TableCell>
                 )}
                 <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem
-                        onClick={() => handleView(service)}
-                        className="cursor-pointer"
-                      >
-                        <Eye className="mr-2 h-4 w-4" />
-                        View Details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleEdit(service)}
-                        className="cursor-pointer"
-                      >
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit Service
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => handleDeleteSingle(service)}
-                        className="cursor-pointer text-destructive"
-                      >
-                        <Trash className="mr-2 h-4 w-4" />
-                        Delete Service
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleView(service)}
+                      className="h-8 px-2"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(service)}
+                      className="h-8 px-2"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteSingle(service)}
+                      className="h-8 px-2 text-destructive hover:text-destructive"
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))

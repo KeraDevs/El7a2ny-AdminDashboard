@@ -163,17 +163,6 @@ export const WorkshopServicesTableHeader: React.FC<
                 Percentage
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={columnVisibility.is_active}
-                onCheckedChange={(checked) =>
-                  setColumnVisibility((prev) => ({
-                    ...prev,
-                    is_active: checked ?? false,
-                  }))
-                }
-              >
-                Status
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
                 checked={columnVisibility.created_at}
                 onCheckedChange={(checked) =>
                   setColumnVisibility((prev) => ({

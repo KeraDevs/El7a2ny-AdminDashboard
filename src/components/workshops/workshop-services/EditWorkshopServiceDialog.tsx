@@ -47,7 +47,7 @@ export const EditWorkshopServiceDialog: React.FC<
   useEffect(() => {
     if (service) {
       setFormData({
-        percentage: service.percentage,
+        percentage: service.percentage ?? 0, // Default to 0 if null
       });
     }
   }, [service]);
@@ -210,7 +210,7 @@ export const EditWorkshopServiceDialog: React.FC<
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">
-                  Current: {service.percentage}%
+                  Current: {service.percentage ?? 0}%
                 </span>
                 {formData.percentage !== undefined &&
                   formData.percentage >= 0 && (
@@ -233,7 +233,7 @@ export const EditWorkshopServiceDialog: React.FC<
                   Percentage Change:
                 </span>
                 <span className="text-sm font-medium">
-                  {service.percentage}% → {formData.percentage || 0}%
+                  {service.percentage ?? 0}% → {formData.percentage || 0}%
                 </span>
               </div>
             </CardContent>

@@ -15,7 +15,6 @@ import {
   IconEye,
   IconBuilding,
   IconSettings,
-  IconCurrencyDollar,
   IconCalendar,
   IconMapPin,
   IconEdit,
@@ -33,14 +32,6 @@ interface ViewWorkshopServiceDialogProps {
 export const ViewWorkshopServiceDialog: React.FC<
   ViewWorkshopServiceDialogProps
 > = ({ isOpen, onClose, service, onEdit }) => {
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-EG", {
-      style: "currency",
-      currency: "EGP",
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -51,10 +42,11 @@ export const ViewWorkshopServiceDialog: React.FC<
     });
   };
 
-  const getStatusColor = (isActive: boolean) => {
-    return isActive
-      ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-      : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+  const formatPercentage = (percentage: number | null | undefined) => {
+    if (percentage === null || percentage === undefined || isNaN(percentage)) {
+      return "0%";
+    }
+    return `${percentage}%`;
   };
 
   if (!service) {
@@ -75,19 +67,13 @@ export const ViewWorkshopServiceDialog: React.FC<
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Service Status */}
+          {/* Service Percentage */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Status:</span>
-              <Badge
-                className={getStatusColor(service.is_active)}
-                variant="secondary"
-              >
-                {service.is_active ? "Active" : "Inactive"}
-              </Badge>
+              <span className="text-sm font-medium">Platform Fee:</span>
             </div>
             <div className="text-2xl font-bold text-primary">
-              {formatPrice(service.price)}
+              {formatPercentage(service.percentage)}
             </div>
           </div>
 
@@ -118,6 +104,7 @@ export const ViewWorkshopServiceDialog: React.FC<
                   <p className="font-mono text-sm">{service.workshop_id}</p>
                 </div>
               </div>
+
               {service.workshop?.address && (
                 <div className="space-y-2">
                   <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -176,80 +163,19 @@ export const ViewWorkshopServiceDialog: React.FC<
                 </div>
               )}
 
-              {service.service_type?.basePrice && (
-                <div className="space-y-2">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Base Price
-                  </span>
-                  <p className="font-medium text-blue-600">
-                    {formatPrice(service.service_type.basePrice)}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Pricing Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <IconCurrencyDollar className="h-5 w-5" />
-                Pricing Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Current Price
-                  </span>
-                  <p className="text-2xl font-bold text-primary">
-                    {formatPrice(service.price)}
-                  </p>
-                </div>
-                {service.service_type?.basePrice && (
-                  <div className="space-y-2">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Base Price
-                    </span>
-                    <p className="text-lg font-medium text-blue-600">
-                      {formatPrice(service.service_type.basePrice)}
-                    </p>
-                  </div>
-                )}
+              <div className="space-y-2">
+                <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <IconPercentage className="h-4 w-4" />
+                  Platform Fee Percentage
+                </span>
+                <p className="text-xl font-bold text-primary">
+                  {formatPercentage(service.percentage)}
+                </p>
               </div>
-
-              {service.service_type?.basePrice && (
-                <div className="space-y-2">
-                  <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <IconPercentage className="h-4 w-4" />
-                    Price Difference
-                  </span>
-                  <div className="flex items-center gap-2">
-                    {service.price > service.service_type.basePrice ? (
-                      <Badge variant="destructive">
-                        +
-                        {formatPrice(
-                          service.price - service.service_type.basePrice
-                        )}
-                      </Badge>
-                    ) : service.price < service.service_type.basePrice ? (
-                      <Badge variant="secondary">
-                        -
-                        {formatPrice(
-                          service.service_type.basePrice - service.price
-                        )}
-                      </Badge>
-                    ) : (
-                      <Badge variant="default">Same as base price</Badge>
-                    )}
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
 
-          {/* Timestamps */}
+          {/* Timeline */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -275,7 +201,7 @@ export const ViewWorkshopServiceDialog: React.FC<
             </CardContent>
           </Card>
 
-          {/* Service ID */}
+          {/* Technical Details */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Technical Details</CardTitle>

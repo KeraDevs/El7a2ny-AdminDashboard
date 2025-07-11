@@ -12,7 +12,10 @@ interface WorkshopServicesStatsProps {
 export const WorkshopServicesStatsCards: React.FC<
   WorkshopServicesStatsProps
 > = ({ stats, loading = false }) => {
-  const formatPercentage = (percentage: number) => {
+  const formatPercentage = (percentage: number | null | undefined) => {
+    if (percentage === null || percentage === undefined || isNaN(percentage)) {
+      return "0.0%";
+    }
     return `${percentage.toFixed(1)}%`;
   };
 
