@@ -152,11 +152,6 @@ export const updateRequest = async (
   token: string
 ): Promise<ApiServiceRequest> => {
   try {
-    console.log(
-      `Making PATCH request to: ${API_BASE_URL}/services/requests/${id}`
-    );
-    console.log("Update data:", updateData);
-
     const response = await fetch(`${API_BASE_URL}/services/requests/${id}`, {
       method: "PATCH",
       headers: {
@@ -165,9 +160,6 @@ export const updateRequest = async (
       },
       body: JSON.stringify(updateData),
     });
-
-    console.log("Response status:", response.status);
-    console.log("Response headers:", response.headers);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -187,10 +179,8 @@ export const updateRequest = async (
     }
 
     const result = await response.json();
-    console.log("Success response:", result);
     return result;
   } catch (error) {
-    console.error("Error updating request:", error);
     throw error;
   }
 };

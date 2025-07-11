@@ -6,7 +6,6 @@ import {
   Building2,
   MapPin,
   Plus,
-  Wrench,
   Star,
   CheckCircle,
 } from "lucide-react";
@@ -50,7 +49,6 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
   loading = false,
 }) => {
   const [activeTab, setActiveTab] = useState("basic");
-  const [serviceInput, setServiceInput] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // Reset form state when dialog opens/closes
@@ -58,7 +56,6 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
     if (isOpen) {
       setActiveTab("basic");
       setErrors({});
-      setServiceInput("");
     }
   }, [isOpen]);
   // Handle changes to workshop form data
@@ -157,33 +154,6 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
     });
   };
 
-  // Add a service
-  const handleAddService = () => {
-    if (serviceInput.trim()) {
-      setWorkshopData((prev) => ({
-        ...prev,
-        services: [...(prev.services || []), serviceInput.trim()],
-      }));
-      setServiceInput("");
-    }
-  };
-
-  // Handle key press for service input
-  const handleServiceKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAddService();
-    }
-  };
-
-  // Remove a service
-  const handleRemoveService = (indexToRemove: number) => {
-    setWorkshopData((prev) => ({
-      ...prev,
-      services: prev.services?.filter((_, index) => index !== indexToRemove),
-    }));
-  };
-
   // Validate phone number format
   const validatePhone = (phone: string): boolean => {
     const phoneRegex = /^\d{10,15}$/;
@@ -229,6 +199,39 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
       }
     }
 
+    // Validate latitude and longitude - both are required
+    if (
+      workshopData.latitude === null ||
+      workshopData.latitude === undefined ||
+      workshopData.latitude === 0
+    ) {
+      newErrors.latitude = "Latitude is required";
+      isValid = false;
+    } else {
+      const lat = Number(workshopData.latitude);
+      if (isNaN(lat) || lat < -90 || lat > 90) {
+        newErrors.latitude =
+          "Latitude must be a valid number between -90 and 90";
+        isValid = false;
+      }
+    }
+
+    if (
+      workshopData.longitude === null ||
+      workshopData.longitude === undefined ||
+      workshopData.longitude === 0
+    ) {
+      newErrors.longitude = "Longitude is required";
+      isValid = false;
+    } else {
+      const lng = Number(workshopData.longitude);
+      if (isNaN(lng) || lng < -180 || lng > 180) {
+        newErrors.longitude =
+          "Longitude must be a valid number between -180 and 180";
+        isValid = false;
+      }
+    }
+
     setErrors(newErrors);
     return isValid;
   };
@@ -238,6 +241,10 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
       // Switch to basic tab if there are errors there
       if (errors.name || errors.address || errors.phoneNumbers) {
         setActiveTab("basic");
+      }
+      // Switch to additional tab if there are coordinate errors
+      else if (errors.latitude || errors.longitude) {
+        setActiveTab("additional");
       }
       return;
     }
@@ -279,9 +286,8 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
-            <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="additional">Additional Info</TabsTrigger>
           </TabsList>
 
@@ -486,67 +492,10 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
             </div>
           </TabsContent>
 
-          <TabsContent value="services" className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Services Offered</Label>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 flex-1 border rounded-md px-3 py-2 bg-purple-50/50">
-                  <Wrench className="h-4 w-4 text-purple-500" />
-                  <Input
-                    value={serviceInput}
-                    onChange={(e) => setServiceInput(e.target.value)}
-                    onKeyDown={handleServiceKeyDown}
-                    className="border-none bg-transparent focus-visible:ring-0 p-0"
-                    placeholder="Add service and press Enter"
-                    disabled={loading}
-                  />
-                </div>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={handleAddService}
-                  disabled={loading || !serviceInput.trim()}
-                >
-                  Add
-                </Button>
-              </div>
-
-              {workshopData.services && workshopData.services.length > 0 ? (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {workshopData.services.map((service, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="flex items-center gap-1 bg-purple-100 text-purple-800 border-purple-300"
-                    >
-                      <Wrench className="h-3 w-3" />
-                      {service}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-4 w-4 p-0 ml-1 hover:bg-transparent text-purple-700 hover:text-purple-900"
-                        onClick={() => handleRemoveService(index)}
-                        disabled={loading}
-                      >
-                        &times;
-                      </Button>
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No services added yet.
-                </p>
-              )}
-            </div>
-          </TabsContent>
-
           <TabsContent value="additional" className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="latitude">Latitude</Label>
+                <Label htmlFor="latitude">Latitude *</Label>
                 <Input
                   id="latitude"
                   placeholder="Latitude (e.g. 30.0444)"
@@ -560,13 +509,24 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
                         value === "" ? null : Number(value)
                       );
                     }
+                    // Clear latitude/longitude errors when user types
+                    if (errors.latitude) {
+                      setErrors((prev) => ({
+                        ...prev,
+                        latitude: "",
+                      }));
+                    }
                   }}
                   disabled={loading}
+                  required
                 />
+                {errors.latitude && (
+                  <p className="text-red-500 text-xs mt-1">{errors.latitude}</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="longitude">Longitude</Label>
+                <Label htmlFor="longitude">Longitude *</Label>
                 <Input
                   id="longitude"
                   placeholder="Longitude (e.g. 31.2357)"
@@ -580,9 +540,22 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
                         value === "" ? null : Number(value)
                       );
                     }
+                    // Clear latitude/longitude errors when user types
+                    if (errors.longitude) {
+                      setErrors((prev) => ({
+                        ...prev,
+                        longitude: "",
+                      }));
+                    }
                   }}
                   disabled={loading}
+                  required
                 />
+                {errors.longitude && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.longitude}
+                  </p>
+                )}
               </div>
             </div>
           </TabsContent>

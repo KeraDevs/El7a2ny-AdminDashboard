@@ -71,6 +71,9 @@ export const AddCarBrandDialog: React.FC<AddCarBrandDialogProps> = ({
       return;
     }
 
+    console.log("Debug - Submitting brand with data:", formData);
+    console.log("Debug - Selected region IDs:", formData.regionIds);
+
     setLoading(true);
     try {
       await onAdd({

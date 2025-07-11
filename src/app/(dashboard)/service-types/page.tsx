@@ -70,9 +70,7 @@ const ServiceTypesList: React.FC = () => {
   // Initial data load when component mounts
   useEffect(() => {
     if (isAuthorized && currentUser) {
-      console.log("Authorized, fetching service types");
       fetchServiceTypes(1, 10).catch((err) => {
-        console.error("Error fetching service types:", err);
         toast.error("Failed to fetch service types");
       });
     }

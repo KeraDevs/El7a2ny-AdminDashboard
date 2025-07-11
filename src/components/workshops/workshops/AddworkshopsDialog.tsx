@@ -55,7 +55,7 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
     ],
     latitude: null,
     longitude: null,
-    status: "open",
+    status: "closed",
     active_status: "pending",
   });
 
@@ -83,7 +83,7 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
         ],
         latitude: null,
         longitude: null,
-        status: "open",
+        status: "closed",
         active_status: "pending",
       });
       setSelectedOwnerId(null);
@@ -165,9 +165,67 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
   // Submit handler - simplified to match Swagger API
   // Submit handler - simplified to match Swagger API
   const handleSubmit = async () => {
+    // Validate required fields
+    if (!formData.name?.trim()) {
+      toast.error("Workshop name is required");
+      setActiveTab("basic");
+      return;
+    }
+
+    if (!formData.address?.trim()) {
+      toast.error("Workshop address is required");
+      setActiveTab("basic");
+      return;
+    }
+
     if (!selectedOwnerId) {
       toast.error("Workshop owner is required");
       setActiveTab("basic");
+      return;
+    }
+
+    // Validate phone numbers
+    const phoneNumbers = formData.phoneNumbers || [];
+    if (
+      phoneNumbers.length === 0 ||
+      !phoneNumbers.some((phone) => phone.phone_number?.trim())
+    ) {
+      toast.error("At least one phone number is required");
+      setActiveTab("basic");
+      return;
+    }
+
+    // Validate latitude and longitude
+    if (
+      formData.latitude === null ||
+      formData.latitude === undefined ||
+      formData.latitude === 0
+    ) {
+      toast.error("Latitude is required");
+      setActiveTab("location");
+      return;
+    }
+
+    if (
+      formData.longitude === null ||
+      formData.longitude === undefined ||
+      formData.longitude === 0
+    ) {
+      toast.error("Longitude is required");
+      setActiveTab("location");
+      return;
+    }
+
+    // Validate coordinate ranges
+    if (formData.latitude < -90 || formData.latitude > 90) {
+      toast.error("Latitude must be between -90 and 90");
+      setActiveTab("location");
+      return;
+    }
+
+    if (formData.longitude < -180 || formData.longitude > 180) {
+      toast.error("Longitude must be between -180 and 180");
+      setActiveTab("location");
       return;
     }
 
@@ -183,11 +241,11 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
       const workshopData = {
         name: formData.name,
         address: formData.address || "",
-        status: formData.status || "open",
+        status: formData.status || "closed",
         ownerId: selectedOwnerId,
         phoneNumbers: formData.phoneNumbers || [],
-        latitude: formData.latitude || 0,
-        longitude: formData.longitude || 0,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
       };
 
       // Use the hook's method to add the workshop
@@ -352,9 +410,9 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Open">Open</SelectItem>
-                    <SelectItem value="Busy">Busy</SelectItem>
-                    <SelectItem value="Closed">Closed</SelectItem>
+                    <SelectItem value="open">Open</SelectItem>
+                    <SelectItem value="busy">Busy</SelectItem>
+                    <SelectItem value="closed">Closed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -366,14 +424,13 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
                   onValueChange={(value) =>
                     handleInputChange("active_status", value)
                   }
+                  disabled={true}
                 >
                   <SelectTrigger id="active_status">
-                    <SelectValue placeholder="Select status" />
+                    <SelectValue placeholder="Pending" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="deactivated">Deactivated</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -383,7 +440,7 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
           <TabsContent value="location" className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="latitude">Latitude</Label>
+                <Label htmlFor="latitude">Latitude *</Label>
                 <Input
                   id="latitude"
                   type="number"
@@ -396,11 +453,12 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
                       e.target.value === "" ? null : parseFloat(e.target.value)
                     )
                   }
+                  required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="longitude">Longitude</Label>
+                <Label htmlFor="longitude">Longitude *</Label>
                 <Input
                   id="longitude"
                   type="number"
@@ -413,6 +471,7 @@ export const AddWorkshopDialog: React.FC<AddWorkshopDialogProps> = ({
                       e.target.value === "" ? null : parseFloat(e.target.value)
                     )
                   }
+                  required
                 />
               </div>
             </div>

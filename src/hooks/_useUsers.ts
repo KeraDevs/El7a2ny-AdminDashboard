@@ -37,12 +37,8 @@ export const useUsers = (): UseUsersReturn => {
       let offset = 0;
       const pageSize = 50;
 
-      console.log("Starting to fetch users with pagination...");
-
       // Fetch all users in batches
       while (hasMore) {
-        console.log(`Fetching users batch: skip=${offset}, take=${pageSize}`);
-
         const response = await fetch(
           `${API_BASE_URL}/users?skip=${offset}&take=${pageSize}`,
           {
@@ -62,8 +58,6 @@ export const useUsers = (): UseUsersReturn => {
         const result: ApiResponse = await response.json();
         const batchUsers = (result.users || []).map(mapApiUserToFrontend);
 
-        console.log(`Fetched ${batchUsers.length} users in this batch`);
-
         allUsers = [...allUsers, ...batchUsers];
         hasMore = result.hasMore;
         offset += pageSize;
@@ -81,7 +75,6 @@ export const useUsers = (): UseUsersReturn => {
         }
       }
 
-      console.log(`Total users fetched: ${allUsers.length}`);
       setUsers(allUsers);
     } catch (error) {
       toast.error("Error fetching users!");
@@ -113,8 +106,6 @@ export const useUsers = (): UseUsersReturn => {
       let hasMore = true;
       let offset = 0;
       const pageSize = 50;
-
-      console.log("Starting to fetch workers with pagination...");
 
       while (hasMore) {
         console.log(`Fetching workers batch: skip=${offset}, take=${pageSize}`);

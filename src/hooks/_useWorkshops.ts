@@ -69,14 +69,8 @@ export const useWorkshops = (): UseWorkshopsReturn => {
       let offset = 0;
       const pageSize = 50;
 
-      console.log("Starting to fetch workshops with pagination...");
-
       // Fetch all workshops in batches
       while (hasMore) {
-        console.log(
-          `Fetching workshops batch: skip=${offset}, take=${pageSize}`
-        );
-
         const response = await fetch(
           `${API_BASE_URL}/workshops?skip=${offset}&take=${pageSize}`,
           {

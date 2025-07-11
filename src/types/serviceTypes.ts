@@ -1,4 +1,4 @@
-import { ColumnVisibility } from "../app/(dashboard)/users/page";
+import { ColumnVisibility } from "@/types/userTypes";
 
 // Service category enum to match backend values
 export enum ServiceCategory {
