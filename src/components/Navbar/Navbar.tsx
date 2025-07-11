@@ -134,7 +134,7 @@ const Navbar = () => {
                 onClick={() => setDropdownOpen(!dropdownOpen)}
               >
                 <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full">
-                  <span className="flex h-full w-full items-center justify-center rounded-full bg-muted cursor-pointer">
+                  <span className="flex h-full w-full items-center justify-center rounded-full bg-orange-500 text-white font-medium cursor-pointer">
                     {userInitial}
                   </span>
                 </span>

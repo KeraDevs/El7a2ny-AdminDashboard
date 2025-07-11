@@ -5,6 +5,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSidebar } from "@/contexts/SidebarContext";
+import Image from "next/image";
 import {
   Users,
   Boxes,
@@ -99,7 +100,7 @@ const SidebarItem = ({
       <div>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-accent cursor-pointer"
+          className="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer"
         >
           <div className="flex items-center gap-3">
             {section.icon}
@@ -117,7 +118,7 @@ const SidebarItem = ({
               <Link
                 key={subsection.href}
                 href={subsection.href}
-                className="block rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+                className="block rounded-md px-3 py-2 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               >
                 {subsection.name}
               </Link>
@@ -131,8 +132,8 @@ const SidebarItem = ({
   return (
     <Link
       href={section.href || "#"}
-      className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-accent ${
-        isActive ? "bg-accent" : ""
+      className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
+        isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : ""
       }`}
     >
       {section.icon}
@@ -160,13 +161,15 @@ const UserDropdown = ({
     <div className="relative">
       <button
         onClick={onToggle}
-        className="flex w-full items-center gap-3 p-5 hover:bg-accent transition-colors cursor-pointer"
+        className="flex w-full items-center gap-3 p-5 hover:bg-sidebar-accent transition-colors cursor-pointer"
       >
-        <div className="flex h-8 w-10  items-center justify-center rounded-full bg-primary text-white">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500 text-white font-medium">
           {userInitial}
         </div>
         <div className="flex-1 text-left">
-          <p className="text-sm font-medium text-foreground">{full_name}</p>
+          <p className="text-sm font-medium text-sidebar-foreground">
+            {full_name}
+          </p>
         </div>
         <TbLayoutDashboardFilled
           className={`h-4 w-4 transition-transform ${
@@ -176,17 +179,17 @@ const UserDropdown = ({
       </button>
 
       {isOpen && (
-        <div className="absolute bottom-full left-0 w-full bg-background border border-border shadow-lg">
+        <div className="absolute bottom-full left-0 w-full bg-sidebar border border-sidebar-border shadow-lg">
           <Link
             href="/profile"
-            className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-accent"
+            className="flex items-center gap-2 px-4 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent"
           >
             <UserCircle className="h-4 w-4" />
             Profile Settings
           </Link>
           <button
             onClick={logOut}
-            className="flex w-full items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-accent text-left"
+            className="flex w-full items-center gap-2 px-4 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent text-left"
           >
             <LogOut className="h-4 w-4" />
             Log out
@@ -205,18 +208,24 @@ const Sidebar = () => {
 
   // Apply conditional classes based on isOpen state
   const sidebarClasses = isOpen
-    ? "flex h-screen flex-col border-r border-border bg-background transition-all duration-300 overflow-auto w-64"
-    : "hidden md:flex md:w-0 h-screen flex-col border-r border-border bg-background transition-all duration-300 overflow-hidden";
+    ? "flex h-screen flex-col border-r border-sidebar-border bg-sidebar transition-all duration-300 overflow-auto w-64"
+    : "hidden md:flex md:w-0 h-screen flex-col border-r border-sidebar-border bg-sidebar transition-all duration-300 overflow-hidden";
 
   return (
     <div className={sidebarClasses}>
-      <div className="flex items-center gap-2 p-4 border-b border-border">
-        <div className="h-8 w-8 rounded-md bg-primary text-white flex items-center justify-center">
-          El
+      <div className="flex items-center gap-2 p-4 border-b border-sidebar-border">
+        <div className="h-8 w-8 rounded-md overflow-hidden flex items-center justify-center">
+          <Image
+            src="/images/logo.png"
+            alt="El7a2ny Logo"
+            width={32}
+            height={32}
+            className="object-contain"
+          />
         </div>
         <div>
-          <h1 className="font-semibold text-foreground">El7a2ny</h1>
-          <p className="text-xs text-muted-foreground">Admin Dashboard</p>
+          <h1 className="font-semibold text-sidebar-foreground">El7a2ny</h1>
+          <p className="text-xs text-sidebar-foreground/70">Admin Dashboard</p>
         </div>
       </div>
 
@@ -234,7 +243,7 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      <div className="border-t border-border">
+      <div className="border-t border-sidebar-border">
         <UserDropdown
           isOpen={isUserMenuOpen}
           onToggle={() => setIsUserMenuOpen(!isUserMenuOpen)}
