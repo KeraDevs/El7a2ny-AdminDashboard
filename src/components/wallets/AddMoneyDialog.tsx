@@ -36,7 +36,7 @@ export default function AddMoneyDialog({
   onClose,
   onSuccess,
 }: AddMoneyDialogProps) {
-  const { handleTransferMoney, loading } = useWallets();
+  const { handleAddCredit, loading } = useWallets();
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [reason, setReason] = useState("");
@@ -67,9 +67,10 @@ export default function AddMoneyDialog({
       description.trim() || `${reason} - Admin added money`;
 
     try {
-      const result = await handleTransferMoney({
-        receiver_user_id: wallet.user_id,
+      const result = await handleAddCredit({
+        user_id: wallet.user_id,
         amount: numAmount,
+        reason: reason,
         description: finalDescription,
       });
 

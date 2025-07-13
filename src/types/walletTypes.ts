@@ -39,6 +39,13 @@ export interface WalletStatusUpdateRequest {
   status: "active" | "inactive" | "suspended" | "frozen";
 }
 
+export interface WalletAddCreditRequest {
+  user_id: string;
+  amount: number;
+  reason: string;
+  description: string;
+}
+
 export interface WalletListResponse {
   wallets: Wallet[];
   total: number;

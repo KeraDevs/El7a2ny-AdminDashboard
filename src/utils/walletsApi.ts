@@ -4,6 +4,7 @@ import {
   WalletTransaction,
   WalletTransferRequest,
   WalletStatusUpdateRequest,
+  WalletAddCreditRequest,
   WalletListResponse,
   TransactionHistoryResponse,
   ManualWithdrawalListResponse,
@@ -184,6 +185,35 @@ export const updateWalletStatus = async (
     return await response.json();
   } catch (error) {
     console.error("Error updating wallet status:", error);
+    throw error;
+  }
+};
+
+// Add credit to user wallet (superadmin only)
+export const addCreditToWallet = async (
+  creditData: WalletAddCreditRequest,
+  token: string
+): Promise<WalletTransaction> => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/payment/wallets/admin/add-credit`,
+      {
+        method: "POST",
+        headers: {
+          ...defaultHeaders,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(creditData),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to add credit to wallet: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error adding credit to wallet:", error);
     throw error;
   }
 };

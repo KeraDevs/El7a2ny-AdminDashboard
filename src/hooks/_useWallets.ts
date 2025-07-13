@@ -5,6 +5,7 @@ import {
   WalletTransaction,
   WalletTransferRequest,
   WalletStatusUpdateRequest,
+  WalletAddCreditRequest,
   WalletStats,
   getNumericBalance,
 } from "@/types/walletTypes";
@@ -13,6 +14,7 @@ import {
   getWalletById,
   getWalletBalance,
   transferMoney,
+  addCreditToWallet,
   getTransactionHistory,
   updateWalletStatus,
   listAllWallets,
@@ -121,6 +123,30 @@ export const useWallets = () => {
       }
     },
     [currentUser, fetchCurrentWallet]
+  );
+
+  // Add credit to user wallet (superadmin only)
+  const handleAddCredit = useCallback(
+    async (creditData: WalletAddCreditRequest) => {
+      if (!currentUser) return null;
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const token = await currentUser.getIdToken();
+        const transaction = await addCreditToWallet(creditData, token);
+        return transaction;
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to add credit to wallet"
+        );
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [currentUser]
   );
 
   // Get transaction history
@@ -340,6 +366,7 @@ export const useWallets = () => {
     fetchWalletById,
     fetchWalletBalance,
     handleTransferMoney,
+    handleAddCredit,
     fetchTransactionHistory,
     handleUpdateWalletStatus,
     fetchAllWallets,
