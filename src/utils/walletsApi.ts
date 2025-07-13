@@ -6,6 +6,8 @@ import {
   WalletStatusUpdateRequest,
   WalletListResponse,
   TransactionHistoryResponse,
+  ManualWithdrawalListResponse,
+  ProcessWithdrawalRequest,
 } from "@/types/walletTypes";
 
 const defaultHeaders: Record<string, string> = {
@@ -233,6 +235,108 @@ export const listAllWallets = async (
     };
   } catch (error) {
     console.error("Error listing wallets:", error);
+    throw error;
+  }
+};
+
+// Manual Withdrawal APIs
+
+// Get all pending manual withdrawal requests (Superadmin only)
+export const getPendingWithdrawals = async (
+  token: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<ManualWithdrawalListResponse> => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/payment/manual-withdrawal/pending?page=${page}&limit=${limit}`,
+      {
+        method: "GET",
+        headers: {
+          ...defaultHeaders,
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to get pending withdrawals: ${response.statusText}`
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error getting pending withdrawals:", error);
+    throw error;
+  }
+};
+
+// Process manual withdrawal request (approve/reject)
+export const processWithdrawalRequest = async (
+  withdrawalId: string,
+  processData: ProcessWithdrawalRequest,
+  token: string
+): Promise<{ message: string }> => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/payment/manual-withdrawal/process/${withdrawalId}`,
+      {
+        method: "POST",
+        headers: {
+          ...defaultHeaders,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(processData),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to process withdrawal: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error processing withdrawal:", error);
+    throw error;
+  }
+};
+
+// Get all manual withdrawal requests with filtering
+export const getAllWithdrawals = async (
+  token: string,
+  page: number = 1,
+  limit: number = 10,
+  status?: string,
+  workshopId?: string
+): Promise<ManualWithdrawalListResponse> => {
+  try {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    if (status) params.append("status", status);
+    if (workshopId) params.append("workshop_id", workshopId);
+
+    const response = await fetch(
+      `${API_BASE_URL}/payment/manual-withdrawal/all?${params.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          ...defaultHeaders,
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to get withdrawals: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error getting withdrawals:", error);
     throw error;
   }
 };

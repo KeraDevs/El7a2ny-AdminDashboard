@@ -33,45 +33,26 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  ResponsiveContainer,
 } from "recharts";
 import {
   IconTrendingUp,
   IconTrendingDown,
-  IconDeviceMobile,
   IconBrandApple,
   IconBrandAndroid,
   IconWorld,
   IconRefresh,
   IconCalendar,
   IconEye,
-  IconClick,
   IconDeviceDesktop,
+  IconUsers,
+  IconCash,
+  IconChartBar,
+  IconAlertCircle,
 } from "@tabler/icons-react";
-
-// Mock data - This will be replaced with real Google Analytics data
-const platformData = [
-  { name: "Android App", visits: 12450, percentage: 35, color: "#34D399" },
-  { name: "iOS App", visits: 8920, percentage: 25, color: "#60A5FA" },
-  { name: "Web Desktop", visits: 10680, percentage: 30, color: "#F59E0B" },
-  { name: "Web Mobile", visits: 3560, percentage: 10, color: "#EF4444" },
-];
-
-const timeSeriesData = [
-  { date: "Jan", android: 4000, ios: 2400, web: 3200 },
-  { date: "Feb", android: 3000, ios: 1398, web: 2800 },
-  { date: "Mar", android: 5000, ios: 3800, web: 4200 },
-  { date: "Apr", android: 4780, ios: 3908, web: 3900 },
-  { date: "May", android: 5890, ios: 4800, web: 4300 },
-  { date: "Jun", android: 6390, ios: 3800, web: 5100 },
-];
-
-const deviceBreakdown = [
-  { device: "Samsung Galaxy", visits: 3200, os: "Android" },
-  { device: "iPhone 15", visits: 2800, os: "iOS" },
-  { device: "iPhone 14", visits: 2100, os: "iOS" },
-  { device: "Google Pixel", visits: 1900, os: "Android" },
-  { device: "OnePlus", visits: 1600, os: "Android" },
-];
+import { useAnalytics } from "@/hooks/useAnalytics";
+import { DateRangeOption } from "@/types/analyticsTypes";
+import { AnalyticsAPI } from "@/utils/analyticsApi";
 
 const chartConfig = {
   android: {
@@ -89,19 +70,85 @@ const chartConfig = {
 };
 
 const Analytics: React.FC = () => {
-  const [timeRange, setTimeRange] = useState("7d");
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [timeRange, setTimeRange] = useState<DateRangeOption>("7d");
 
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    // Simulate data refresh
-    setTimeout(() => setIsRefreshing(false), 1500);
+  const {
+    overview,
+    platformData,
+    deviceData,
+    timeSeriesData,
+    realtimeData,
+    loading,
+    error,
+    lastUpdated,
+    refresh,
+    setDateRange,
+    isRefreshing,
+  } = useAnalytics(timeRange);
+
+  const handleTimeRangeChange = (newRange: string) => {
+    setTimeRange(newRange as DateRangeOption);
+    setDateRange(newRange as DateRangeOption);
   };
 
-  const totalVisits = platformData.reduce(
-    (sum, platform) => sum + platform.visits,
-    0
-  );
+  const handleRefresh = async () => {
+    await refresh();
+  };
+
+  // Calculate trend indicators
+  const getTrendBadge = (current: number, previous: number) => {
+    const change = AnalyticsAPI.calculatePercentageChange(current, previous);
+    const trend = AnalyticsAPI.getTrendIndicator(current, previous);
+
+    if (trend === "up") {
+      return (
+        <Badge variant="outline" className="text-green-600">
+          <IconTrendingUp className="mr-1 h-3 w-3" />+
+          {Math.abs(change).toFixed(1)}%
+        </Badge>
+      );
+    } else if (trend === "down") {
+      return (
+        <Badge variant="outline" className="text-red-600">
+          <IconTrendingDown className="mr-1 h-3 w-3" />-
+          {Math.abs(change).toFixed(1)}%
+        </Badge>
+      );
+    } else {
+      return (
+        <Badge variant="outline" className="text-gray-600">
+          {change >= 0 ? "+" : ""}
+          {change.toFixed(1)}%
+        </Badge>
+      );
+    }
+  };
+
+  const formatNumber = (num: number) => {
+    return AnalyticsAPI.formatNumber(num);
+  };
+
+  if (error) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <IconAlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
+              <CardTitle>Analytics Error</CardTitle>
+              <CardDescription>{error}</CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Button onClick={handleRefresh} variant="outline">
+                <IconRefresh className="mr-2 h-4 w-4" />
+                Retry
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 p-6">
@@ -116,14 +163,20 @@ const Analytics: React.FC = () => {
             Analytics Dashboard
           </h1>
           <p className="text-muted-foreground">
-            Track user engagement across all platforms and devices
+            Real-time insights from Google Analytics across web, Android, and
+            iOS platforms
           </p>
+          {lastUpdated && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Last updated: {new Date(lastUpdated).toLocaleString()}
+            </p>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
-          <Select value={timeRange} onValueChange={setTimeRange}>
+          <Select value={timeRange} onValueChange={handleTimeRangeChange}>
             <SelectTrigger className="w-[180px]">
-              <IconCalendar className="mr-2 h-4 w-6" />
+              <IconCalendar className="mr-2 h-4 w-4" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -139,7 +192,7 @@ const Analytics: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            disabled={isRefreshing}
+            disabled={isRefreshing || loading}
           >
             <IconRefresh
               className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
@@ -158,74 +211,90 @@ const Analytics: React.FC = () => {
       >
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Visits</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <IconUsers className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? "..." : formatNumber(overview?.totalUsers || 0)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {!loading &&
+                overview &&
+                getTrendBadge(
+                  overview.totalUsers,
+                  overview.previousPeriodComparison.totalUsers
+                )}
+              {loading && "Loading..."}
+              {!loading && " from last period"}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Sessions
+            </CardTitle>
             <IconEye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {totalVisits.toLocaleString()}
+              {loading ? "..." : formatNumber(overview?.totalSessions || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
-              <Badge variant="outline" className="text-green-600">
-                <IconTrendingUp className="mr-1 h-3 w-3" />
-                +12.5%
-              </Badge>
-              from last period
+              {!loading &&
+                overview &&
+                getTrendBadge(
+                  overview.totalSessions,
+                  overview.previousPeriodComparison.totalSessions
+                )}
+              {loading && "Loading..."}
+              {!loading && " from last period"}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Mobile App Users
-            </CardTitle>
-            <IconDeviceMobile className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Page Views</CardTitle>
+            <IconChartBar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">21,370</div>
+            <div className="text-2xl font-bold">
+              {loading ? "..." : formatNumber(overview?.totalPageviews || 0)}
+            </div>
             <p className="text-xs text-muted-foreground">
-              <Badge variant="outline" className="text-green-600">
-                <IconTrendingUp className="mr-1 h-3 w-3" />
-                +8.2%
-              </Badge>
-              from last period
+              {!loading &&
+                overview &&
+                getTrendBadge(
+                  overview.totalPageviews,
+                  overview.previousPeriodComparison.totalPageviews
+                )}
+              {loading && "Loading..."}
+              {!loading && " from last period"}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Web Users</CardTitle>
-            <IconWorld className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+            <IconCash className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">14,240</div>
+            <div className="text-2xl font-bold">
+              {loading ? "..." : `$${(overview?.totalRevenue || 0).toFixed(2)}`}
+            </div>
             <p className="text-xs text-muted-foreground">
-              <Badge variant="outline" className="text-red-600">
-                <IconTrendingDown className="mr-1 h-3 w-3" />
-                -2.1%
-              </Badge>
-              from last period
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Engagement Rate
-            </CardTitle>
-            <IconClick className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">68.4%</div>
-            <p className="text-xs text-muted-foreground">
-              <Badge variant="outline" className="text-green-600">
-                <IconTrendingUp className="mr-1 h-3 w-3" />
-                +4.7%
-              </Badge>
-              from last period
+              {!loading &&
+                overview &&
+                getTrendBadge(
+                  overview.totalRevenue,
+                  overview.previousPeriodComparison.totalRevenue
+                )}
+              {loading && "Loading..."}
+              {!loading && " from last period"}
             </p>
           </CardContent>
         </Card>
@@ -251,70 +320,94 @@ const Analytics: React.FC = () => {
             <Card className="lg:col-span-1">
               <CardHeader>
                 <CardTitle>Platform Distribution</CardTitle>
-                <CardDescription>User visits by platform type</CardDescription>
+                <CardDescription>User distribution by platform</CardDescription>
               </CardHeader>
               <CardContent>
-                <ChartContainer
-                  config={chartConfig}
-                  className="mx-auto aspect-square max-h-[300px]"
-                >
-                  <PieChart>
-                    <Pie
-                      data={platformData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="visits"
-                      label={({ name, percentage }) =>
-                        `${name}: ${percentage}%`
-                      }
-                    >
-                      {platformData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                  </PieChart>
-                </ChartContainer>
+                {loading ? (
+                  <div className="flex items-center justify-center h-[300px]">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                  </div>
+                ) : (
+                  <ChartContainer
+                    config={chartConfig}
+                    className="mx-auto aspect-square max-h-[300px]"
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={platformData.map((p) => ({
+                            name: p.platform,
+                            value: p.users,
+                            percentage: p.percentage,
+                            fill: p.color,
+                          }))}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                          label={({ name, percentage }) =>
+                            `${name}: ${percentage}%`
+                          }
+                        >
+                          {platformData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                )}
               </CardContent>
             </Card>
 
             {/* Time Series Chart */}
             <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle>Visits Over Time</CardTitle>
+                <CardTitle>Users Over Time</CardTitle>
                 <CardDescription>
                   Platform comparison over the selected period
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ChartContainer config={chartConfig} className="h-[300px]">
-                  <LineChart data={timeSeriesData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Line
-                      type="monotone"
-                      dataKey="android"
-                      stroke="#34D399"
-                      strokeWidth={2}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="ios"
-                      stroke="#60A5FA"
-                      strokeWidth={2}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="web"
-                      stroke="#F59E0B"
-                      strokeWidth={2}
-                    />
-                  </LineChart>
-                </ChartContainer>
+                {loading ? (
+                  <div className="flex items-center justify-center h-[300px]">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                  </div>
+                ) : (
+                  <ChartContainer config={chartConfig} className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={timeSeriesData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Line
+                          type="monotone"
+                          dataKey="android"
+                          stroke="#34D399"
+                          strokeWidth={2}
+                          name="Android"
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="ios"
+                          stroke="#60A5FA"
+                          strokeWidth={2}
+                          name="iOS"
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="web"
+                          stroke="#F59E0B"
+                          strokeWidth={2}
+                          name="Web"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                )}
               </CardContent>
             </Card>
           </motion.div>
@@ -325,44 +418,100 @@ const Analytics: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="grid grid-cols-1 gap-4 md:grid-cols-2"
+            className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
           >
-            {platformData.map((platform) => (
-              <Card key={platform.name}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-lg font-medium flex items-center gap-2">
-                    {platform.name === "Android App" && (
-                      <IconBrandAndroid className="h-5 w-5 text-green-600" />
-                    )}
-                    {platform.name === "iOS App" && (
-                      <IconBrandApple className="h-5 w-5 text-blue-600" />
-                    )}
-                    {platform.name.includes("Web") && (
-                      <IconWorld className="h-5 w-5 text-orange-600" />
-                    )}
-                    {platform.name}
-                  </CardTitle>
-                  <Badge variant="secondary">{platform.percentage}%</Badge>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold mb-2">
-                    {platform.visits.toLocaleString()}
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-                    <div
-                      className="h-2 rounded-full transition-all duration-500"
-                      style={{
-                        width: `${platform.percentage}%`,
-                        backgroundColor: platform.color,
-                      }}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Last updated: 2 minutes ago
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+            {loading
+              ? Array.from({ length: 3 }).map((_, index) => (
+                  <Card key={index}>
+                    <CardHeader>
+                      <div className="animate-pulse">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2 mt-2"></div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="animate-pulse">
+                        <div className="h-8 bg-gray-200 rounded w-1/2 mb-2"></div>
+                        <div className="h-2 bg-gray-200 rounded w-full mb-2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              : platformData.map((platform) => (
+                  <Card key={platform.platform}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-lg font-medium flex items-center gap-2">
+                        {platform.platform === "Android" && (
+                          <IconBrandAndroid className="h-5 w-5 text-green-600" />
+                        )}
+                        {platform.platform === "iOS" && (
+                          <IconBrandApple className="h-5 w-5 text-blue-600" />
+                        )}
+                        {platform.platform === "Web" && (
+                          <IconWorld className="h-5 w-5 text-orange-600" />
+                        )}
+                        {platform.platform}
+                      </CardTitle>
+                      <Badge variant="secondary">{platform.percentage}%</Badge>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm font-medium">Users:</span>
+                          <span className="text-sm">
+                            {formatNumber(platform.users)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm font-medium">Sessions:</span>
+                          <span className="text-sm">
+                            {formatNumber(platform.sessions)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm font-medium">
+                            Avg. Duration:
+                          </span>
+                          <span className="text-sm">
+                            {AnalyticsAPI.formatDuration(
+                              platform.averageSessionDuration
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm font-medium">
+                            Bounce Rate:
+                          </span>
+                          <span className="text-sm">
+                            {AnalyticsAPI.formatPercentage(platform.bounceRate)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm font-medium">Revenue:</span>
+                          <span className="text-sm">
+                            ${platform.revenue.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mt-4 dark:bg-gray-700">
+                        <div
+                          className="h-2 rounded-full transition-all duration-500"
+                          style={{
+                            width: `${platform.percentage}%`,
+                            backgroundColor: platform.color,
+                          }}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Last updated:{" "}
+                        {lastUpdated
+                          ? new Date(lastUpdated).toLocaleTimeString()
+                          : "Never"}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
           </motion.div>
         </TabsContent>
 
@@ -380,38 +529,65 @@ const Analytics: React.FC = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {deviceBreakdown.map((device) => (
-                    <div
-                      key={device.device}
-                      className="flex items-center justify-between p-3 border rounded-lg"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                          {device.os === "Android" ? (
-                            <IconBrandAndroid className="h-4 w-4 text-green-600" />
-                          ) : device.os === "iOS" ? (
-                            <IconBrandApple className="h-4 w-4 text-blue-600" />
-                          ) : (
-                            <IconDeviceDesktop className="h-4 w-4 text-gray-600" />
-                          )}
+                {loading ? (
+                  <div className="space-y-4">
+                    {Array.from({ length: 5 }).map((_, index) => (
+                      <div
+                        key={index}
+                        className="animate-pulse flex items-center justify-between p-3 border rounded-lg"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                          <div>
+                            <div className="h-4 bg-gray-200 rounded w-24 mb-1"></div>
+                            <div className="h-3 bg-gray-200 rounded w-16"></div>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{device.device}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {device.os}
+                        <div className="text-right">
+                          <div className="h-4 bg-gray-200 rounded w-12 mb-1"></div>
+                          <div className="h-3 bg-gray-200 rounded w-8"></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {deviceData.slice(0, 10).map((device, index) => (
+                      <div
+                        key={`${device.deviceModel}-${index}`}
+                        className="flex items-center justify-between p-3 border rounded-lg"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                            {device.operatingSystem
+                              .toLowerCase()
+                              .includes("android") ? (
+                              <IconBrandAndroid className="h-4 w-4 text-green-600" />
+                            ) : device.operatingSystem
+                                .toLowerCase()
+                                .includes("ios") ? (
+                              <IconBrandApple className="h-4 w-4 text-blue-600" />
+                            ) : (
+                              <IconDeviceDesktop className="h-4 w-4 text-gray-600" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium">{device.deviceModel}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {device.operatingSystem} • {device.deviceCategory}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium">
+                            {formatNumber(device.users)}
                           </p>
+                          <p className="text-sm text-muted-foreground">users</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium">
-                          {device.visits.toLocaleString()}
-                        </p>
-                        <p className="text-sm text-muted-foreground">visits</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
@@ -434,53 +610,112 @@ const Analytics: React.FC = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">247</div>
-                    <p className="text-sm text-muted-foreground">
-                      Active Android Users
-                    </p>
+                {loading ? (
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    {Array.from({ length: 3 }).map((_, index) => (
+                      <div
+                        key={index}
+                        className="text-center p-4 border rounded-lg animate-pulse"
+                      >
+                        <div className="h-8 bg-gray-200 rounded w-16 mx-auto mb-2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-20 mx-auto"></div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">189</div>
-                    <p className="text-sm text-muted-foreground">
-                      Active iOS Users
-                    </p>
-                  </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-orange-600">
-                      312
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="text-center p-4 border rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">
+                        {realtimeData?.activeUsersByPlatform.android || 0}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Active Android Users
+                      </p>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Active Web Users
-                    </p>
+                    <div className="text-center p-4 border rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {realtimeData?.activeUsersByPlatform.ios || 0}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Active iOS Users
+                      </p>
+                    </div>
+                    <div className="text-center p-4 border rounded-lg">
+                      <div className="text-2xl font-bold text-orange-600">
+                        {realtimeData?.activeUsersByPlatform.web || 0}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Active Web Users
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="mt-6 p-4 bg-muted rounded-lg">
+                  <h4 className="font-medium mb-2">Top Active Pages</h4>
+                  {loading ? (
+                    <div className="space-y-2">
+                      {Array.from({ length: 3 }).map((_, index) => (
+                        <div
+                          key={index}
+                          className="animate-pulse flex justify-between"
+                        >
+                          <div className="h-3 bg-gray-200 rounded w-32"></div>
+                          <div className="h-3 bg-gray-200 rounded w-8"></div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-2 text-sm">
+                      {(realtimeData?.topPages || [])
+                        .slice(0, 5)
+                        .map((page, index) => (
+                          <div key={index} className="flex justify-between">
+                            <span className="truncate max-w-xs">
+                              {page.page}
+                            </span>
+                            <span className="font-medium">
+                              {page.activeUsers}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 p-4 bg-muted rounded-lg">
                   <h4 className="font-medium mb-2">Integration Status</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span>Google Analytics 4</span>
-                      <Badge variant="outline" className="text-orange-600">
-                        Pending Setup
+                      <Badge
+                        variant="outline"
+                        className={loading ? "text-gray-600" : "text-green-600"}
+                      >
+                        {loading ? "Checking..." : "Connected"}
                       </Badge>
                     </div>
                     <div className="flex justify-between">
-                      <span>Firebase Analytics</span>
-                      <Badge variant="outline" className="text-orange-600">
-                        Pending Setup
+                      <span>Real-time Data</span>
+                      <Badge
+                        variant="outline"
+                        className={loading ? "text-gray-600" : "text-green-600"}
+                      >
+                        {loading ? "Checking..." : "Active"}
                       </Badge>
                     </div>
                     <div className="flex justify-between">
-                      <span>App Store Connect</span>
-                      <Badge variant="outline" className="text-orange-600">
-                        Pending Setup
+                      <span>Cross-platform Tracking</span>
+                      <Badge
+                        variant="outline"
+                        className={loading ? "text-gray-600" : "text-green-600"}
+                      >
+                        {loading ? "Checking..." : "Enabled"}
                       </Badge>
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground mt-3">
-                    Connect your analytics services to see real data
+                    Data refreshes automatically every 30 seconds
                   </p>
                 </div>
               </CardContent>

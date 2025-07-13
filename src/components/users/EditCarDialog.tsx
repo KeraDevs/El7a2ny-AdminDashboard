@@ -43,7 +43,10 @@ export const EditCarDialog: React.FC<EditCarDialogProps> = ({
     }
   };
 
-  const updateCarData = (field: keyof CarWithDetails, value: any) => {
+  const updateCarData = (
+    field: keyof CarWithDetails,
+    value: string | number | boolean
+  ) => {
     if (carData) {
       setCarData({ ...carData, [field]: value });
     }

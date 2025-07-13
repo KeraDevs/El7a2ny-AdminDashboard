@@ -21,10 +21,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-hot-toast";
-import { Plus, Building, Settings, Percent, AlertCircle } from "lucide-react";
+import { Plus, Building, Settings, Percent } from "lucide-react";
 import { useWorkshops } from "@/hooks/_useWorkshops";
 import { useServiceTypes } from "@/hooks/_useServices";
 import { CreateWorkshopServiceData } from "@/types/workshopServiceTypes";
+import { Workshop } from "@/types/workshopTypes";
+import { ServiceType } from "@/types/serviceTypes";
 
 interface AddWorkshopServiceDialogProps {
   isOpen: boolean;
@@ -41,8 +43,11 @@ export const AddWorkshopServiceDialog: React.FC<
     percentage: 0,
   });
   const [loading, setLoading] = useState(false);
-  const [selectedWorkshop, setSelectedWorkshop] = useState<any>(null);
-  const [selectedServiceType, setSelectedServiceType] = useState<any>(null);
+  const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop | null>(
+    null
+  );
+  const [selectedServiceType, setSelectedServiceType] =
+    useState<ServiceType | null>(null);
 
   const {
     workshops,
@@ -78,7 +83,7 @@ export const AddWorkshopServiceDialog: React.FC<
     try {
       await onSave(formData);
       handleClose();
-    } catch (error) {
+    } catch {
       // Error handling is done in the parent component
     } finally {
       setLoading(false);
@@ -99,13 +104,13 @@ export const AddWorkshopServiceDialog: React.FC<
   const handleWorkshopChange = (value: string) => {
     setFormData((prev) => ({ ...prev, workshop_id: value }));
     const workshop = workshops.find((w) => w.id === value);
-    setSelectedWorkshop(workshop);
+    setSelectedWorkshop(workshop || null);
   };
 
   const handleServiceTypeChange = (value: string) => {
     setFormData((prev) => ({ ...prev, service_type_id: value }));
     const serviceType = serviceTypes.find((st) => st.id === value);
-    setSelectedServiceType(serviceType);
+    setSelectedServiceType(serviceType || null);
 
     // Set base percentage if available
     if (serviceType?.service_types_percentage?.percentage) {

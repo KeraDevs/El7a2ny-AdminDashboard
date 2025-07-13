@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
@@ -16,7 +16,6 @@ import { Loader2 } from "lucide-react";
 import { CarWithDetails } from "@/types/carTypes";
 
 const UsersCarsTable: React.FC<UsersCarsTableProps> = ({
-  cars = [],
   selectedCars = [],
   onSelectCar,
   handleSelectAll,

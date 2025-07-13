@@ -3,12 +3,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL, API_KEY } from "@/utils/config";
 import { useCallback, useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import { CarWithDetails } from "@/types/carTypes";
 
 export const useUsersCars = () => {
   const { currentUser } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [usersCars, setUsersCars] = useState<any[]>([]);
+  const [usersCars, setUsersCars] = useState<CarWithDetails[]>([]);
   const [hasInitialLoad, setHasInitialLoad] = useState<boolean>(false);
 
   // Fetching users cars
@@ -76,12 +77,12 @@ export const useUsersCars = () => {
         setLoading(false);
       }
     },
-    [currentUser, hasInitialLoad, usersCars]
+    [currentUser, hasInitialLoad]
   );
 
   // Add new Car for users
   const addUserCar = useCallback(
-    async (carData: any) => {
+    async (carData: Partial<CarWithDetails>) => {
       if (!currentUser) {
         setError("User not authenticated");
         return;
@@ -134,7 +135,7 @@ export const useUsersCars = () => {
         setLoading(false);
       }
     },
-    [currentUser]
+    [currentUser, fetchUserCars]
   );
 
   // Auto-fetch cars when user is authenticated (only once)

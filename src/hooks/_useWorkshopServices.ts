@@ -8,6 +8,8 @@ import {
   WorkshopServicesPagination,
   WorkshopServicesStats,
 } from "@/types/workshopServiceTypes";
+import { Workshop } from "@/types/workshopTypes";
+import { ServiceType } from "@/types/serviceTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_KEY, API_BASE_URL } from "@/utils/config";
 import toast from "react-hot-toast";
@@ -107,7 +109,7 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
         }
 
         // First, fetch all workshops
-        let allWorkshops: any[] = [];
+        let allWorkshops: Workshop[] = [];
         let hasMore = true;
         let offset = 0;
         const pageSize = 50;
@@ -150,7 +152,7 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
         const workshopsWithServices = new Set<string>();
 
         // Also fetch service types to ensure we have the complete data
-        let serviceTypesMap = new Map();
+        const serviceTypesMap = new Map();
         try {
           console.log("Fetching service types...");
           // Try multiple possible endpoints for service types
@@ -167,7 +169,7 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
                 },
               }
             );
-          } catch (err) {
+          } catch {
             console.warn(
               "Primary service-types endpoint failed, trying alternative..."
             );
@@ -189,7 +191,7 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
                 serviceTypesData.services ||
                 [];
 
-            serviceTypes.forEach((st: any) => {
+            serviceTypes.forEach((st: ServiceType) => {
               serviceTypesMap.set(st.id, st);
             });
             console.log(`Loaded ${serviceTypes.length} service types from API`);
@@ -227,12 +229,13 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
 
               // Add workshop info to each service and ensure all data is present
               const servicesWithWorkshop = services.map(
-                (service: any, index: number) => {
+                (service: Record<string, unknown>, index: number) => {
                   // Handle different API response structures
+                  const serviceAny = service as Record<string, unknown>;
                   const workshopData =
-                    service.workshops || service.workshop || workshop;
+                    serviceAny.workshops || service.workshop || workshop;
                   const serviceTypeData =
-                    service.service_types ||
+                    serviceAny.service_types ||
                     service.service_type ||
                     serviceTypesMap.get(service.service_type_id);
 
@@ -253,9 +256,10 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
                   };
 
                   const normalizedWorkshop = {
-                    id: workshopData.id || workshop.id,
-                    name: workshopData.name || workshop.name,
-                    address: workshopData.address || workshop.address,
+                    id: (workshopData as Workshop)?.id || workshop.id,
+                    name: (workshopData as Workshop)?.name || workshop.name,
+                    address:
+                      (workshopData as Workshop)?.address || workshop.address,
                   };
 
                   // Ensure each service has a unique ID
@@ -493,40 +497,45 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
 
         // Ensure percentage is never null and service_type exists, handle API response structure
         const normalizedServices = services.map(
-          (service: any, index: number) => {
+          (service: Record<string, unknown>, index: number) => {
             // Handle different API response structures
-            const workshopData = service.workshops || service.workshop;
+            const serviceAny = service as Record<string, unknown>;
+            const workshopData = serviceAny.workshops || service.workshop;
             const serviceTypeData =
-              service.service_types || service.service_type;
+              serviceAny.service_types || service.service_type;
 
             // Get service type name - prioritize service_type name, then category as fallback
             const serviceTypeName =
-              serviceTypeData?.name ||
-              serviceTypeData?.service_category ||
+              (serviceTypeData as ServiceType)?.name ||
+              (serviceTypeData as ServiceType)?.service_category ||
               "Unknown Service";
 
             const normalizedServiceType = {
-              id: service.service_type_id || serviceTypeData?.id || "",
+              id:
+                service.service_type_id ||
+                (serviceTypeData as ServiceType)?.id ||
+                "",
               name: serviceTypeName,
               description:
-                serviceTypeData?.description ||
-                serviceTypeData?.description_ar ||
+                (serviceTypeData as ServiceType)?.description ||
+                (serviceTypeData as ServiceType)?.description_ar ||
                 "",
-              service_category: serviceTypeData?.service_category || "",
+              service_category:
+                (serviceTypeData as ServiceType)?.service_category || "",
             };
 
             const normalizedWorkshop = workshopData
               ? {
-                  id: workshopData.id,
-                  name: workshopData.name,
-                  address: workshopData.address,
+                  id: (workshopData as Workshop).id,
+                  name: (workshopData as Workshop).name,
+                  address: (workshopData as Workshop).address,
                 }
               : undefined;
 
             // Generate unique ID if not provided
             const serviceId =
               service.id ||
-              `ws-${workshopData?.id || "unknown"}-st-${
+              `ws-${(workshopData as Workshop)?.id || "unknown"}-st-${
                 service.service_type_id
               }` ||
               `service-${index}`;
@@ -537,7 +546,8 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
               percentage: service.percentage ?? 0,
               service_type: normalizedServiceType,
               workshop: normalizedWorkshop,
-              workshop_id: workshopData?.id || service.workshop_id,
+              workshop_id:
+                (workshopData as Workshop)?.id || service.workshop_id,
               service_type_id: service.service_type_id,
             };
           }
@@ -552,10 +562,11 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
         });
 
         const validPercentages = normalizedServices
-          .map((s: any) => s.percentage)
+          .map((s: WorkshopService) => s.percentage)
           .filter(
-            (p: any) => p !== null && p !== undefined && !isNaN(p)
-          ) as number[];
+            (p: number | null | undefined): p is number =>
+              p !== null && p !== undefined && !isNaN(p)
+          );
 
         const totalPercentage = validPercentages.reduce(
           (sum: number, p: number) => sum + p,
@@ -1068,7 +1079,6 @@ export const useWorkshopServices = (): UseWorkshopServicesReturn => {
       setError(null);
 
       try {
-        const authToken = await currentUser.getIdToken();
         if (!API_KEY) {
           throw new Error("API key is missing");
         }

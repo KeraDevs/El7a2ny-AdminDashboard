@@ -69,7 +69,7 @@ export const EditWorkshopServiceDialog: React.FC<
     try {
       await onSave(service.workshop_id, service.service_type_id, formData);
       handleClose();
-    } catch (error) {
+    } catch {
       // Error handling is done in the parent component
     } finally {
       setLoading(false);

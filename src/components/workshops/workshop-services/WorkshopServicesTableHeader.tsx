@@ -20,20 +20,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Search,
   Columns,
   Plus,
   RefreshCw,
   Trash,
   Upload,
-  Settings,
   AlertTriangle,
 } from "lucide-react";
 import { WorkshopServicesTableHeaderProps } from "@/types/workshopServiceTypes";

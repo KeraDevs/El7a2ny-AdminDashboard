@@ -63,6 +63,7 @@ export const sidebarSections: SidebarSection[] = [
     subsections: [
       { name: "Users", href: "/wallets/users" },
       { name: "Workshops", href: "/wallets/workshops" },
+      { name: "Payouts", href: "/wallets/payouts" },
     ],
   },
   {

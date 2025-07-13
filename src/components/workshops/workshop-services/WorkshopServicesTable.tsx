@@ -11,14 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Eye, Edit, Trash, ArrowUpDown, MapPin, Settings } from "lucide-react";
 import {
   WorkshopServicesTableProps,
@@ -29,7 +21,6 @@ export const WorkshopServicesTable: React.FC<WorkshopServicesTableProps> = ({
   loading,
   paginatedWorkshopServices,
   columnVisibility,
-  sortConfig,
   handleSort,
   selectedWorkshopServices,
   handleSelectAll,
@@ -37,7 +28,6 @@ export const WorkshopServicesTable: React.FC<WorkshopServicesTableProps> = ({
   handleEdit,
   handleView,
   searchQuery,
-  workshopServices,
   onDelete,
 }) => {
   const formatPercentage = (percentage: number | null | undefined) => {
@@ -55,13 +45,7 @@ export const WorkshopServicesTable: React.FC<WorkshopServicesTableProps> = ({
     });
   };
 
-  const getStatusBadgeColor = (isActive: boolean) => {
-    return isActive
-      ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-      : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
-  };
-
-  const handleDeleteSingle = (service: any) => {
+  const handleDeleteSingle = (service: WorkshopService) => {
     onDelete(service.id);
   };
 

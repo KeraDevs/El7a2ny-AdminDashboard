@@ -10,7 +10,7 @@ import {
   defaultColumnVisibility,
 } from "@/types/carTypes";
 import { toast } from "react-hot-toast";
-import { Loader2, Car } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 import { UsersCarsTableHeader } from "@/components/users/UsersCarsTableHeader";
@@ -26,7 +26,7 @@ interface SortConfig {
 }
 
 const UsersCarsPage: React.FC = () => {
-  const { usersCars, loading, error, fetchUserCars } = useUsersCars();
+  const { usersCars, loading, fetchUserCars } = useUsersCars();
   const { currentUser, isAuthorized, loading: authLoading } = useAuth();
 
   // State management
@@ -62,8 +62,8 @@ const UsersCarsPage: React.FC = () => {
     }
 
     return [...usersCars].sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
+      let aValue: string | number | undefined;
+      let bValue: string | number | undefined;
 
       // Handle nested properties
       if (sortConfig.key === "owner") {
@@ -77,8 +77,8 @@ const UsersCarsPage: React.FC = () => {
         aValue = a.brand?.name || "";
         bValue = b.brand?.name || "";
       } else {
-        aValue = a[sortConfig.key];
-        bValue = b[sortConfig.key];
+        aValue = a[sortConfig.key] as string | number | undefined;
+        bValue = b[sortConfig.key] as string | number | undefined;
       }
 
       if (aValue == null) return 1;

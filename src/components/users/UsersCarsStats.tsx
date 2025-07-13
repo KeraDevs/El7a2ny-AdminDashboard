@@ -13,13 +13,6 @@ export const UsersCarsStats: React.FC<UsersCarsStatsProps> = ({ cars }) => {
   const turboCars = cars.filter((car) => car.turbo).length;
   const exoticCars = cars.filter((car) => car.exotic).length;
   const uniqueOwners = new Set(cars.map((car) => car.owner_id)).size;
-  const uniqueBrands = new Set(cars.map((car) => car.brand_id)).size;
-  const recentCars = cars.filter((car) => {
-    const createdDate = new Date(car.created_at);
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    return createdDate > thirtyDaysAgo;
-  }).length;
 
   const stats = [
     {

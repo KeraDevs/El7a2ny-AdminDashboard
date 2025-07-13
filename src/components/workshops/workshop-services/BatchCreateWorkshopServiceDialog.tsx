@@ -40,11 +40,14 @@ interface BatchCreateWorkshopServiceDialogProps {
   onSave: (data: BatchCreateWorkshopServiceData) => Promise<void>;
 }
 
+import { ServiceType } from "@/types/serviceTypes";
+import { Workshop } from "@/types/workshopTypes";
+
 interface ServiceItem {
   id: string;
   service_type_id: string;
   percentage: number;
-  serviceType?: any;
+  serviceType?: ServiceType;
 }
 
 export const BatchCreateWorkshopServiceDialog: React.FC<
@@ -53,18 +56,16 @@ export const BatchCreateWorkshopServiceDialog: React.FC<
   const [workshopId, setWorkshopId] = useState("");
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedWorkshop, setSelectedWorkshop] = useState<any>(null);
+  const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop | null>(
+    null
+  );
 
   const {
     workshops,
     fetchWorkshops,
     loading: workshopsLoading,
   } = useWorkshops();
-  const {
-    serviceTypes,
-    fetchServiceTypes,
-    loading: serviceTypesLoading,
-  } = useServiceTypes();
+  const { serviceTypes, fetchServiceTypes } = useServiceTypes();
 
   useEffect(() => {
     if (isOpen) {
@@ -135,13 +136,16 @@ export const BatchCreateWorkshopServiceDialog: React.FC<
         }`
       );
       handleClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating workshop services:", error);
 
       // Handle specific error cases
-      if (error?.message?.includes("404")) {
+      if (error instanceof Error && error.message.includes("404")) {
         toast.error("Workshop not found. Please select a valid workshop.");
-      } else if (error?.message?.includes("already exists")) {
+      } else if (
+        error instanceof Error &&
+        error.message.includes("already exists")
+      ) {
         toast.error("One or more services already exist for this workshop.");
       } else {
         toast.error("Failed to create workshop services. Please try again.");
@@ -161,7 +165,7 @@ export const BatchCreateWorkshopServiceDialog: React.FC<
   const handleWorkshopChange = (value: string) => {
     setWorkshopId(value);
     const workshop = workshops.find((w) => w.id === value);
-    setSelectedWorkshop(workshop);
+    setSelectedWorkshop(workshop || null);
   };
 
   const addService = () => {
@@ -273,14 +277,14 @@ export const BatchCreateWorkshopServiceDialog: React.FC<
                         <IconSettings className="h-12 w-12 mx-auto mb-4" />
                         <p>No services added yet</p>
                         <p className="text-sm">
-                          Click "Add Service" to get started
+                          Click &quot;Add Service&quot; to get started
                         </p>
                       </div>
                     </CardContent>
                   </Card>
                 ) : (
                   <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
-                    {services.map((service, index) => (
+                    {services.map((service) => (
                       <Card key={service.id} className="p-4">
                         <div className="flex items-start gap-4">
                           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">

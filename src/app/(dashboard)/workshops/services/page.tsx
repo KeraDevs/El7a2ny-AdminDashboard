@@ -30,7 +30,6 @@ const WorkshopServicesPage: React.FC = () => {
     workshopServices,
     loading,
     error,
-    pagination,
     stats,
     selectedWorkshopServices,
     fetchWorkshopServices,
@@ -41,7 +40,6 @@ const WorkshopServicesPage: React.FC = () => {
     handleDeleteWorkshopServices,
     handleSelectAll,
     handleSelectWorkshopService,
-    refreshData,
   } = useWorkshopServices();
 
   // Local state for UI
@@ -102,8 +100,12 @@ const WorkshopServicesPage: React.FC = () => {
     // Apply sorting
     if (sortConfig.key) {
       filtered.sort((a, b) => {
-        let aValue: any = a[sortConfig.key as keyof WorkshopService];
-        let bValue: any = b[sortConfig.key as keyof WorkshopService];
+        let aValue: string | number = a[
+          sortConfig.key as keyof WorkshopService
+        ] as string | number;
+        let bValue: string | number = b[
+          sortConfig.key as keyof WorkshopService
+        ] as string | number;
 
         // Handle nested properties
         if (sortConfig.key === "workshop_name") {
@@ -178,7 +180,7 @@ const WorkshopServicesPage: React.FC = () => {
           service.service_type_id
         );
         toast.success("Service deleted successfully");
-      } catch (error) {
+      } catch {
         toast.error("Failed to delete service");
       }
     }
@@ -193,7 +195,7 @@ const WorkshopServicesPage: React.FC = () => {
       toast.success(
         `${selectedWorkshopServices.length} services deleted successfully`
       );
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete services");
     }
   };
@@ -220,7 +222,7 @@ const WorkshopServicesPage: React.FC = () => {
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
           <p className="text-muted-foreground">
-            You don't have permission to access this page.
+            You don&apos;t have permission to access this page.
           </p>
         </div>
       </div>
