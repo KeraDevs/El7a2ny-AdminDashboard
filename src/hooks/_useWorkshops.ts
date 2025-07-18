@@ -268,7 +268,7 @@ export const useWorkshops = (): UseWorkshopsReturn => {
     }
   };
 
-  // Edit Workshop
+  // Edit Workshop (excluding status changes)
   const handleEditWorkshop = async (
     workshopData: Partial<Workshop>
   ): Promise<void> => {
@@ -288,7 +288,7 @@ export const useWorkshops = (): UseWorkshopsReturn => {
         throw new Error("API key is missing");
       }
 
-      // Format API data for PATCH request - simpler structure for updates
+      // Format API data for PATCH request
       const apiData: ApiWorkshopData = {};
 
       // Only include fields that should be updated
@@ -331,28 +331,6 @@ export const useWorkshops = (): UseWorkshopsReturn => {
         };
       }
 
-      // Handle operating hours - provide default structure if needed
-      if (!apiData.operating_hours) {
-        apiData.operating_hours = {
-          createMany: {
-            data: [
-              {
-                day: "MONDAY",
-                open_time: "1970-01-01T09:00:00",
-                close_time: "1970-01-01T17:00:00",
-                is_closed: false,
-              },
-              {
-                day: "TUESDAY",
-                open_time: "1970-01-01T09:00:00",
-                close_time: "1970-01-01T17:00:00",
-                is_closed: false,
-              },
-            ],
-          },
-        };
-      }
-
       // Remove undefined fields
       Object.keys(apiData).forEach((key) => {
         if (apiData[key] === undefined) {
@@ -360,34 +338,36 @@ export const useWorkshops = (): UseWorkshopsReturn => {
         }
       });
 
-      console.log("Sending edit data:", JSON.stringify(apiData, null, 2));
+      // Only make PATCH request if there are fields to update
+      if (Object.keys(apiData).length > 0) {
+        console.log("Sending edit data:", JSON.stringify(apiData, null, 2));
 
-      const response = await fetch(
-        `${API_BASE_URL}/workshops/${workshopData.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": API_KEY,
-            Authorization: `Bearer ${authToken}`,
-          } as HeadersInit,
-          body: JSON.stringify(apiData),
-        }
-      );
+        const response = await fetch(
+          `${API_BASE_URL}/workshops/${workshopData.id}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              "x-api-key": API_KEY,
+              Authorization: `Bearer ${authToken}`,
+            } as HeadersInit,
+            body: JSON.stringify(apiData),
+          }
+        );
 
-      if (!response.ok) {
-        let errorMessage;
-        try {
-          const errorResponse = await response.json();
-          errorMessage =
-            errorResponse.message ||
-            `Failed to update workshop (${response.status})`;
-          console.error("Edit error details:", errorResponse);
-        } catch {
-          // If JSON parsing fails, use status text
-          errorMessage = `Failed to update workshop: ${response.status} ${response.statusText}`;
+        if (!response.ok) {
+          let errorMessage;
+          try {
+            const errorResponse = await response.json();
+            errorMessage =
+              errorResponse.message ||
+              `Failed to update workshop (${response.status})`;
+            console.error("Edit error details:", errorResponse);
+          } catch {
+            errorMessage = `Failed to update workshop: ${response.status} ${response.statusText}`;
+          }
+          throw new Error(errorMessage);
         }
-        throw new Error(errorMessage);
       }
 
       // Refresh workshops list
@@ -406,6 +386,147 @@ export const useWorkshops = (): UseWorkshopsReturn => {
           : "Failed to edit workshop"
       );
       throw editError;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update Workshop Status using dedicated endpoints
+  const handleUpdateWorkshopStatus = async (
+    workshopId: string,
+    newStatus: "active" | "deactivated" | "pending"
+  ): Promise<void> => {
+    if (!currentUser) {
+      throw new Error("Authentication required");
+    }
+
+    try {
+      setLoading(true);
+      const authToken = await currentUser.getIdToken();
+
+      if (!API_KEY) {
+        throw new Error("API key is missing");
+      }
+
+      let endpoint = "";
+      let method = "POST";
+
+      switch (newStatus.toLowerCase()) {
+        case "active":
+          endpoint = `${API_BASE_URL}/workshops/${workshopId}/activate`;
+          break;
+        case "deactivated":
+          endpoint = `${API_BASE_URL}/workshops/${workshopId}/deactivate`;
+          break;
+        case "pending":
+          endpoint = `${API_BASE_URL}/workshops/${workshopId}/pend`;
+          break;
+        default:
+          throw new Error(`Invalid status: ${newStatus}`);
+      }
+
+      const response = await fetch(endpoint, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": API_KEY,
+          Authorization: `Bearer ${authToken}`,
+        } as HeadersInit,
+      });
+
+      if (!response.ok) {
+        let errorMessage;
+        try {
+          const errorResponse = await response.json();
+          errorMessage =
+            errorResponse.message ||
+            `Failed to update workshop status (${response.status})`;
+        } catch {
+          errorMessage = `Failed to update workshop status: ${response.status} ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      // Refresh workshops list
+      await fetchWorkshops();
+      toast.success(`Workshop status updated to ${newStatus}`);
+    } catch (statusError) {
+      console.error("Update workshop status error:", statusError);
+      toast.error(
+        statusError instanceof Error
+          ? statusError.message
+          : "Failed to update workshop status"
+      );
+      setError(
+        statusError instanceof Error
+          ? statusError.message
+          : "Failed to update workshop status"
+      );
+      throw statusError;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update Workshop Operating Status (Open/Busy/Closed)
+  const handleUpdateWorkshopOperatingStatus = async (
+    workshopId: string,
+    newStatus: "open" | "busy" | "closed"
+  ): Promise<void> => {
+    if (!currentUser) {
+      throw new Error("Authentication required");
+    }
+
+    try {
+      setLoading(true);
+      const authToken = await currentUser.getIdToken();
+
+      if (!API_KEY) {
+        throw new Error("API key is missing");
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/workshops/${workshopId}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": API_KEY,
+            Authorization: `Bearer ${authToken}`,
+          } as HeadersInit,
+          body: JSON.stringify({ status: newStatus.toUpperCase() }),
+        }
+      );
+
+      if (!response.ok) {
+        let errorMessage;
+        try {
+          const errorResponse = await response.json();
+          errorMessage =
+            errorResponse.message ||
+            `Failed to update operating status (${response.status})`;
+        } catch {
+          errorMessage = `Failed to update operating status: ${response.status} ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      // Refresh workshops list
+      await fetchWorkshops();
+      toast.success(`Workshop operating status updated to ${newStatus}`);
+    } catch (statusError) {
+      console.error("Update operating status error:", statusError);
+      toast.error(
+        statusError instanceof Error
+          ? statusError.message
+          : "Failed to update operating status"
+      );
+      setError(
+        statusError instanceof Error
+          ? statusError.message
+          : "Failed to update operating status"
+      );
+      throw statusError;
     } finally {
       setLoading(false);
     }
@@ -499,6 +620,8 @@ export const useWorkshops = (): UseWorkshopsReturn => {
     fetchWorkshops,
     handleAddWorkShop,
     handleEditWorkshop,
+    handleUpdateWorkshopStatus,
+    handleUpdateWorkshopOperatingStatus,
     handleDeleteWorkshops,
     handleSelectAll,
     handleSelectWorkshop,

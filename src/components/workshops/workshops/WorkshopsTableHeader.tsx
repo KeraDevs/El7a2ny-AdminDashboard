@@ -136,20 +136,31 @@ export const WorkshopsTableHeader: React.FC<WorkshopsTableHeaderProps> = ({
                     <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {/* Column checkboxes */}
-                    {Object.entries(columnVisibility).map(([key, value]) => (
-                      <DropdownMenuCheckboxItem
-                        key={key}
-                        checked={!!value}
-                        onCheckedChange={(checked) =>
-                          setColumnVisibility((prev) => ({
-                            ...prev,
-                            [key]: checked,
-                          }))
-                        }
-                      >
-                        {key.charAt(0).toUpperCase() + key.slice(1)}
-                      </DropdownMenuCheckboxItem>
-                    ))}
+                    {Object.entries(columnVisibility).map(([key, value]) => {
+                      const displayName =
+                        key === "operatingStatus"
+                          ? "Operating Status"
+                          : key === "activeStatus"
+                          ? "Active Status"
+                          : key === "createdDate"
+                          ? "Created Date"
+                          : key.charAt(0).toUpperCase() + key.slice(1);
+
+                      return (
+                        <DropdownMenuCheckboxItem
+                          key={key}
+                          checked={!!value}
+                          onCheckedChange={(checked) =>
+                            setColumnVisibility((prev) => ({
+                              ...prev,
+                              [key]: checked,
+                            }))
+                          }
+                        >
+                          {displayName}
+                        </DropdownMenuCheckboxItem>
+                      );
+                    })}
                   </DropdownMenuContent>
                 </DropdownMenu>
 
@@ -194,20 +205,31 @@ export const WorkshopsTableHeader: React.FC<WorkshopsTableHeaderProps> = ({
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {Object.entries(columnVisibility).map(([key, value]) => (
-                  <DropdownMenuCheckboxItem
-                    key={key}
-                    checked={!!value}
-                    onCheckedChange={(checked) =>
-                      setColumnVisibility((prev) => ({
-                        ...prev,
-                        [key]: checked,
-                      }))
-                    }
-                  >
-                    {key.charAt(0).toUpperCase() + key.slice(1)}
-                  </DropdownMenuCheckboxItem>
-                ))}
+                {Object.entries(columnVisibility).map(([key, value]) => {
+                  const displayName =
+                    key === "operatingStatus"
+                      ? "Operating Status"
+                      : key === "activeStatus"
+                      ? "Active Status"
+                      : key === "createdDate"
+                      ? "Created Date"
+                      : key.charAt(0).toUpperCase() + key.slice(1);
+
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={key}
+                      checked={!!value}
+                      onCheckedChange={(checked) =>
+                        setColumnVisibility((prev) => ({
+                          ...prev,
+                          [key]: checked,
+                        }))
+                      }
+                    >
+                      {displayName}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
               </DropdownMenuContent>
             </DropdownMenu>
 

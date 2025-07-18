@@ -29,6 +29,7 @@ const WorkshopsList: React.FC = () => {
     handleDeleteWorkshops,
     handleEditWorkshop,
     handleAddWorkShop,
+    handleUpdateWorkshopStatus,
   } = useWorkshops();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -40,9 +41,9 @@ const WorkshopsList: React.FC = () => {
       name: true,
       address: true,
       phone: true,
-      status: true,
+      operatingStatus: true,
+      activeStatus: true,
       createdDate: true,
-      services: false, // Services are not available from API
     });
 
   const [sortConfig, setSortConfig] = useState<SortConfig>({
@@ -243,6 +244,7 @@ const WorkshopsList: React.FC = () => {
         searchQuery={searchQuery}
         workshops={workshops}
         onDelete={handleDelete}
+        onStatusChange={handleUpdateWorkshopStatus}
       />
 
       <DataPagination
@@ -289,7 +291,6 @@ const WorkshopsList: React.FC = () => {
           createdDate: workshop.createdAt
             ? new Date(workshop.createdAt).toLocaleDateString()
             : "",
-          services: workshop.services?.length || 0,
         }))}
         filename={`workshops-page-${currentPage}`}
         headers={[
@@ -299,7 +300,6 @@ const WorkshopsList: React.FC = () => {
           { label: "Address", key: "address" },
           { label: "Status", key: "status" },
           { label: "Created Date", key: "createdDate" },
-          { label: "Services Count", key: "services" },
         ]}
       />
     </div>

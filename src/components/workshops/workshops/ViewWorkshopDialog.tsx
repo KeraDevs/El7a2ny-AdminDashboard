@@ -155,49 +155,60 @@ export const ViewWorkshopDialog: React.FC<ViewWorkshopDialogProps> = ({
               )}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1 col-span-2">
+          <div className="grid grid-cols-1 gap-4">
+            <div className="space-y-1">
               <h4 className="text-sm font-medium text-muted-foreground">
                 Workshop Name
               </h4>
               <p className="text-lg font-semibold">{workshopData.name}</p>
             </div>
 
-            <div className="space-y-1">
-              <h4 className="text-sm font-medium text-muted-foreground">
-                Phone
-              </h4>
-              <p className="text-sm flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5 text-green-600" />
-                <a
-                  href={`tel:${getPrimaryPhone()}`}
-                  className="text-blue-600 hover:underline"
-                >
-                  {getPrimaryPhone()}
-                </a>
-              </p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium text-muted-foreground">
+                  Phone
+                </h4>
+                <p className="text-sm flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5 text-green-600" />
+                  <a
+                    href={`tel:${getPrimaryPhone()}`}
+                    className="text-blue-600 hover:underline"
+                  >
+                    {getPrimaryPhone()}
+                  </a>
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium text-muted-foreground">
+                  Address
+                </h4>
+                <p className="text-sm flex items-start gap-1">
+                  <MapPin className="h-3.5 w-3.5 text-red-600 mt-0.5" />
+                  <span>{workshopData.address}</span>
+                </p>
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <h4 className="text-sm font-medium text-muted-foreground">
-                Status
-              </h4>
-              <div className="flex flex-col gap-1">
-                {getStatusBadge(workshopData.status)}
-                <div className="mt-1">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium text-muted-foreground">
+                  Operating Status
+                </h4>
+                <div className="flex flex-col gap-2">
+                  {getStatusBadge(workshopData.status)}
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium text-muted-foreground">
+                  Active Status
+                </h4>
+                <div className="flex flex-col gap-2">
                   {getActiveStatusBadge(workshopData.active_status)}
                 </div>
               </div>
             </div>
-          </div>
-          <div className="space-y-1">
-            <h4 className="text-sm font-medium text-muted-foreground">
-              Address
-            </h4>
-            <p className="text-sm flex items-start gap-1">
-              <MapPin className="h-3.5 w-3.5 text-red-600 mt-0.5" />
-              <span>{workshopData.address}</span>
-            </p>
           </div>
           <div className="space-y-1">
             <h4 className="text-sm font-medium text-muted-foreground">

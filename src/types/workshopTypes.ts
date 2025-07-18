@@ -54,8 +54,8 @@ export type WorkshopColumnVisibility = {
   name: boolean;
   address: boolean;
   phone: boolean;
-  status: boolean;
-  services: boolean;
+  operatingStatus: boolean;
+  activeStatus: boolean;
   createdDate?: boolean;
 };
 
@@ -78,6 +78,10 @@ export interface WorkshopsTableProps {
   searchQuery: string;
   workshops: Workshop[];
   onDelete: () => void;
+  onStatusChange: (
+    workshopId: string,
+    status: "active" | "deactivated" | "pending"
+  ) => Promise<void>;
 }
 
 export type ColumnVisibility = {

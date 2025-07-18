@@ -398,7 +398,7 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status">Workshop Status</Label>
+              <Label htmlFor="status">Operating Status</Label>
               <Select
                 value={workshopData.status}
                 onValueChange={(value) => handleInputChange("status", value)}
@@ -408,9 +408,9 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
                   id="status"
                   className={getStatusBadgeColor(workshopData.status)}
                 >
-                  <SelectValue placeholder="Select status">
+                  <SelectValue placeholder="Select operating status">
                     <div className="flex items-center gap-2 capitalize">
-                      {workshopData.status || "Select status"}
+                      {workshopData.status || "Select operating status"}
                     </div>
                   </SelectValue>
                 </SelectTrigger>
@@ -437,54 +437,6 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
                       className="bg-red-100 text-red-800 border-red-300"
                     >
                       Closed
-                    </Badge>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="active_status">Active Status</Label>
-              <Select
-                value={workshopData.active_status}
-                onValueChange={(value) =>
-                  handleInputChange(
-                    "active_status",
-                    value as "pending" | "active" | "deactivated"
-                  )
-                }
-                disabled={loading}
-              >
-                <SelectTrigger id="active_status">
-                  <SelectValue placeholder="Select active status">
-                    <div className="flex items-center gap-2 capitalize">
-                      {workshopData.active_status || "Select active status"}
-                    </div>
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">
-                    <Badge
-                      variant="outline"
-                      className="bg-yellow-100 text-yellow-800 border-yellow-300"
-                    >
-                      Pending
-                    </Badge>
-                  </SelectItem>
-                  <SelectItem value="active">
-                    <Badge
-                      variant="outline"
-                      className="bg-green-100 text-green-800 border-green-300"
-                    >
-                      Active
-                    </Badge>
-                  </SelectItem>
-                  <SelectItem value="deactivated">
-                    <Badge
-                      variant="outline"
-                      className="bg-red-100 text-red-800 border-red-300"
-                    >
-                      Deactivated
                     </Badge>
                   </SelectItem>
                 </SelectContent>

@@ -1,12 +1,10 @@
-import React from "react";
-import { PhoneNumber } from "@/types/workshopTypes";
+import React, { useState } from "react";
 import {
   Edit,
   Eye,
   Loader2,
   MapPin,
   Trash2,
-  Wrench,
   CheckCircle,
   XCircle,
   AlertCircle,
@@ -17,6 +15,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -24,7 +29,83 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { WorkshopsTableProps } from "@/types/workshopTypes";
+import {
+  PhoneNumber,
+  Workshop,
+  WorkshopsTableProps,
+} from "@/types/workshopTypes";
+
+// Active Status Dropdown Component
+const ActiveStatusDropdown = ({
+  workshop,
+  onStatusChange,
+  loading,
+}: {
+  workshop: Workshop;
+  onStatusChange: (
+    workshopId: string,
+    status: "active" | "deactivated" | "pending"
+  ) => Promise<void>;
+  loading: boolean;
+}) => {
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (newStatus === workshop.active_status) return;
+
+    setIsUpdating(true);
+    try {
+      await onStatusChange(
+        workshop.id,
+        newStatus as "active" | "deactivated" | "pending"
+      );
+    } catch (error) {
+      console.error("Failed to update status:", error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "active":
+        return "text-green-600 bg-green-50 border-green-200";
+      case "deactivated":
+        return "text-red-600 bg-red-50 border-red-200";
+      case "pending":
+        return "text-orange-600 bg-orange-50 border-orange-200";
+      default:
+        return "text-gray-600 bg-gray-50 border-gray-200";
+    }
+  };
+
+  return (
+    <Select
+      value={workshop.active_status}
+      onValueChange={handleStatusChange}
+      disabled={loading || isUpdating}
+    >
+      <SelectTrigger
+        className={`w-32 h-8 text-xs font-medium ${getStatusColor(
+          workshop.active_status
+        )}`}
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="pending" className="text-orange-600">
+          Pending
+        </SelectItem>
+        <SelectItem value="active" className="text-green-600">
+          Active
+        </SelectItem>
+        <SelectItem value="deactivated" className="text-red-600">
+          Deactivated
+        </SelectItem>
+      </SelectContent>
+    </Select>
+  );
+};
 
 export const WorkshopsTable: React.FC<WorkshopsTableProps> = ({
   loading,
@@ -40,6 +121,7 @@ export const WorkshopsTable: React.FC<WorkshopsTableProps> = ({
   searchQuery,
   workshops,
   onDelete,
+  onStatusChange,
 }) => {
   const visibleColumnCount =
     Object.values(columnVisibility).filter(Boolean).length + 2;
@@ -88,48 +170,6 @@ export const WorkshopsTable: React.FC<WorkshopsTableProps> = ({
             className="bg-gray-100 text-gray-800 border-gray-300"
           >
             <AlertCircle className="mr-1 h-3 w-3" /> {status}
-          </Badge>
-        );
-    }
-  };
-
-  // Get active status badge styling
-  const getActiveStatusBadge = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "active":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-green-100 text-green-800 border-green-300"
-          >
-            Active
-          </Badge>
-        );
-      case "pending":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-amber-100 text-amber-800 border-amber-300"
-          >
-            Pending
-          </Badge>
-        );
-      case "deactivated":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-red-100 text-red-800 border-red-300"
-          >
-            Deactivated
-          </Badge>
-        );
-      default:
-        return (
-          <Badge
-            variant="outline"
-            className="bg-gray-100 text-gray-800 border-gray-300"
-          >
-            {status}
           </Badge>
         );
     }
@@ -187,13 +227,13 @@ export const WorkshopsTable: React.FC<WorkshopsTableProps> = ({
                 </div>
               </TableHead>
             )}
-            {columnVisibility.status && (
+            {columnVisibility.operatingStatus && (
               <TableHead
                 className="cursor-pointer"
                 onClick={() => handleSort("status")}
               >
                 <div className="flex items-center gap-1">
-                  Status
+                  Operating Status
                   {sortConfig.key === "status" && (
                     <span className="ml-1">
                       {sortConfig.direction === "asc" ? "↑" : "↓"}
@@ -202,7 +242,21 @@ export const WorkshopsTable: React.FC<WorkshopsTableProps> = ({
                 </div>
               </TableHead>
             )}
-            {columnVisibility.services && <TableHead>Services</TableHead>}
+            {columnVisibility.activeStatus && (
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => handleSort("active_status")}
+              >
+                <div className="flex items-center gap-1">
+                  Active Status
+                  {sortConfig.key === "active_status" && (
+                    <span className="ml-1">
+                      {sortConfig.direction === "asc" ? "↑" : "↓"}
+                    </span>
+                  )}
+                </div>
+              </TableHead>
+            )}
             {columnVisibility.createdDate && (
               <TableHead
                 className="cursor-pointer"
@@ -294,44 +348,16 @@ export const WorkshopsTable: React.FC<WorkshopsTableProps> = ({
                     </a>
                   </TableCell>
                 )}
-                {columnVisibility.status && (
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      {getStatusBadge(workshop.status)}
-                      <div className="mt-1">
-                        {getActiveStatusBadge(workshop.active_status)}
-                      </div>
-                    </div>
-                  </TableCell>
+                {columnVisibility.operatingStatus && (
+                  <TableCell>{getStatusBadge(workshop.status)}</TableCell>
                 )}
-                {columnVisibility.services && (
+                {columnVisibility.activeStatus && (
                   <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {workshop.services && workshop.services.length > 0 ? (
-                        workshop.services.slice(0, 2).map((service, index) => (
-                          <Badge
-                            key={index}
-                            variant="secondary"
-                            className="text-xs bg-gray-100 text-gray-800 border-gray-300"
-                          >
-                            <Wrench className="h-3 w-3 mr-1" />
-                            {service}
-                          </Badge>
-                        ))
-                      ) : (
-                        <span className="text-muted-foreground text-xs">
-                          No services
-                        </span>
-                      )}
-                      {workshop.services && workshop.services.length > 2 && (
-                        <Badge
-                          variant="outline"
-                          className="text-xs bg-gray-100 text-gray-800 border-gray-300"
-                        >
-                          +{workshop.services.length - 2} more
-                        </Badge>
-                      )}
-                    </div>
+                    <ActiveStatusDropdown
+                      workshop={workshop}
+                      onStatusChange={onStatusChange}
+                      loading={loading}
+                    />
                   </TableCell>
                 )}
                 {columnVisibility.createdDate && (

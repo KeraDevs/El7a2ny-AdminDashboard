@@ -1,4 +1,4 @@
-import { Workshop, PhoneNumber } from "@/types/workshopTypes";
+import { Workshop } from "@/types/workshopTypes";
 import { User } from "@/types/userTypes";
 import { ApiUserResponse, ApiWorkshopsList } from "@/types/apiTypes";
 
@@ -10,8 +10,8 @@ export const mapApiWorkshopToFrontend = (
   ownerId: apiWorkshop.owner_id,
   name: apiWorkshop.name,
   address: apiWorkshop.address,
-  latitude: Number(apiWorkshop.latitude),
-  longitude: Number(apiWorkshop.longitude),
+  latitude: apiWorkshop.latitude ? Number(apiWorkshop.latitude) : null,
+  longitude: apiWorkshop.longitude ? Number(apiWorkshop.longitude) : null,
   profilePic: apiWorkshop.profile_pic,
   active_status: apiWorkshop.active_status as
     | "pending"
@@ -20,11 +20,39 @@ export const mapApiWorkshopToFrontend = (
   status: apiWorkshop.status.toLowerCase() as "open" | "busy" | "closed",
   createdAt: apiWorkshop.created_at,
   updatedAt: apiWorkshop.updated_at,
-  users: [],
+  users: apiWorkshop.users
+    ? [
+        {
+          id: apiWorkshop.users.id,
+          first_name: apiWorkshop.users.first_name,
+          last_name: apiWorkshop.users.last_name,
+          fullName: `${apiWorkshop.users.first_name} ${apiWorkshop.users.last_name}`,
+          email: apiWorkshop.users.email,
+          phone: apiWorkshop.users.phone,
+          nationalNumber: apiWorkshop.users.national_id,
+          profilePic: apiWorkshop.users.profile_pic || "",
+          password: "", // Password not provided by API
+          gender: apiWorkshop.users.gender as "male" | "female",
+          userType: apiWorkshop.users.type as
+            | "customer"
+            | "workshopAdmin"
+            | "worker"
+            | "superadmin",
+          labels: [],
+          isActive: true,
+          cars: [],
+          createdAt: apiWorkshop.users.created_at,
+          updatedAt: apiWorkshop.users.updated_at,
+        },
+      ]
+    : [],
   phoneNumbers:
     apiWorkshop.phone_numbers?.map((phone) => ({
-      ...phone,
-      type: phone.type.toUpperCase() as PhoneNumber["type"],
+      id: phone.id,
+      phone_number: phone.phone_number,
+      type: phone.type,
+      is_primary: phone.is_primary,
+      is_verified: phone.is_verified,
     })) || [],
   services: [], // Services are not provided by the API
   labels: apiWorkshop.labels?.map((labelObj) => labelObj.label.name) || [],
