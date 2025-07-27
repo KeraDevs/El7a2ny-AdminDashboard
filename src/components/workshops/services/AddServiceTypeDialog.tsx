@@ -34,9 +34,9 @@ interface AddServiceTypeDialogProps {
 // Define form data interface for API compatibility
 interface ServiceTypeFormData {
   name: string;
-  name_ar?: string;
-  description?: string;
-  description_ar?: string;
+  name_ar: string;
+  description: string;
+  description_ar: string;
   service_category: string;
 }
 
@@ -92,12 +92,35 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
     }
   };
 
+  // Check if all required fields are filled
+  const isFormValid = (): boolean => {
+    return (
+      formData.name.trim() !== "" &&
+      formData.name_ar.trim() !== "" &&
+      formData.description.trim() !== "" &&
+      formData.description_ar.trim() !== "" &&
+      formData.service_category !== ""
+    );
+  };
+
   // Validate form
   const validateForm = (): boolean => {
     const newErrors: { [key: string]: string } = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = "Service name is required";
+      newErrors.name = "Service name (English) is required";
+    }
+
+    if (!formData.name_ar?.trim()) {
+      newErrors.name_ar = "Service name (Arabic) is required";
+    }
+
+    if (!formData.description?.trim()) {
+      newErrors.description = "Description (English) is required";
+    }
+
+    if (!formData.description_ar?.trim()) {
+      newErrors.description_ar = "Description (Arabic) is required";
     }
 
     if (!formData.service_category) {
@@ -122,22 +145,14 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Prepare data for API (remove empty optional fields)
+      // Prepare data for API - all fields are now required
       const createData: CreateServiceTypeData = {
         name: formData.name.trim(),
+        name_ar: formData.name_ar.trim(),
+        description: formData.description.trim(),
+        description_ar: formData.description_ar.trim(),
         service_category: formData.service_category,
       };
-
-      // Add optional fields only if they have values
-      if (formData.name_ar?.trim()) {
-        createData.name_ar = formData.name_ar.trim();
-      }
-      if (formData.description?.trim()) {
-        createData.description = formData.description.trim();
-      }
-      if (formData.description_ar?.trim()) {
-        createData.description_ar = formData.description_ar.trim();
-      }
 
       await onAddServiceType(createData);
 
@@ -165,7 +180,8 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Add New Service Type</DialogTitle>
           <DialogDescription>
-            Create a new service type by filling out the required information.
+            Create a new service type by filling out all the required fields
+            below.
           </DialogDescription>
         </DialogHeader>
 
@@ -192,7 +208,7 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
 
           {/* Arabic Name */}
           <div className="space-y-2">
-            <Label htmlFor="name_ar">Service Type Name (Arabic)</Label>
+            <Label htmlFor="name_ar">Service Type Name (Arabic) *</Label>
             <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-emerald-50/50">
               <Globe className="h-4 w-4 text-emerald-500" />
               <Input
@@ -202,14 +218,18 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
                 onChange={(e) => handleInputChange("name_ar", e.target.value)}
                 className="border-none bg-transparent focus-visible:ring-0 p-0"
                 dir="rtl"
+                required
                 disabled={isSubmitting}
               />
             </div>
+            {errors.name_ar && (
+              <p className="text-red-500 text-xs mt-1">{errors.name_ar}</p>
+            )}
           </div>
 
           {/* English Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Description (English)</Label>
+            <Label htmlFor="description">Description (English) *</Label>
             <div className="flex items-start gap-2 border rounded-md px-3 py-2 bg-gray-50/50">
               <FileText className="h-4 w-4 text-gray-500 mt-2" />
               <Textarea
@@ -220,14 +240,18 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
                   handleInputChange("description", e.target.value)
                 }
                 className="border-none bg-transparent focus-visible:ring-0 p-0 min-h-[80px]"
+                required
                 disabled={isSubmitting}
               />
             </div>
+            {errors.description && (
+              <p className="text-red-500 text-xs mt-1">{errors.description}</p>
+            )}
           </div>
 
           {/* Arabic Description */}
           <div className="space-y-2">
-            <Label htmlFor="description_ar">Description (Arabic)</Label>
+            <Label htmlFor="description_ar">Description (Arabic) *</Label>
             <div className="flex items-start gap-2 border rounded-md px-3 py-2 bg-emerald-50/50">
               <Globe className="h-4 w-4 text-emerald-500 mt-2" />
               <Textarea
@@ -239,9 +263,15 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
                 }
                 className="border-none bg-transparent focus-visible:ring-0 p-0 min-h-[80px]"
                 dir="rtl"
+                required
                 disabled={isSubmitting}
               />
             </div>
+            {errors.description_ar && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.description_ar}
+              </p>
+            )}
           </div>
 
           {/* Category */}
@@ -283,7 +313,10 @@ export const AddServiceTypeDialog: React.FC<AddServiceTypeDialogProps> = ({
           >
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting}>
+          <Button
+            onClick={handleSubmit}
+            disabled={isSubmitting || !isFormValid()}
+          >
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

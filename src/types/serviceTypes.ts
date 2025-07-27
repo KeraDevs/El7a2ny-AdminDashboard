@@ -112,9 +112,9 @@ export interface ServiceTypesPagination {
 // New service type submission data structure
 export interface CreateServiceTypeData {
   name: string;
-  name_ar?: string;
-  description?: string;
-  description_ar?: string;
+  name_ar: string;
+  description: string;
+  description_ar: string;
   service_category: string;
 }
 
