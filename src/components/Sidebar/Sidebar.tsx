@@ -79,11 +79,11 @@ export const sidebarSections: SidebarSection[] = [
     icon: <Landmark className="h-4 w-4" />,
     href: "/revenue",
   },
-  {
-    name: "Analytics",
-    icon: <ChartPie className="h-4 w-4" />,
-    href: "/analytics",
-  },
+  // {
+  //   name: "Analytics",
+  //   icon: <ChartPie className="h-4 w-4" />,
+  //   href: "/analytics",
+  // },
 ];
 
 const SidebarItem = ({

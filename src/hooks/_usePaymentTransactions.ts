@@ -3,9 +3,11 @@ import {
   PaymentTransaction,
   PaymentTransactionListResponse,
 } from "@/types/walletTypes";
-import { API_BASE_URL } from "@/utils/config";
+import { API_BASE_URL, API_KEY } from "@/utils/config";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const usePaymentTransactions = () => {
+  const { currentUser } = useAuth();
   const [transactions, setTransactions] = useState<PaymentTransaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,8 +33,12 @@ export const usePaymentTransactions = () => {
       setError(null);
 
       try {
-        const token = localStorage.getItem("admin_token");
-        if (!token) {
+        if (!currentUser) {
+          throw new Error("User not authenticated");
+        }
+
+        const authToken = await currentUser.getIdToken();
+        if (!API_KEY) {
           throw new Error("No authentication token found");
         }
 
@@ -54,11 +60,10 @@ export const usePaymentTransactions = () => {
         const response = await fetch(
           `${API_BASE_URL}/payment/payments/transactions?${params}`,
           {
-            method: "GET",
             headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
+              "x-api-key": API_KEY,
+              Authorization: `Bearer ${authToken}`,
+            } as HeadersInit,
           }
         );
 
