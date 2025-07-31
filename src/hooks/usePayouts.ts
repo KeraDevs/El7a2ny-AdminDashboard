@@ -4,12 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   getPendingWithdrawals,
-  getAllWithdrawals,
   processWithdrawalRequest,
 } from "@/utils/walletsApi";
 import {
   ManualWithdrawalRequest,
-  ManualWithdrawalListResponse,
   ProcessWithdrawalRequest,
 } from "@/types/walletTypes";
 import toast from "react-hot-toast";
@@ -74,21 +72,8 @@ export const usePayouts = (limit: number = 10): UsePayoutsReturn => {
         return;
       }
 
-      let response: ManualWithdrawalListResponse;
-
-      if (statusFilter === "pending") {
-        response = await getPendingWithdrawals(token, currentPage, limit);
-      } else {
-        const status = statusFilter === "all" ? undefined : statusFilter;
-        const workshop = workshopFilter || undefined;
-        response = await getAllWithdrawals(
-          token,
-          currentPage,
-          limit,
-          status,
-          workshop
-        );
-      }
+      // Only fetch pending withdrawals, as /all endpoint does not exist
+      let response = await getPendingWithdrawals(token, currentPage, limit);
 
       setWithdrawals(response.withdrawals);
       setTotal(response.total);
