@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Search, SlidersHorizontal, RefreshCw } from "lucide-react";
+import { IoSearch } from "react-icons/io5";
+import { BiSlider, BiRefresh } from "react-icons/bi";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -93,7 +94,7 @@ export const WorkshopsTableHeader: React.FC<WorkshopsTableHeaderProps> = ({
         <>
           {showSearch ? (
             <div className="relative w-full">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <IoSearch className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder="Search workshops..."
@@ -119,7 +120,7 @@ export const WorkshopsTableHeader: React.FC<WorkshopsTableHeaderProps> = ({
                 className="flex-1"
                 onClick={() => setShowSearch(true)}
               >
-                <Search className="h-4 w-4 mr-2" />
+                <IoSearch className="h-4 w-4 mr-2" />
                 Search
               </Button>
               <div className="flex gap-2">
@@ -128,27 +129,38 @@ export const WorkshopsTableHeader: React.FC<WorkshopsTableHeaderProps> = ({
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="icon">
-                      <SlidersHorizontal className="h-4 w-4" />
+                      <BiSlider className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {/* Column checkboxes */}
-                    {Object.entries(columnVisibility).map(([key, value]) => (
-                      <DropdownMenuCheckboxItem
-                        key={key}
-                        checked={!!value}
-                        onCheckedChange={(checked) =>
-                          setColumnVisibility((prev) => ({
-                            ...prev,
-                            [key]: checked,
-                          }))
-                        }
-                      >
-                        {key.charAt(0).toUpperCase() + key.slice(1)}
-                      </DropdownMenuCheckboxItem>
-                    ))}
+                    {Object.entries(columnVisibility).map(([key, value]) => {
+                      const displayName =
+                        key === "operatingStatus"
+                          ? "Operating Status"
+                          : key === "activeStatus"
+                          ? "Active Status"
+                          : key === "createdDate"
+                          ? "Created Date"
+                          : key.charAt(0).toUpperCase() + key.slice(1);
+
+                      return (
+                        <DropdownMenuCheckboxItem
+                          key={key}
+                          checked={!!value}
+                          onCheckedChange={(checked) =>
+                            setColumnVisibility((prev) => ({
+                              ...prev,
+                              [key]: checked,
+                            }))
+                          }
+                        >
+                          {displayName}
+                        </DropdownMenuCheckboxItem>
+                      );
+                    })}
                   </DropdownMenuContent>
                 </DropdownMenu>
 
@@ -158,7 +170,7 @@ export const WorkshopsTableHeader: React.FC<WorkshopsTableHeaderProps> = ({
                   onClick={handleRefresh}
                   disabled={isRefreshing}
                 >
-                  <RefreshCw
+                  <BiRefresh
                     className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
                   />
                 </Button>
@@ -170,7 +182,7 @@ export const WorkshopsTableHeader: React.FC<WorkshopsTableHeaderProps> = ({
         // Desktop layout
         <>
           <div className="relative w-full max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <IoSearch className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Search workshops..."
@@ -186,27 +198,38 @@ export const WorkshopsTableHeader: React.FC<WorkshopsTableHeaderProps> = ({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="gap-1">
-                  <SlidersHorizontal className="h-3.5 w-3.5" />
+                  <BiSlider className="h-3.5 w-3.5" />
                   <span>Columns</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {Object.entries(columnVisibility).map(([key, value]) => (
-                  <DropdownMenuCheckboxItem
-                    key={key}
-                    checked={!!value}
-                    onCheckedChange={(checked) =>
-                      setColumnVisibility((prev) => ({
-                        ...prev,
-                        [key]: checked,
-                      }))
-                    }
-                  >
-                    {key.charAt(0).toUpperCase() + key.slice(1)}
-                  </DropdownMenuCheckboxItem>
-                ))}
+                {Object.entries(columnVisibility).map(([key, value]) => {
+                  const displayName =
+                    key === "operatingStatus"
+                      ? "Operating Status"
+                      : key === "activeStatus"
+                      ? "Active Status"
+                      : key === "createdDate"
+                      ? "Created Date"
+                      : key.charAt(0).toUpperCase() + key.slice(1);
+
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={key}
+                      checked={!!value}
+                      onCheckedChange={(checked) =>
+                        setColumnVisibility((prev) => ({
+                          ...prev,
+                          [key]: checked,
+                        }))
+                      }
+                    >
+                      {displayName}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -215,7 +238,7 @@ export const WorkshopsTableHeader: React.FC<WorkshopsTableHeaderProps> = ({
               onClick={handleRefresh}
               disabled={isRefreshing}
             >
-              <RefreshCw
+              <BiRefresh
                 className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
               />
               Refresh

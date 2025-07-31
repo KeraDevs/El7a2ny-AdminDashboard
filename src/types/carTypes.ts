@@ -1,4 +1,5 @@
-// Car brands and regions types - Updated to match actual API structure
+import React from "react";
+
 export interface CarBrand {
   id: string;
   name: string;
@@ -192,10 +193,99 @@ export interface ViewCarRegionDialogProps {
 // Form data types
 export interface CreateCarBrandData {
   name: string;
-  region_ids?: string[];
+  regionIds?: string[];
 }
 
 export interface CreateCarRegionData {
   name: string;
   brand_ids?: string[];
+}
+
+export interface Car {
+  id: string;
+  owner_id: string;
+  brand_id: string;
+  region_id: string;
+  model: string;
+  year: number;
+  license_plate: string;
+  vin_number: string;
+  turbo: boolean;
+  exotic: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UsersCarsTableProps {
+  cars: CarWithDetails[];
+  selectedCars: string[];
+  paginatedCars: CarWithDetails[];
+  searchQuery: string;
+  loading: boolean;
+  sortConfig: {
+    key: keyof CarWithDetails | "owner" | "brand";
+    direction: "asc" | "desc";
+  };
+  columnVisibility: ColumnVisibility;
+  onSelectCar: (carId: string) => void;
+  handleSelectAll: (checked: boolean) => void;
+  handleSelectCar: (carId: string) => void;
+  handleSort: (key: keyof CarWithDetails | "owner" | "brand") => void;
+  handleView: (car: CarWithDetails) => void;
+}
+
+export interface ColumnVisibility {
+  owner_name: boolean;
+  owner_email: boolean;
+  model: boolean;
+  year: boolean;
+  license_plate: boolean;
+  vin_number: boolean;
+  brand_name: boolean;
+  region_name: boolean;
+  turbo: boolean;
+  exotic: boolean;
+}
+
+export const defaultColumnVisibility: ColumnVisibility = {
+  owner_name: true,
+  owner_email: true,
+  model: true,
+  year: true,
+  license_plate: true,
+  vin_number: true,
+  brand_name: true,
+  region_name: true,
+  turbo: true,
+  exotic: true,
+};
+
+export interface CarWithDetails {
+  id: string;
+  owner_id: string;
+  brand_id: string;
+  region_id: string;
+  model: string;
+  year: number;
+  license_plate: string;
+  vin_number: string;
+  turbo: boolean;
+  exotic: boolean;
+  created_at: string;
+  updated_at: string;
+  brand: {
+    id: string;
+    name: string;
+  };
+  region: {
+    id: string;
+    name: string;
+  };
+  owner: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+  };
 }

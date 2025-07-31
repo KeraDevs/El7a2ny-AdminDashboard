@@ -9,11 +9,12 @@ import { Loader2 } from "lucide-react";
 
 import { WorkshopsTableHeader } from "@/components/workshops/workshops/WorkshopsTableHeader";
 import { WorkshopsTable } from "@/components/workshops/workshops/WorkShopsTable";
-import { WorkshopsPagination } from "@/components/workshops/workshops/WorkshopsPagination";
 import { EditWorkshopDialog } from "@/components/workshops/workshops/EditWorkshopDialog";
 import { ViewWorkshopDialog } from "@/components/workshops/workshops/ViewWorkshopDialog";
 import { WorkshopColumnVisibility } from "@/types/workshopTypes";
 import { SortConfig } from "@/types/workshopTypes";
+import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
+import { DataPagination } from "@/components/ui/DataPagination";
 
 const WorkshopsList: React.FC = () => {
   const { currentUser, isAuthorized, loading: authLoading } = useAuth();
@@ -28,6 +29,7 @@ const WorkshopsList: React.FC = () => {
     handleDeleteWorkshops,
     handleEditWorkshop,
     handleAddWorkShop,
+    handleUpdateWorkshopStatus,
   } = useWorkshops();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,13 +39,11 @@ const WorkshopsList: React.FC = () => {
   const [columnVisibility, setColumnVisibility] =
     useState<WorkshopColumnVisibility>({
       name: true,
-      email: true,
       address: true,
       phone: true,
-      status: true,
+      operatingStatus: true,
+      activeStatus: true,
       createdDate: true,
-      ratings: true,
-      services: true,
     });
 
   const [sortConfig, setSortConfig] = useState<SortConfig>({
@@ -109,12 +109,7 @@ const WorkshopsList: React.FC = () => {
     if (!searchQuery) return sortedWorkshops;
 
     return sortedWorkshops.filter((workshop) => {
-      const searchFields = [
-        workshop.name,
-        workshop.email,
-        workshop.address,
-        workshop.status,
-      ];
+      const searchFields = [workshop.name, workshop.address, workshop.status];
 
       return searchFields.some(
         (field) =>
@@ -249,16 +244,18 @@ const WorkshopsList: React.FC = () => {
         searchQuery={searchQuery}
         workshops={workshops}
         onDelete={handleDelete}
+        onStatusChange={handleUpdateWorkshopStatus}
       />
 
-      <WorkshopsPagination
+      <DataPagination
         currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
         totalPages={totalPages}
-        rowsPerPage={rowsPerPage}
-        setRowsPerPage={setRowsPerPage}
-        filteredWorkshops={filteredWorkshops}
-        selectedWorkshops={selectedWorkshops}
+        totalItems={filteredWorkshops.length}
+        itemsPerPage={rowsPerPage}
+        onPageChange={setCurrentPage}
+        onItemsPerPageChange={setRowsPerPage}
+        itemType="workshops"
+        loading={loading}
       />
 
       <EditWorkshopDialog
@@ -279,6 +276,31 @@ const WorkshopsList: React.FC = () => {
             handleEdit(viewWorkshopData);
           }
         }}
+      />
+
+      {/* Floating Download Button */}
+      <FloatingDownloadButton
+        data={paginatedWorkshops.map((workshop) => ({
+          id: workshop.id,
+          name: workshop.name,
+          phone: workshop.phoneNumbers?.[0]?.phone_number
+            ? `+${String(workshop.phoneNumbers[0].phone_number)}`
+            : "",
+          address: workshop.address,
+          status: workshop.active_status,
+          createdDate: workshop.createdAt
+            ? new Date(workshop.createdAt).toLocaleDateString()
+            : "",
+        }))}
+        filename={`workshops-page-${currentPage}`}
+        headers={[
+          { label: "ID", key: "id" },
+          { label: "Workshop Name", key: "name" },
+          { label: "Phone", key: "phone" },
+          { label: "Address", key: "address" },
+          { label: "Status", key: "status" },
+          { label: "Created Date", key: "createdDate" },
+        ]}
       />
     </div>
   );

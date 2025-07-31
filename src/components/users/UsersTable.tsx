@@ -1,13 +1,5 @@
 import React from "react";
-import {
-  ChevronsUpDown,
-  Eye,
-  Loader2,
-  Mail,
-  Pencil,
-  Phone,
-  Trash2,
-} from "lucide-react";
+import { Eye, Loader2, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -20,8 +12,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getGenderBadge, getUserTypeBadge } from "@/utils/usersStyles";
+import { LuChevronsUpDown } from "react-icons/lu";
+import { LuPencil } from "react-icons/lu";
+import { MdOutlinePhone } from "react-icons/md";
 
 import { UsersTableProps } from "@/types/userTypes";
+import { MdOutlineMailOutline } from "react-icons/md";
 
 export const UsersTable: React.FC<UsersTableProps> = ({
   loading,
@@ -61,7 +57,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
               >
                 <div className="flex items-center gap-1">
                   Name
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
+                  <LuChevronsUpDown className="h-3 w-3 text-muted-foreground" />
                   {sortConfig.key === "fullName" && (
                     <span className="ml-1">
                       {sortConfig.direction === "asc" ? "↑" : "↓"}
@@ -77,7 +73,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
               >
                 <div className="flex items-center gap-1">
                   Email
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
+                  <LuChevronsUpDown className="h-3 w-3 text-muted-foreground" />
                   {sortConfig.key === "email" && (
                     <span className="ml-1">
                       {sortConfig.direction === "asc" ? "↑" : "↓"}
@@ -93,7 +89,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
               >
                 <div className="flex items-center gap-1">
                   Phone
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
+                  <LuChevronsUpDown className="h-3 w-3 text-muted-foreground" />
                   {sortConfig.key === "phone" && (
                     <span className="ml-1">
                       {sortConfig.direction === "asc" ? "↑" : "↓"}
@@ -109,7 +105,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
               >
                 <div className="flex items-center gap-1">
                   Gender
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
+                  <LuChevronsUpDown className="h-3 w-3 text-muted-foreground" />
                   {sortConfig.key === "gender" && (
                     <span className="ml-1">
                       {sortConfig.direction === "asc" ? "↑" : "↓"}
@@ -125,7 +121,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
               >
                 <div className="flex items-center gap-1">
                   User Type
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
+                  <LuChevronsUpDown className="h-3 w-3 text-muted-foreground" />
                   {sortConfig.key === "userType" && (
                     <span className="ml-1">
                       {sortConfig.direction === "asc" ? "↑" : "↓"}
@@ -142,7 +138,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
               >
                 <div className="flex items-center gap-1">
                   Join Date
-                  <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
+                  <LuChevronsUpDown className="h-3 w-3 text-muted-foreground" />
                   {sortConfig.key === "createdAt" && (
                     <span className="ml-1">
                       {sortConfig.direction === "asc" ? "↑" : "↓"}
@@ -212,7 +208,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                       href={`mailto:${user.email}`}
                       className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline w-fit transition-colors duration-200"
                     >
-                      <Mail className="h-3.5 w-3.5" />
+                      <MdOutlineMailOutline className="h-3.5 w-3.5" />
                       {user.email}
                     </a>
                   </TableCell>
@@ -223,7 +219,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                       href={`tel:${user.phone}`}
                       className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:underline w-fit transition-colors duration-200"
                     >
-                      <Phone className="h-3.5 w-3.5" />
+                      <MdOutlinePhone className="h-3.5 w-3.5" />
                       <code className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 px-2 py-0.5 rounded-md text-xs font-mono border border-gray-200 dark:border-gray-600">
                         {user.phone}
                       </code>
@@ -270,7 +266,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                       onClick={() => handleEdit(user)}
                       className="hover:bg-gradient-to-br hover:from-blue-100 hover:to-blue-200 hover:text-blue-800 transition-all duration-200"
                     >
-                      <Pencil className="h-4 w-4" />
+                      <LuPencil className="h-4 w-4" />
                       <span className="sr-only">Edit</span>
                     </Button>
                     <Button

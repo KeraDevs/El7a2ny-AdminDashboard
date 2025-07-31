@@ -1,3 +1,29 @@
+import { ColumnVisibility } from "@/types/userTypes";
+
+// Service category enum to match backend values
+export enum ServiceCategory {
+  MAINTENANCE = "Maintenance",
+  TUNING = "Tuning",
+  EMERGENCY = "Emergency",
+  CHECK_CAR_SERVICES = "Check_Car_Services",
+}
+
+// Helper function to get display name for service categories
+export const getServiceCategoryDisplayName = (category: string): string => {
+  switch (category) {
+    case ServiceCategory.MAINTENANCE:
+      return "Maintenance";
+    case ServiceCategory.TUNING:
+      return "Tuning";
+    case ServiceCategory.EMERGENCY:
+      return "Emergency";
+    case ServiceCategory.CHECK_CAR_SERVICES:
+      return "Check Car Services";
+    default:
+      return category || "Unknown";
+  }
+};
+
 export interface ServiceTypePercentage {
   id: string;
   service_type_id: string;
@@ -7,39 +33,28 @@ export interface ServiceTypePercentage {
 }
 
 export interface ServiceType {
+  basePrice: number;
+  service_types_percentage: ServiceTypePercentage | null;
+  percentageModifier: number;
   id: string;
   name: string;
   name_ar?: string;
   description?: string;
   description_ar?: string;
   service_category: string;
-  category: string; // Alias for service_category for form compatibility
-  basePrice: number;
-  estimatedDuration: number;
-  percentageModifier?: number;
-  requiresSpecialist?: boolean;
-  isActive: boolean;
   created_at: string;
   updated_at: string;
-  service_types_percentage?: ServiceTypePercentage;
-  compatibleVehicleTypes?: string[];
-  createdAt: string; // Add this for compatibility with table sorting
-  percentage?: number; // Add this for percentage display
-  price: number; // Add this for price calculations
 }
 
 // Column visibility settings for service types table
 export interface ServiceTypeColumnVisibility {
-  basePrice: boolean;
   name: boolean;
-  description?: boolean;
-  percentage?: boolean;
-  category?: boolean;
-  created_at?: boolean;
-  updated_at?: boolean;
-  estimatedDuration?: boolean;
-  isActive: boolean;
-  createdAt?: boolean; // Add this for compatibility
+  name_ar: boolean;
+  description: boolean;
+  description_ar: boolean;
+  service_category: boolean;
+  created_at: boolean;
+  updated_at: boolean;
 }
 
 // Sort configuration for service types
@@ -62,8 +77,22 @@ export interface ServiceTypesTableProps {
   handleView: (serviceType: ServiceType) => void;
   searchQuery: string;
   serviceTypes: ServiceType[];
+  onDelete: (id: string) => void;
+}
+
+export interface ServiceTypesTableHeaderProps {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  ColumnVisibility: ColumnVisibility;
+  setColumnVisibility: React.Dispatch<
+    React.SetStateAction<ServiceTypeColumnVisibility>
+  >;
   onDelete: () => void;
-  onSetPercentage: () => void;
+  onRefresh: () => void;
+  onAddBrand: (brandData: Partial<ServiceType>) => Promise<void>;
+  selectedCount: number;
+  onAddServiceType: () => void;
+  loading: boolean;
 }
 
 // API response structure for service types
@@ -73,12 +102,19 @@ export interface ServiceTypesResponse {
   hasMore: boolean;
 }
 
+export interface ServiceTypesPagination {
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}
+
 // New service type submission data structure
 export interface CreateServiceTypeData {
   name: string;
-  name_ar?: string;
-  description?: string;
-  description_ar?: string;
+  name_ar: string;
+  description: string;
+  description_ar: string;
   service_category: string;
 }
 

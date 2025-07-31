@@ -1,7 +1,7 @@
 const Vouchers: React.FC = () => {
   return (
     <div>
-      <h1>Vouchers Page</h1>
+      <h1>Coming Soon Vouchers Page</h1>
     </div>
   );
 };

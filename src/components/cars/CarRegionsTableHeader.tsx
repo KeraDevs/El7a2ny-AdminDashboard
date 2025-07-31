@@ -41,7 +41,6 @@ export const CarRegionsTableHeader: React.FC<CarRegionsTableHeaderProps> = ({
 
       {/* Action Buttons */}
       <div className="flex flex-wrap items-center gap-2">
-        {/* Selected Items Actions */}
         {selectedCount > 0 && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground hidden sm:inline">

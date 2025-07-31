@@ -26,7 +26,6 @@ export const useCarBrands = (): UseCarBrandsReturn => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  // Fetch all car brands
   const fetchBrands = useCallback(async () => {
     if (!currentUser) {
       setError("Authentication required");
@@ -56,26 +55,10 @@ export const useCarBrands = (): UseCarBrandsReturn => {
       }
 
       const result = await response.json();
-      console.log("=== FETCH BRANDS DEBUG ===");
-      console.log("API Response:", result);
-      console.log("Is Array:", Array.isArray(result));
-      console.log("Brands count:", Array.isArray(result) ? result.length : 0);
-      if (Array.isArray(result) && result.length > 0) {
-        console.log("First brand sample:", result[0]);
-        console.log(
-          "Brand IDs:",
-          result.map((b) => `${b.id} (${typeof b.id})`)
-        );
-      }
-      console.log("===========================");
 
-      // Assuming the API returns an array of brands directly
       setBrands(Array.isArray(result) ? result : []);
-    } catch (error) {
+    } catch {
       toast.error("Error fetching car brands!");
-      setError(
-        error instanceof Error ? error.message : "Failed to fetch brands"
-      );
       setBrands([]);
     } finally {
       setLoading(false);
@@ -99,8 +82,11 @@ export const useCarBrands = (): UseCarBrandsReturn => {
 
       const requestBody = {
         name: brandData.name,
-        region_ids: brandData.regionIds || [],
+        regionIds: brandData.regionIds || [],
       };
+
+      console.log("Debug - Brand Data received:", brandData);
+      console.log("Debug - Region IDs being sent:", brandData.regionIds);
 
       const url = `${API_BASE_URL}/car/brands`;
       console.log("Add Brand Request:", {
@@ -130,6 +116,8 @@ export const useCarBrands = (): UseCarBrandsReturn => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Add Brand Error Response:", errorText);
+        console.error("Add Brand Error Status:", response.status);
+        console.error("Add Brand Error Headers:", response.headers);
         throw new Error(
           `Failed to add brand, status: ${response.status}. Response: ${errorText}`
         );
@@ -137,14 +125,12 @@ export const useCarBrands = (): UseCarBrandsReturn => {
 
       const newBrand = await response.json();
       console.log("Add Brand Success:", newBrand);
+      console.log("Add Brand Success - Brand regions:", newBrand.brand_regions);
 
       setBrands((prev) => [...prev, newBrand]);
       toast.success("Car brand added successfully");
-    } catch (error) {
-      console.error("Add Brand Error:", error);
+    } catch {
       toast.error("Error adding car brand");
-      setError(error instanceof Error ? error.message : "Failed to add brand");
-      throw error;
     } finally {
       setLoading(false);
     }
@@ -176,17 +162,6 @@ export const useCarBrands = (): UseCarBrandsReturn => {
 
       const url = `${API_BASE_URL}/car/brands/${brandData.id}`;
 
-      console.log("=== EDIT BRAND DEBUG START ===");
-      console.log("Brand ID:", brandData.id);
-      console.log("Brand ID type:", typeof brandData.id);
-      console.log("API_BASE_URL:", API_BASE_URL);
-      console.log("Complete URL:", url);
-      console.log("Request body:", JSON.stringify(requestBody, null, 2));
-      console.log("API Key present:", !!API_KEY);
-      console.log("Auth token present:", !!authToken);
-
-      // Test if the brand exists with a GET request first
-      console.log("Testing brand existence with GET request...");
       const testResponse = await fetch(url, {
         method: "GET",
         headers: {

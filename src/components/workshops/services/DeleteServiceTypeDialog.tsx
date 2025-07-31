@@ -59,19 +59,32 @@ const DeleteServiceTypeDialog: React.FC<DeleteServiceTypeDialogProps> = ({
       setIsDeleting(true);
       await onDelete();
 
-      toast.success(
-        isSingleDelete
-          ? `"${serviceTypeToDelete?.name}" service has been deleted`
-          : `${serviceTypeIds.length} service types have been deleted`
-      );
-
+      // Don't show success toast here - let the page component handle it
       handleClose();
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? `Failed to delete: ${error.message}`
-          : "Failed to delete service type(s)"
-      );
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+
+      // Handle different types of deletion errors
+      if (errorMessage.includes("currently being used")) {
+        // Foreign key constraint error - service types are in use
+        toast.error(errorMessage);
+      } else if (errorMessage.includes("deleted successfully")) {
+        // Partial success - some deleted, some failed
+        const parts = errorMessage.split(", but ");
+        if (parts.length === 2) {
+          // Show success for deleted items
+          toast.success(parts[0]);
+          // Show warning for failed items
+          toast.error(parts[1]);
+        } else {
+          toast.error(errorMessage);
+        }
+        handleClose(); // Close dialog even for partial success
+      } else {
+        // Other errors
+        toast.error(`Failed to delete service type(s): ${errorMessage}`);
+      }
     } finally {
       setIsDeleting(false);
     }
@@ -100,12 +113,23 @@ const DeleteServiceTypeDialog: React.FC<DeleteServiceTypeDialogProps> = ({
 
         <div className="py-4 space-y-4">
           <div className="bg-destructive/10 p-4 rounded-md text-sm">
-            <p className="font-medium text-destructive mb-2">Warning:</p>
-            <p>
+            <p className="font-medium text-destructive mb-2">
+              ⚠️ Important Warning:
+            </p>
+            <p className="mb-2">
               Deleting
-              {isSingleDelete ? "this service type" : "these service types"} may
-              affect existing customer records, appointments, and reports that
-              reference {isSingleDelete ? "this service." : "these services."}
+              {isSingleDelete
+                ? " this service type"
+                : " these service types"}{" "}
+              will permanently remove {isSingleDelete ? "it" : "them"} from the
+              system.
+            </p>
+            <p className="font-medium text-orange-600 mb-2">
+              🔍 We will check if any service types are in use before deletion.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Service types that are currently being used by workshops will be
+              automatically excluded from deletion to prevent errors.
             </p>
           </div>
 

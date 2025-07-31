@@ -1,3 +1,4 @@
+import { ServiceRequest } from "./requestTypes";
 import { User } from "./userTypes";
 
 export interface Workshop {
@@ -7,7 +8,6 @@ export interface Workshop {
   name: string;
   users: User[];
   address: string;
-  email: string;
   latitude: number | null;
   longitude: number | null;
   profilePic: string | null;
@@ -17,10 +17,15 @@ export interface Workshop {
   updatedAt: string;
   phoneNumbers: PhoneNumber[];
   services: string[];
-  ratings: number;
-  totalReviews: number;
   labels: string[];
   owner_id: string;
+}
+export interface AssignWorkshopDialogProps {
+  request: ServiceRequest;
+  workshops: Workshop[];
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (requestId: string, workshopId: string) => void;
 }
 
 export interface WorkshopFormProps {
@@ -38,6 +43,7 @@ export interface AssignOwnerDialogProps {
 }
 
 export interface PhoneNumber {
+  id?: string; // Optional id field for API compatibility
   phone_number: string;
   type: "MOBILE" | string;
   is_primary: boolean;
@@ -46,12 +52,10 @@ export interface PhoneNumber {
 
 export type WorkshopColumnVisibility = {
   name: boolean;
-  email: boolean;
   address: boolean;
   phone: boolean;
-  status: boolean;
-  ratings: boolean;
-  services: boolean;
+  operatingStatus: boolean;
+  activeStatus: boolean;
   createdDate?: boolean;
 };
 
@@ -74,6 +78,10 @@ export interface WorkshopsTableProps {
   searchQuery: string;
   workshops: Workshop[];
   onDelete: () => void;
+  onStatusChange: (
+    workshopId: string,
+    status: "active" | "deactivated" | "pending"
+  ) => Promise<void>;
 }
 
 export type ColumnVisibility = {
@@ -84,11 +92,9 @@ export type ColumnVisibility = {
   percentage: boolean;
   active: boolean;
   createdAt: boolean;
-  email: boolean;
   address: boolean;
   phone: boolean;
   status: boolean;
-  ratings: boolean;
   services: boolean;
   createdDate?: boolean;
 };

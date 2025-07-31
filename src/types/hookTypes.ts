@@ -52,6 +52,14 @@ export interface UseWorkshopsReturn {
   handleSelectWorkshop: (workshopId: string) => void;
   handleAddWorkShop: (workshopData: Partial<Workshop>) => Promise<void>;
   handleEditWorkshop: (workshopData: Partial<Workshop>) => Promise<void>;
+  handleUpdateWorkshopStatus: (
+    workshopId: string,
+    newStatus: "active" | "deactivated" | "pending"
+  ) => Promise<void>;
+  handleUpdateWorkshopOperatingStatus: (
+    workshopId: string,
+    newStatus: "open" | "busy" | "closed"
+  ) => Promise<void>;
   handleDeleteWorkshops: () => Promise<void>;
   setEditingWorkshop: React.Dispatch<React.SetStateAction<Workshop | null>>;
   setOpenWorkshopDialog: React.Dispatch<React.SetStateAction<boolean>>;

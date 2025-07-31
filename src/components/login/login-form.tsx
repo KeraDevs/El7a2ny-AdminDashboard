@@ -79,19 +79,21 @@ export function LoginForm({
                     disabled={loading}
                     required
                     autoComplete="current-password"
+                    className="pr-10"
+                    placeholder="*********************"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-0 top-0 h-full px-3"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={loading}
                   >
                     {showPassword ? (
-                      <EyeOffIcon className="h-4 w-4" />
+                      <EyeOffIcon className="h-4 w-4 text-muted-foreground" />
                     ) : (
-                      <EyeIcon className="h-4 w-4" />
+                      <EyeIcon className="h-4 w-4 text-muted-foreground" />
                     )}
                     <span className="sr-only">
                       {showPassword ? "Hide password" : "Show password"}
@@ -114,18 +116,6 @@ export function LoginForm({
           </form>
         </CardContent>
       </Card>
-
-      <div className="text-balance text-center text-xs text-muted-foreground">
-        By signing in, you agree to the organization&apos;s&nbsp;
-        <a href="#" className="underline underline-offset-4 hover:text-primary">
-          Terms of Service
-        </a>
-        &nbsp;and&nbsp;
-        <a href="#" className="underline underline-offset-4 hover:text-primary">
-          Privacy Policy
-        </a>
-        .
-      </div>
     </div>
   );
 }

@@ -3,16 +3,9 @@ import { Workshop } from "@/types/workshopTypes";
 import { toast } from "react-hot-toast";
 import {
   Loader2,
-  Mail,
-  Phone,
-  Building,
+  Building2,
   MapPin,
   Plus,
-  Wrench,
-  Tag,
-  X,
-  Check,
-  Coffee,
   Star,
   CheckCircle,
 } from "lucide-react";
@@ -56,8 +49,6 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
   loading = false,
 }) => {
   const [activeTab, setActiveTab] = useState("basic");
-  const [serviceInput, setServiceInput] = useState("");
-  const [labelInput, setLabelInput] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // Reset form state when dialog opens/closes
@@ -65,8 +56,6 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
     if (isOpen) {
       setActiveTab("basic");
       setErrors({});
-      setServiceInput("");
-      setLabelInput("");
     }
   }, [isOpen]);
   // Handle changes to workshop form data
@@ -165,66 +154,6 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
     });
   };
 
-  // Add a service
-  const handleAddService = () => {
-    if (serviceInput.trim()) {
-      setWorkshopData((prev) => ({
-        ...prev,
-        services: [...(prev.services || []), serviceInput.trim()],
-      }));
-      setServiceInput("");
-    }
-  };
-
-  // Handle key press for service input
-  const handleServiceKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAddService();
-    }
-  };
-
-  // Remove a service
-  const handleRemoveService = (indexToRemove: number) => {
-    setWorkshopData((prev) => ({
-      ...prev,
-      services: prev.services?.filter((_, index) => index !== indexToRemove),
-    }));
-  };
-
-  // Add a label
-  const handleAddLabel = () => {
-    if (labelInput.trim()) {
-      setWorkshopData((prev) => ({
-        ...prev,
-        labels: [...(prev.labels || []), labelInput.trim()],
-      }));
-      setLabelInput("");
-    }
-  };
-
-  // Handle key press for label input
-  const handleLabelKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAddLabel();
-    }
-  };
-
-  // Remove a label
-  const handleRemoveLabel = (indexToRemove: number) => {
-    setWorkshopData((prev) => ({
-      ...prev,
-      labels: prev.labels?.filter((_, index) => index !== indexToRemove),
-    }));
-  };
-
-  // Validate email format
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
   // Validate phone number format
   const validatePhone = (phone: string): boolean => {
     const phoneRegex = /^\d{10,15}$/;
@@ -239,14 +168,6 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
     // Validate required fields
     if (!workshopData.name) {
       newErrors.name = "Workshop name is required";
-      isValid = false;
-    }
-
-    if (!workshopData.email) {
-      newErrors.email = "Email is required";
-      isValid = false;
-    } else if (!validateEmail(workshopData.email)) {
-      newErrors.email = "Please enter a valid email";
       isValid = false;
     }
 
@@ -278,6 +199,39 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
       }
     }
 
+    // Validate latitude and longitude - both are required
+    if (
+      workshopData.latitude === null ||
+      workshopData.latitude === undefined ||
+      workshopData.latitude === 0
+    ) {
+      newErrors.latitude = "Latitude is required";
+      isValid = false;
+    } else {
+      const lat = Number(workshopData.latitude);
+      if (isNaN(lat) || lat < -90 || lat > 90) {
+        newErrors.latitude =
+          "Latitude must be a valid number between -90 and 90";
+        isValid = false;
+      }
+    }
+
+    if (
+      workshopData.longitude === null ||
+      workshopData.longitude === undefined ||
+      workshopData.longitude === 0
+    ) {
+      newErrors.longitude = "Longitude is required";
+      isValid = false;
+    } else {
+      const lng = Number(workshopData.longitude);
+      if (isNaN(lng) || lng < -180 || lng > 180) {
+        newErrors.longitude =
+          "Longitude must be a valid number between -180 and 180";
+        isValid = false;
+      }
+    }
+
     setErrors(newErrors);
     return isValid;
   };
@@ -285,13 +239,12 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
   const handleSave = async () => {
     if (!validateForm()) {
       // Switch to basic tab if there are errors there
-      if (
-        errors.name ||
-        errors.email ||
-        errors.address ||
-        errors.phoneNumbers
-      ) {
+      if (errors.name || errors.address || errors.phoneNumbers) {
         setActiveTab("basic");
+      }
+      // Switch to additional tab if there are coordinate errors
+      else if (errors.latitude || errors.longitude) {
+        setActiveTab("additional");
       }
       return;
     }
@@ -333,9 +286,8 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
-            <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="additional">Additional Info</TabsTrigger>
           </TabsList>
 
@@ -343,7 +295,7 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
             <div className="space-y-2">
               <Label htmlFor="name">Workshop Name *</Label>
               <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-blue-50/50">
-                <Building className="h-4 w-4 text-blue-500" />
+                <Building2 className="h-4 w-4 text-blue-500" />
                 <Input
                   id="name"
                   placeholder="Workshop name"
@@ -356,26 +308,6 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
               </div>
               {errors.name && (
                 <p className="text-red-500 text-xs mt-1">{errors.name}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-blue-50/50">
-                <Mail className="h-4 w-4 text-blue-500" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="workshop@example.com"
-                  value={workshopData.email || ""}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  className="border-none bg-transparent focus-visible:ring-0 p-0"
-                  required
-                  disabled={loading}
-                />
-              </div>
-              {errors.email && (
-                <p className="text-red-500 text-xs mt-1">{errors.email}</p>
               )}
             </div>
 
@@ -416,7 +348,7 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
               {workshopData.phoneNumbers?.map((phone, index) => (
                 <div key={index} className="flex items-center gap-2">
                   <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-amber-50/50 flex-1">
-                    <Phone className="h-4 w-4 text-amber-500" />
+                    <Star className="h-4 w-4 text-amber-500" />
                     <Input
                       placeholder="Phone number"
                       value={phone.phone_number || ""}
@@ -440,7 +372,7 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
                     {phone.is_primary ? (
                       <CheckCircle className="h-4 w-4 text-green-600" />
                     ) : (
-                      <Check className="h-4 w-4" />
+                      <CheckCircle className="h-4 w-4" />
                     )}
                   </Button>
 
@@ -454,7 +386,7 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
                     }
                     className="text-red-500 hover:text-red-700 hover:bg-red-50"
                   >
-                    <X className="h-4 w-4" />
+                    <Plus className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
@@ -466,7 +398,7 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status">Workshop Status</Label>
+              <Label htmlFor="status">Operating Status</Label>
               <Select
                 value={workshopData.status}
                 onValueChange={(value) => handleInputChange("status", value)}
@@ -476,9 +408,9 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
                   id="status"
                   className={getStatusBadgeColor(workshopData.status)}
                 >
-                  <SelectValue placeholder="Select status">
+                  <SelectValue placeholder="Select operating status">
                     <div className="flex items-center gap-2 capitalize">
-                      {workshopData.status || "Select status"}
+                      {workshopData.status || "Select operating status"}
                     </div>
                   </SelectValue>
                 </SelectTrigger>
@@ -510,117 +442,12 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="active_status">Active Status</Label>
-              <Select
-                value={workshopData.active_status}
-                onValueChange={(value) =>
-                  handleInputChange(
-                    "active_status",
-                    value as "pending" | "active" | "deactivated"
-                  )
-                }
-                disabled={loading}
-              >
-                <SelectTrigger id="active_status">
-                  <SelectValue placeholder="Select active status">
-                    <div className="flex items-center gap-2 capitalize">
-                      {workshopData.active_status || "Select active status"}
-                    </div>
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">
-                    <Badge
-                      variant="outline"
-                      className="bg-yellow-100 text-yellow-800 border-yellow-300"
-                    >
-                      Pending
-                    </Badge>
-                  </SelectItem>
-                  <SelectItem value="active">
-                    <Badge
-                      variant="outline"
-                      className="bg-green-100 text-green-800 border-green-300"
-                    >
-                      Active
-                    </Badge>
-                  </SelectItem>
-                  <SelectItem value="deactivated">
-                    <Badge
-                      variant="outline"
-                      className="bg-red-100 text-red-800 border-red-300"
-                    >
-                      Deactivated
-                    </Badge>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="services" className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Services Offered</Label>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 flex-1 border rounded-md px-3 py-2 bg-purple-50/50">
-                  <Wrench className="h-4 w-4 text-purple-500" />
-                  <Input
-                    value={serviceInput}
-                    onChange={(e) => setServiceInput(e.target.value)}
-                    onKeyDown={handleServiceKeyDown}
-                    className="border-none bg-transparent focus-visible:ring-0 p-0"
-                    placeholder="Add service and press Enter"
-                    disabled={loading}
-                  />
-                </div>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={handleAddService}
-                  disabled={loading || !serviceInput.trim()}
-                >
-                  Add
-                </Button>
-              </div>
-
-              {workshopData.services && workshopData.services.length > 0 ? (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {workshopData.services.map((service, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="flex items-center gap-1 bg-purple-100 text-purple-800 border-purple-300"
-                    >
-                      <Wrench className="h-3 w-3" />
-                      {service}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-4 w-4 p-0 ml-1 hover:bg-transparent text-purple-700 hover:text-purple-900"
-                        onClick={() => handleRemoveService(index)}
-                        disabled={loading}
-                      >
-                        &times;
-                      </Button>
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No services added yet.
-                </p>
-              )}
-            </div>
           </TabsContent>
 
           <TabsContent value="additional" className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="latitude">Latitude</Label>
+                <Label htmlFor="latitude">Latitude *</Label>
                 <Input
                   id="latitude"
                   placeholder="Latitude (e.g. 30.0444)"
@@ -634,13 +461,24 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
                         value === "" ? null : Number(value)
                       );
                     }
+                    // Clear latitude/longitude errors when user types
+                    if (errors.latitude) {
+                      setErrors((prev) => ({
+                        ...prev,
+                        latitude: "",
+                      }));
+                    }
                   }}
                   disabled={loading}
+                  required
                 />
+                {errors.latitude && (
+                  <p className="text-red-500 text-xs mt-1">{errors.latitude}</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="longitude">Longitude</Label>
+                <Label htmlFor="longitude">Longitude *</Label>
                 <Input
                   id="longitude"
                   placeholder="Longitude (e.g. 31.2357)"
@@ -654,114 +492,22 @@ export const EditWorkshopDialog: React.FC<EditWorkshopDialogProps> = ({
                         value === "" ? null : Number(value)
                       );
                     }
-                  }}
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Labels</Label>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 flex-1 border rounded-md px-3 py-2 bg-gray-50/50">
-                  <Tag className="h-4 w-4 text-gray-500" />
-                  <Input
-                    value={labelInput}
-                    onChange={(e) => setLabelInput(e.target.value)}
-                    onKeyDown={handleLabelKeyDown}
-                    className="border-none bg-transparent focus-visible:ring-0 p-0"
-                    placeholder="Add label and press Enter"
-                    disabled={loading}
-                  />
-                </div>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={handleAddLabel}
-                  disabled={loading || !labelInput.trim()}
-                >
-                  Add
-                </Button>
-              </div>
-
-              {workshopData.labels && workshopData.labels.length > 0 ? (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {workshopData.labels.map((label, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="flex items-center gap-1"
-                    >
-                      {label}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-4 w-4 p-0 ml-1 hover:bg-transparent"
-                        onClick={() => handleRemoveLabel(index)}
-                        disabled={loading}
-                      >
-                        &times;
-                      </Button>
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No labels added yet.
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="ratings">Ratings (out of 5)</Label>
-              <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-amber-50/50">
-                <Star className="h-4 w-4 text-amber-500" />
-                <Input
-                  id="ratings"
-                  placeholder="Workshop rating"
-                  value={workshopData.ratings || ""}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    // Allow only numbers and decimals up to 5
-                    if (
-                      /^\d*\.?\d*$/.test(value) &&
-                      (value === "" || Number(value) <= 5)
-                    ) {
-                      handleInputChange(
-                        "ratings",
-                        value === "" ? 0 : Number(value)
-                      );
+                    // Clear latitude/longitude errors when user types
+                    if (errors.longitude) {
+                      setErrors((prev) => ({
+                        ...prev,
+                        longitude: "",
+                      }));
                     }
                   }}
-                  className="border-none bg-transparent focus-visible:ring-0 p-0"
                   disabled={loading}
+                  required
                 />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="totalReviews">Total Reviews</Label>
-              <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-blue-50/50">
-                <Coffee className="h-4 w-4 text-blue-500" />
-                <Input
-                  id="totalReviews"
-                  placeholder="Number of reviews"
-                  value={workshopData.totalReviews || ""}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    // Allow only integers
-                    if (/^\d*$/.test(value)) {
-                      handleInputChange(
-                        "totalReviews",
-                        value === "" ? 0 : Number(value)
-                      );
-                    }
-                  }}
-                  className="border-none bg-transparent focus-visible:ring-0 p-0"
-                  disabled={loading}
-                />
+                {errors.longitude && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.longitude}
+                  </p>
+                )}
               </div>
             </div>
           </TabsContent>

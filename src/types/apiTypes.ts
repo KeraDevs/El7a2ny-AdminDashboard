@@ -1,6 +1,4 @@
-import { User } from "firebase/auth";
 import { Vehicle } from "./vehicleTypes";
-import { PhoneNumber } from "./workshopTypes";
 import { CarBrand } from "./carTypes";
 
 // Define interfaces for workshop-related data
@@ -71,22 +69,19 @@ export interface ApiUser {
 }
 
 export interface ApiWorkshopsList {
-  apiWorkshop: User;
-  services: never[];
   id: string;
-  email: string;
   parent_id: string | null;
   owner_id: string;
   name: string;
   address: string;
-  car_region: string;
-  latitude: number | null;
-  longitude: number | null;
+  latitude: string; // Backend sends as string
+  longitude: string; // Backend sends as string
   profile_pic: string | null;
   active_status: "pending" | "active" | "deactivated";
   status: "Open" | "Busy" | "Closed";
   created_at: string;
   updated_at: string;
+  car_regionsId: string | null;
   users: {
     id: string;
     email: string;
@@ -102,11 +97,39 @@ export interface ApiWorkshopsList {
   };
   parent: null;
   branches: WorkshopBranch[];
-  phone_numbers: PhoneNumber[];
-  operating_hours: OperatingHour[];
+  phone_numbers: {
+    id: string;
+    workshop_id: string;
+    phone_number: string;
+    type: string;
+    is_primary: boolean;
+    is_verified: boolean;
+    created_at: string;
+    updated_at: string;
+  }[];
+  operating_hours: {
+    id: string;
+    workshop_id: string;
+    day: string;
+    open_time: string;
+    close_time: string;
+    is_closed: boolean;
+    created_at: string;
+    updated_at: string;
+  }[];
   workers: WorkshopWorker[];
   supported_brands: CarBrand[];
-  labels: string[];
+  labels: {
+    workshop_id: string;
+    label_id: string;
+    created_at: string;
+    label: {
+      id: string;
+      name: string;
+      created_at: string;
+      updated_at: string;
+    };
+  }[];
 }
 
 export interface ApiUserResponse {

@@ -1,360 +1,353 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { useServiceTypes } from "@/hooks/_useServices";
 import { useAuth } from "@/contexts/AuthContext";
+import { useWorkshopServices } from "@/hooks/_useWorkshopServices";
+import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
 
-import { ServiceTypesTableHeader } from "@/components/workshops/services/ServiceTypeHeader";
-import { ServiceTypesTable } from "@/components/workshops/services/ServiceTypeTable";
-import ServiceTypesPagination from "@/components/workshops/services/ServiceTypePagination";
-import EditServiceTypeDialog from "@/components/workshops/services/EditServiceTypeDialog";
-import ViewServiceTypeDialog from "@/components/workshops/services/ViewServiceTypeDialog";
-import DeleteServiceTypeDialog from "@/components/workshops/services/DeleteServiceTypeDialog";
-import SetPercentageDialog from "@/components/workshops/services/SetPercecntageDialog";
-import {
-  ServiceTypeColumnVisibility,
-  SortConfig,
-  ServiceType,
-} from "@/types/serviceTypes";
+import { WorkshopServicesTableHeader } from "@/components/workshops/workshop-services/WorkshopServicesTableHeader";
+import { WorkshopServicesTable } from "@/components/workshops/workshop-services/WorkshopServicesTable";
+import { WorkshopServicesStatsCards } from "@/components/workshops/workshop-services/WorkshopServicesStatsCards";
+import { AddWorkshopServiceDialog } from "@/components/workshops/workshop-services/AddWorkshopServiceDialog";
+import { BatchCreateWorkshopServiceDialog } from "@/components/workshops/workshop-services/BatchCreateWorkshopServiceDialog";
+import { EditWorkshopServiceDialog } from "@/components/workshops/workshop-services/EditWorkshopServiceDialog";
+import { ViewWorkshopServiceDialog } from "@/components/workshops/workshop-services/ViewWorkshopServiceDialog";
 
-const ServiceTypesList: React.FC = () => {
+import { DataPagination } from "@/components/ui/DataPagination";
+import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
+
+import {
+  WorkshopService,
+  WorkshopServiceColumnVisibility,
+  WorkshopServiceSortConfig,
+} from "@/types/workshopServiceTypes";
+
+const WorkshopServicesPage: React.FC = () => {
   const { currentUser, isAuthorized, loading: authLoading } = useAuth();
   const {
-    serviceTypes,
+    workshopServices,
     loading,
     error,
-    fetchServiceTypes,
-    selectedServiceTypes,
+    stats,
+    selectedWorkshopServices,
+    fetchWorkshopServices,
+    handleAddWorkshopService,
+    handleBatchCreateServices,
+    handleEditWorkshopService,
+    handleDeleteWorkshopService,
+    handleDeleteWorkshopServices,
     handleSelectAll,
-    handleSelectServiceType,
-    handleDeleteServiceTypes,
-    handleEditServiceType,
-    handleAddServiceType,
-    handleSetPercentage,
-  } = useServiceTypes();
+    handleSelectWorkshopService,
+  } = useWorkshopServices();
 
+  // Local state for UI
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
   const [columnVisibility, setColumnVisibility] =
-    useState<ServiceTypeColumnVisibility>({
-      name: true,
-      description: true,
-      basePrice: true,
-      category: true,
-      estimatedDuration: true,
+    useState<WorkshopServiceColumnVisibility>({
+      workshop_name: true,
+      service_name: true,
+      percentage: true,
       created_at: true,
-      isActive: true,
+      updated_at: false,
     });
-
-  const [sortConfig, setSortConfig] = useState<SortConfig>({
+  const [sortConfig, setSortConfig] = useState<WorkshopServiceSortConfig>({
     key: null,
     direction: "asc",
   });
 
-  const [editServiceTypeData, setEditServiceTypeData] = useState<
-    Partial<ServiceType>
-  >({});
+  // Dialog states
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isBatchCreateDialogOpen, setIsBatchCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [viewServiceTypeData, setViewServiceTypeData] =
-    useState<ServiceType | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isSetPercentageDialogOpen, setIsSetPercentageDialogOpen] =
-    useState(false);
+  const [selectedService, setSelectedService] =
+    useState<WorkshopService | null>(null);
 
-  // Initial data load when component mounts
+  // Initial data load
   useEffect(() => {
     if (isAuthorized && currentUser) {
-      console.log("Authorized, fetching service types");
-      fetchServiceTypes().catch((err) => {
-        console.error("Error fetching service types:", err);
-        toast.error("Failed to fetch service types");
-      });
+      fetchWorkshopServices(1, 10);
     }
-  }, [isAuthorized, currentUser, fetchServiceTypes]);
+  }, [isAuthorized, currentUser, fetchWorkshopServices]);
 
-  // Make sure table re-renders when serviceTypes changes
+  // Handle errors
   useEffect(() => {
-    console.log(`ServiceTypes updated: ${serviceTypes.length} items`);
-  }, [serviceTypes]);
-
-  // Display any errors from the API
-  useEffect(() => {
-    if (error) {
+    if (error && !error.includes("404") && !error.includes("API Error: 404")) {
       toast.error(error);
     }
   }, [error]);
 
-  // Apply sorting to the service types
-  const sortedServiceTypes = useMemo(() => {
-    console.log("Sorting service types:", serviceTypes.length);
-    const serviceTypesCopy = [...serviceTypes];
+  // Apply client-side filtering and sorting
+  const filteredAndSortedServices = useMemo(() => {
+    let filtered = [...workshopServices];
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (service) =>
+          service.workshop?.name?.toLowerCase().includes(query) ||
+          service.service_type?.name?.toLowerCase().includes(query) ||
+          (service.percentage?.toString() ?? "").includes(query) ||
+          service.service_type?.service_category?.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply sorting
     if (sortConfig.key) {
-      serviceTypesCopy.sort((a, b) => {
-        const aValue = a[sortConfig.key as keyof ServiceType];
-        const bValue = b[sortConfig.key as keyof ServiceType];
+      filtered.sort((a, b) => {
+        let aValue: string | number = a[
+          sortConfig.key as keyof WorkshopService
+        ] as string | number;
+        let bValue: string | number = b[
+          sortConfig.key as keyof WorkshopService
+        ] as string | number;
+
+        // Handle nested properties
+        if (sortConfig.key === "workshop_name") {
+          aValue = a.workshop?.name || "";
+          bValue = b.workshop?.name || "";
+        } else if (sortConfig.key === "service_name") {
+          aValue = a.service_type?.name || "";
+          bValue = b.service_type?.name || "";
+        }
 
         if (aValue === bValue) return 0;
-        if (aValue === undefined || aValue === null) return 1;
-        if (bValue === undefined || bValue === null) return -1;
 
-        if (typeof aValue === "string" && typeof bValue === "string") {
-          return sortConfig.direction === "asc"
-            ? aValue.localeCompare(bValue)
-            : bValue.localeCompare(aValue);
-        }
-
-        if (typeof aValue === "number" && typeof bValue === "number") {
-          return sortConfig.direction === "asc"
-            ? aValue - bValue
-            : bValue - aValue;
-        }
-
-        return sortConfig.direction === "asc"
-          ? String(aValue).localeCompare(String(bValue))
-          : String(bValue).localeCompare(String(aValue));
+        const comparison = aValue < bValue ? -1 : 1;
+        return sortConfig.direction === "asc" ? comparison : -comparison;
       });
     }
-    return serviceTypesCopy;
-  }, [serviceTypes, sortConfig]);
 
-  // Filter service types based on search query
-  const filteredServiceTypes = useMemo(() => {
-    if (!searchQuery) return sortedServiceTypes;
+    return filtered;
+  }, [workshopServices, searchQuery, sortConfig]);
 
-    return sortedServiceTypes.filter((serviceType) => {
-      const searchFields = [
-        serviceType.name,
-        serviceType.description,
-        serviceType.category,
-      ];
-
-      return searchFields.some(
-        (field) =>
-          field &&
-          field.toString().toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    });
-  }, [sortedServiceTypes, searchQuery]);
-
-  // Get current page of service types
-  const paginatedServiceTypes = useMemo(() => {
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    return filteredServiceTypes.slice(startIndex, startIndex + rowsPerPage);
-  }, [filteredServiceTypes, currentPage, rowsPerPage]);
-
-  const totalPages = Math.ceil(filteredServiceTypes.length / rowsPerPage);
+  // Pagination
+  const totalPages = Math.ceil(filteredAndSortedServices.length / rowsPerPage);
+  const paginatedServices = filteredAndSortedServices.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
 
   // Handle sorting
-  const handleSort = (key: keyof ServiceType) => {
-    setSortConfig((prevConfig) => {
-      if (prevConfig.key === key) {
-        return {
-          key,
-          direction: prevConfig.direction === "asc" ? "desc" : "asc",
-        };
-      }
-      return { key, direction: "asc" };
-    });
+  const handleSort = (key: keyof WorkshopService | string) => {
+    setSortConfig((prev) => ({
+      key: key as keyof WorkshopService,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }));
   };
 
-  // Handle edit button click
-  const handleEdit = (serviceType: ServiceType) => {
-    console.log("Editing service type:", serviceType);
-    setEditServiceTypeData(serviceType);
+  // Handle refresh
+  const handleRefresh = () => {
+    const filterValue = searchQuery.trim();
+    fetchWorkshopServices(1, rowsPerPage, filterValue);
+    setCurrentPage(1);
+  };
+
+  // Handle adding service
+  const handleAddService = () => {
+    setIsAddDialogOpen(true);
+  };
+
+  // Handle batch create
+  const handleBatchCreate = () => {
+    setIsBatchCreateDialogOpen(true);
+  };
+
+  // Handle edit service
+  const handleEditService = (service: WorkshopService) => {
+    setSelectedService(service);
     setIsEditDialogOpen(true);
   };
 
-  // Handle view button click
-  const handleView = (serviceType: ServiceType) => {
-    console.log("Viewing service type:", serviceType);
-    setViewServiceTypeData(serviceType);
+  // Handle view service
+  const handleViewService = (service: WorkshopService) => {
+    setSelectedService(service);
     setIsViewDialogOpen(true);
   };
 
-  // Handle edit save
-  const handleSaveEdit = async () => {
+  // Handle delete single service
+  const handleDeleteSingle = async (serviceId: string) => {
+    const service = workshopServices.find((s) => s.id === serviceId);
+    if (service) {
+      try {
+        await handleDeleteWorkshopService(
+          service.workshop_id,
+          service.service_type_id
+        );
+        toast.success("Service deleted successfully");
+      } catch {
+        toast.error("Failed to delete service");
+      }
+    }
+  };
+
+  // Handle delete multiple services
+  const handleDeleteMultiple = async () => {
+    if (selectedWorkshopServices.length === 0) return;
+
     try {
-      await handleEditServiceType(editServiceTypeData);
-      toast.success("Service type updated successfully");
-      setIsEditDialogOpen(false);
+      await handleDeleteWorkshopServices(selectedWorkshopServices);
+      toast.success(
+        `${selectedWorkshopServices.length} services deleted successfully`
+      );
     } catch {
-      toast.error("Failed to update service type");
+      toast.error("Failed to delete services");
     }
   };
 
-  // Handle delete
-  const handleDelete = async () => {
-    try {
-      console.log("Deleting service types:", selectedServiceTypes);
-      await handleDeleteServiceTypes(selectedServiceTypes);
-      toast.success(
-        selectedServiceTypes.length > 1
-          ? "Service types deleted successfully"
-          : "Service type deleted successfully"
-      );
-      setIsDeleteDialogOpen(false);
-    } catch (error) {
-      console.error("Failed to delete service types:", error);
-      toast.error("Failed to delete service types");
-    }
+  // Handle edit from view dialog
+  const handleEditFromView = () => {
+    setIsViewDialogOpen(false);
+    setIsEditDialogOpen(true);
   };
 
-  // Handle percentage update
-  const handlePercentageUpdate = async (percentage: number) => {
-    try {
-      console.log(
-        "Updating percentage for service types:",
-        selectedServiceTypes,
-        percentage
-      );
-      // Update percentage for all selected service types
-      await Promise.all(
-        selectedServiceTypes.map((id) =>
-          handleSetPercentage(id, Number(percentage.toFixed(2)))
-        )
-      );
-      toast.success(
-        selectedServiceTypes.length > 1
-          ? "Percentage modifiers updated successfully"
-          : "Percentage modifier updated successfully"
-      );
-      setIsSetPercentageDialogOpen(false);
-    } catch (error) {
-      console.error("Failed to update percentage modifier:", error);
-      toast.error("Failed to update percentage modifier");
-    }
-  };
-
-  // Check if authenticated
+  // Show loading state
   if (authLoading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="flex flex-col items-center gap-2">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground text-sm">
-            Checking authentication...
-          </p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
-  if (!isAuthorized || !currentUser) {
+  // Show unauthorized state
+  if (!isAuthorized) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center p-6 max-w-md">
-          <h2 className="text-xl font-semibold mb-2">
-            Authentication Required
-          </h2>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
           <p className="text-muted-foreground">
-            You need to be logged in to view this page. Please log in and try
-            again.
+            You don&apos;t have permission to access this page.
           </p>
         </div>
       </div>
     );
   }
-
-  console.log(
-    "Rendering ServiceTypesList with",
-    serviceTypes.length,
-    "service types"
-  );
 
   return (
-    <div className="flex h-full w-full flex-col gap-5">
-      <div className="mb-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Service Types</h1>
-        <p className="text-muted-foreground">
-          Manage service types and their pricing structure
-        </p>
-      </div>
+    <div className="container mx-auto p-6 space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Workshop Services
+            </h1>
+            <p className="text-muted-foreground">
+              Manage services offered by workshops and their pricing
+            </p>
+          </div>
+        </div>
 
-      <ServiceTypesTableHeader
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        columnVisibility={columnVisibility}
-        setColumnVisibility={setColumnVisibility}
-        onAddServiceType={handleAddServiceType}
-        refreshData={fetchServiceTypes}
-        selectedServiceTypes={selectedServiceTypes}
-        onSetPercentage={() => setIsSetPercentageDialogOpen(true)}
-        onDelete={() => setIsDeleteDialogOpen(true)}
-      />
+        {/* Stats Cards */}
+        <WorkshopServicesStatsCards stats={stats} loading={loading} />
 
-      <ServiceTypesTable
-        loading={loading}
-        paginatedServiceTypes={paginatedServiceTypes}
-        columnVisibility={columnVisibility}
-        sortConfig={sortConfig}
-        handleSort={handleSort}
-        selectedServiceTypes={selectedServiceTypes}
-        handleSelectAll={handleSelectAll}
-        handleSelectServiceType={handleSelectServiceType}
-        handleEdit={handleEdit}
-        handleView={handleView}
-        searchQuery={searchQuery}
-        serviceTypes={serviceTypes}
-        onDelete={() => setIsDeleteDialogOpen(true)}
-        onSetPercentage={() => setIsSetPercentageDialogOpen(true)}
-      />
+        {/* Main Content */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border">
+          <WorkshopServicesTableHeader
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            columnVisibility={columnVisibility}
+            setColumnVisibility={setColumnVisibility}
+            onDelete={handleDeleteMultiple}
+            onRefresh={handleRefresh}
+            onAddService={handleAddService}
+            onBatchCreate={handleBatchCreate}
+            selectedCount={selectedWorkshopServices.length}
+            loading={loading}
+          />
 
-      <ServiceTypesPagination
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-        totalPages={totalPages}
-        rowsPerPage={rowsPerPage}
-        setRowsPerPage={setRowsPerPage}
-        filteredServiceTypes={filteredServiceTypes}
-        selectedServiceTypes={selectedServiceTypes}
-      />
+          <WorkshopServicesTable
+            loading={loading}
+            paginatedWorkshopServices={paginatedServices}
+            columnVisibility={columnVisibility}
+            sortConfig={sortConfig}
+            handleSort={handleSort}
+            selectedWorkshopServices={selectedWorkshopServices}
+            handleSelectAll={handleSelectAll}
+            handleSelectWorkshopService={handleSelectWorkshopService}
+            handleEdit={handleEditService}
+            handleView={handleViewService}
+            searchQuery={searchQuery}
+            workshopServices={filteredAndSortedServices}
+            onDelete={handleDeleteSingle}
+          />
 
-      {/* Edit Dialog */}
-      <EditServiceTypeDialog
-        isOpen={isEditDialogOpen}
-        setIsOpen={setIsEditDialogOpen}
-        serviceTypeData={editServiceTypeData}
-        setServiceTypeData={setEditServiceTypeData}
-        onSave={handleSaveEdit}
-        onSuccess={fetchServiceTypes}
-      />
+          {/* Pagination */}
+          <DataPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredAndSortedServices.length}
+            itemsPerPage={rowsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={setRowsPerPage}
+            itemType="workshop services"
+            loading={loading}
+          />
+        </div>
 
-      {/* View Dialog */}
-      <ViewServiceTypeDialog
-        isOpen={isViewDialogOpen}
-        setIsOpen={setIsViewDialogOpen}
-        serviceType={viewServiceTypeData}
-        onEdit={() => {
-          setIsViewDialogOpen(false);
-          if (viewServiceTypeData) {
-            handleEdit(viewServiceTypeData);
-          }
-        }}
-      />
+        {/* Dialogs */}
+        <AddWorkshopServiceDialog
+          isOpen={isAddDialogOpen}
+          onClose={() => setIsAddDialogOpen(false)}
+          onSave={handleAddWorkshopService}
+        />
 
-      {/* Delete Dialog */}
-      <DeleteServiceTypeDialog
-        isOpen={isDeleteDialogOpen}
-        setIsOpen={setIsDeleteDialogOpen}
-        serviceTypeIds={selectedServiceTypes}
-        onDelete={handleDelete}
-        ServiceTypes={serviceTypes}
-      />
+        <BatchCreateWorkshopServiceDialog
+          isOpen={isBatchCreateDialogOpen}
+          onClose={() => setIsBatchCreateDialogOpen(false)}
+          onSave={handleBatchCreateServices}
+        />
 
-      {/* Set Percentage Dialog */}
-      <SetPercentageDialog
-        isOpen={isSetPercentageDialogOpen}
-        setIsOpen={setIsSetPercentageDialogOpen}
-        serviceTypeIds={selectedServiceTypes}
-        onSetPercentage={handlePercentageUpdate}
-        ServiceTypes={serviceTypes}
-      />
+        <EditWorkshopServiceDialog
+          isOpen={isEditDialogOpen}
+          onClose={() => setIsEditDialogOpen(false)}
+          service={selectedService}
+          onSave={handleEditWorkshopService}
+        />
+
+        <ViewWorkshopServiceDialog
+          isOpen={isViewDialogOpen}
+          onClose={() => setIsViewDialogOpen(false)}
+          service={selectedService}
+          onEdit={handleEditFromView}
+        />
+
+        {/* Floating Download Button */}
+        <FloatingDownloadButton
+          data={paginatedServices.map((service) => ({
+            id: service.id,
+            workshop_name: service.workshop?.name || "Unknown",
+            workshop_address: service.workshop?.address || "",
+            service_name: service.service_type?.name || "Unknown",
+            service_category: service.service_type?.service_category || "",
+            percentage: service.percentage ?? 0,
+            created_at: new Date(service.created_at).toLocaleDateString(),
+            updated_at: new Date(service.updated_at).toLocaleDateString(),
+          }))}
+          filename={`workshop-services-page-${currentPage}`}
+          headers={[
+            { label: "ID", key: "id" },
+            { label: "Workshop Name", key: "workshop_name" },
+            { label: "Workshop Address", key: "workshop_address" },
+            { label: "Service Name", key: "service_name" },
+            { label: "Service Category", key: "service_category" },
+            { label: "Percentage", key: "percentage" },
+            { label: "Created Date", key: "created_at" },
+            { label: "Updated Date", key: "updated_at" },
+          ]}
+        />
+      </motion.div>
     </div>
   );
 };
 
-export default ServiceTypesList;
+export default WorkshopServicesPage;

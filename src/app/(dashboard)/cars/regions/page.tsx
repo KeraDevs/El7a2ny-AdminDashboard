@@ -13,6 +13,7 @@ import { ViewCarRegionDialog } from "@/components/cars/ViewCarRegionDialog";
 import { toast } from "sonner";
 import { Loader2, MapPin, Globe, TrendingUp, Building2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
 
 // Regions Statistics Component
 const RegionsStats = ({ regions }: { regions: CarRegion[] }) => {
@@ -359,6 +360,19 @@ const CarRegionsPage: React.FC = () => {
           setSelectedRegion(null);
         }}
         region={selectedRegion}
+      />
+
+      {/* Floating Download Button */}
+      <FloatingDownloadButton
+        data={currentRegions.map((region) => ({
+          name: region.name || "",
+          country: region.country || "",
+          continent: region.continent || "",
+          status: region.is_active ? "Active" : "Inactive",
+          brands: region.brand_regions?.length?.toString() || "0",
+          created_at: region.created_at || "",
+        }))}
+        filename="car-regions"
       />
     </div>
   );

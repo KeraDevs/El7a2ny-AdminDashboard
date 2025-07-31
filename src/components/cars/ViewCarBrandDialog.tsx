@@ -45,7 +45,7 @@ export const ViewCarBrandDialog: React.FC<ViewCarBrandDialogProps> = ({
     <div className="flex items-start gap-3 py-2">
       <Icon className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-muted-foreground">{label}</p>{" "}
+        <p className="text-sm font-medium text-muted-foreground">{label}</p>
         <div className="mt-1">
           {type === "url" && value ? (
             <div className="flex items-center gap-2">
@@ -85,10 +85,9 @@ export const ViewCarBrandDialog: React.FC<ViewCarBrandDialogProps> = ({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Header with Logo and Name */}{" "}
+          {/* Header with Logo and Name */}
           <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <div className="flex-shrink-0">
-              {" "}
               {brand.logo_url ? (
                 <Image
                   src={brand.logo_url}
@@ -110,7 +109,7 @@ export const ViewCarBrandDialog: React.FC<ViewCarBrandDialogProps> = ({
               <h3 className="text-xl font-semibold">{brand.name}</h3>
             </div>
           </div>
-          {/* Details */}{" "}
+          {/* Details */}
           <div className="space-y-4">
             <div className="grid gap-4">
               <InfoRow icon={Car} label="Brand Name" value={brand.name} />
@@ -136,7 +135,7 @@ export const ViewCarBrandDialog: React.FC<ViewCarBrandDialogProps> = ({
               <div className="border-t pt-4">
                 <h4 className="text-sm font-medium text-muted-foreground mb-3">
                   Available Regions ({brand.brand_regions.length})
-                </h4>{" "}
+                </h4>
                 <div className="flex flex-wrap gap-2">
                   {brand.brand_regions.map((brandRegion) => (
                     <span

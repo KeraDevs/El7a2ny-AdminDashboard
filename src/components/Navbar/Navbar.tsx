@@ -100,13 +100,8 @@ const Navbar = () => {
             >
               <div className="flex items-center gap-2">
                 <Search className="h-4 w-4" />
-                <span className="hidden md:inline">
-                  Type a command or search...
-                </span>
+                <span className="hidden md:inline">Search for pages...</span>
               </div>
-              <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-                <span className="text-xs">⌘</span>K
-              </kbd>
             </button>
 
             {/* Notification Icon */}
@@ -134,7 +129,7 @@ const Navbar = () => {
                 onClick={() => setDropdownOpen(!dropdownOpen)}
               >
                 <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full">
-                  <span className="flex h-full w-full items-center justify-center rounded-full bg-muted cursor-pointer">
+                  <span className="flex h-full w-full items-center justify-center rounded-full bg-orange-500 text-white font-medium cursor-pointer">
                     {userInitial}
                   </span>
                 </span>

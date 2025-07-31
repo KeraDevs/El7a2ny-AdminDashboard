@@ -14,14 +14,13 @@ import { UsersTable } from "@/components/users/UsersTable";
 import { UsersPagination } from "@/components/users/UsersPagination";
 import { EditUserDialog } from "@/components/users/EditUserDialog";
 import { ViewUserDialog } from "@/components/users/ViewUserDialog";
+import { ColumnVisibility, SortConfig } from "@/types/userTypes";
 
 // Users Statistics Component
 const UsersStats = ({ users }: { users: User[] }) => {
   const totalUsers = users.length;
   const activeUsers = users.filter((u) => u.userType === "customer").length;
-  const adminUsers = users.filter(
-    (u) => u.userType === "superadmin" || u.userType === "workshopAdmin"
-  ).length;
+  const adminUsers = users.filter((u) => u.userType === "workshopAdmin").length;
   const recentUsers = users.filter((u) => {
     const joinDate = new Date(u.createdAt || Date.now());
     const thirtyDaysAgo = new Date();
@@ -40,7 +39,7 @@ const UsersStats = ({ users }: { users: User[] }) => {
       bgColor: "from-blue-50 to-blue-100",
     },
     {
-      title: "Active Customers",
+      title: "Customers",
       value: activeUsers.toString(),
       icon: UserPlus,
       description: "Customer accounts",
@@ -49,10 +48,10 @@ const UsersStats = ({ users }: { users: User[] }) => {
       bgColor: "from-green-50 to-green-100",
     },
     {
-      title: "Admin Users",
+      title: "Workshops Admins",
       value: adminUsers.toString(),
       icon: Settings,
-      description: "Admin accounts",
+      description: "Workshops Admins",
       trend: "+2.1%",
       color: "from-purple-500 to-purple-600",
       bgColor: "from-purple-50 to-purple-100",
@@ -106,21 +105,6 @@ const UsersStats = ({ users }: { users: User[] }) => {
       ))}
     </div>
   );
-};
-
-export type ColumnVisibility = {
-  name: boolean;
-  email: boolean;
-  phone: boolean;
-  gender: boolean;
-  userType: boolean;
-  labels: boolean;
-  joinDate?: boolean;
-};
-
-export type SortConfig = {
-  key: keyof User | null;
-  direction: "asc" | "desc";
 };
 
 const UsersList: React.FC = () => {
