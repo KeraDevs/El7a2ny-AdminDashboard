@@ -9,20 +9,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CarWithDetails } from "@/types/carTypes";
-import { LuPencil, LuCar, LuCalendar, LuUser } from "react-icons/lu";
+import { LuCar, LuCalendar, LuUser } from "react-icons/lu";
 
 export interface ViewCarDialogProps {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   car: CarWithDetails | null;
-  onEdit?: () => void;
+  // ...existing code...
 }
 
 export const ViewCarDialog: React.FC<ViewCarDialogProps> = ({
   isOpen,
   setIsOpen,
   car,
-  onEdit,
+  // ...existing code...
 }) => {
   if (!car) return null;
 

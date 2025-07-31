@@ -19,7 +19,7 @@ export interface UsersCarsTableHeaderProps {
   columnVisibility: ColumnVisibility;
   setColumnVisibility: React.Dispatch<React.SetStateAction<ColumnVisibility>>;
   refreshData?: () => Promise<void>;
-  selectedCars: string[];
+  // selectedCars: string[];
 }
 
 export const UsersCarsTableHeader: React.FC<UsersCarsTableHeaderProps> = ({
@@ -28,7 +28,7 @@ export const UsersCarsTableHeader: React.FC<UsersCarsTableHeaderProps> = ({
   columnVisibility,
   setColumnVisibility,
   refreshData,
-  selectedCars,
+  // selectedCars,
 }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [showSearch, setShowSearch] = useState(false);

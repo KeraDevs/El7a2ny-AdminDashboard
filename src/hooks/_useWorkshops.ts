@@ -409,7 +409,7 @@ export const useWorkshops = (): UseWorkshopsReturn => {
       }
 
       let endpoint = "";
-      let method = "POST";
+      const method = "POST";
 
       switch (newStatus.toLowerCase()) {
         case "active":

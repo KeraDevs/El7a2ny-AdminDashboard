@@ -73,7 +73,7 @@ export const usePayouts = (limit: number = 10): UsePayoutsReturn => {
       }
 
       // Only fetch pending withdrawals, as /all endpoint does not exist
-      let response = await getPendingWithdrawals(token, currentPage, limit);
+      const response = await getPendingWithdrawals(token, currentPage, limit);
 
       setWithdrawals(response.withdrawals);
       setTotal(response.total);

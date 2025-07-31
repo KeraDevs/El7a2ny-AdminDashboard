@@ -9,7 +9,6 @@ import {
   ColumnVisibility,
   defaultColumnVisibility,
 } from "@/types/carTypes";
-import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
@@ -160,6 +159,46 @@ const UsersCarsPage: React.FC = () => {
     }
   };
 
+  // Prepare data for CSV export
+  const csvData = useMemo(() => {
+    return filteredCars.map((car) => ({
+      owner_name: `${car.owner?.first_name || ""} ${
+        car.owner?.last_name || ""
+      }`.trim(),
+      owner_email: car.owner?.email || "",
+      owner_phone: car.owner?.phone || "",
+      model: car.model || "",
+      year: car.year || "",
+      license_plate: car.license_plate || "",
+      vin_number: car.vin_number || "",
+      brand_name: car.brand?.name || "",
+      region_name: car.region?.name || "",
+      turbo: car.turbo ? "Yes" : "No",
+      exotic: car.exotic ? "Yes" : "No",
+      created_at: car.created_at || "",
+      updated_at: car.updated_at || "",
+    }));
+  }, [filteredCars]);
+
+  // Column visibility for CSV
+  const csvColumnVisibility = useMemo(() => {
+    return {
+      owner_name: columnVisibility.owner_name,
+      owner_email: columnVisibility.owner_email,
+      owner_phone: true, // Always include phone in export
+      model: columnVisibility.model,
+      year: columnVisibility.year,
+      license_plate: columnVisibility.license_plate,
+      vin_number: columnVisibility.vin_number,
+      brand_name: columnVisibility.brand_name,
+      region_name: columnVisibility.region_name,
+      turbo: columnVisibility.turbo,
+      exotic: columnVisibility.exotic,
+      created_at: true,
+      updated_at: true,
+    };
+  }, [columnVisibility]);
+
   const handleView = (car: CarWithDetails) => {
     setViewCarData(car);
     setIsViewDialogOpen(true);
@@ -230,7 +269,7 @@ const UsersCarsPage: React.FC = () => {
             columnVisibility={columnVisibility}
             setColumnVisibility={setColumnVisibility}
             refreshData={fetchUserCars}
-            selectedCars={selectedCars}
+            // selectedCars prop removed
           />
           <UsersCarsTable
             cars={usersCars as CarWithDetails[]}
@@ -267,9 +306,9 @@ const UsersCarsPage: React.FC = () => {
       />
 
       <FloatingDownloadButton
-        data={usersCars}
+        data={csvData}
         filename="users-cars"
-        columnVisibility={columnVisibility}
+        columnVisibility={csvColumnVisibility}
       />
     </div>
   );

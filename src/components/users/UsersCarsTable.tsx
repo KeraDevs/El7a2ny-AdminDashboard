@@ -10,10 +10,13 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { UsersCarsTableProps, defaultColumnVisibility } from "@/types/carTypes";
+import {
+  UsersCarsTableProps,
+  defaultColumnVisibility,
+  CarWithDetails,
+} from "@/types/carTypes";
 import { LuChevronsUpDown, LuEye } from "react-icons/lu";
 import { Loader2 } from "lucide-react";
-import { CarWithDetails } from "@/types/carTypes";
 
 const UsersCarsTable: React.FC<UsersCarsTableProps> = ({
   selectedCars = [],

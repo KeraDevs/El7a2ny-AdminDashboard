@@ -14,7 +14,6 @@ import {
   LogOut,
   UserCircle,
   Car,
-  ChartPie,
   Landmark,
   History,
 } from "lucide-react";
