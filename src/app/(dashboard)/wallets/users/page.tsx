@@ -21,17 +21,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   IconWallet,
   IconPlus,
   IconSearch,
-  IconFilter,
   IconUsers,
   IconTrendingUp,
   IconEye,
@@ -43,12 +35,14 @@ import { Wallet, formatBalance } from "@/types/walletTypes";
 import WalletDetailsDialog from "@/components/wallets/WalletDetailsDialog";
 import AddMoneyDialog from "@/components/wallets/AddMoneyDialog";
 import WalletStatusDialog from "@/components/wallets/WalletStatusDialog";
+import { ColumnVisibilityControl } from "@/components/ui/ColumnVisibilityControl";
+import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
 import toast from "react-hot-toast";
 
 interface WalletStatsProps {
-  totalBalance: number;
-  activeUsers: number;
-  averageBalance: number;
+  readonly totalBalance: number;
+  readonly activeUsers: number;
+  readonly averageBalance: number;
 }
 
 function WalletStats({
@@ -161,6 +155,70 @@ export default function UserWalletsPage() {
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showAddMoneyDialog, setShowAddMoneyDialog] = useState(false);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
+
+  // Column visibility state
+  const [columnVisibility, setColumnVisibility] = useState({
+    user: true,
+    contact: true,
+    balance: true,
+    status: true,
+    lastUpdated: true,
+    actions: true,
+  });
+
+  // Column definitions for visibility control
+  const columns = [
+    { key: "user", label: "User", visible: columnVisibility.user },
+    { key: "contact", label: "Contact", visible: columnVisibility.contact },
+    {
+      key: "balance",
+      label: "Wallet Balance",
+      visible: columnVisibility.balance,
+    },
+    { key: "status", label: "Status", visible: columnVisibility.status },
+    {
+      key: "lastUpdated",
+      label: "Last Updated",
+      visible: columnVisibility.lastUpdated,
+    },
+    { key: "actions", label: "Actions", visible: columnVisibility.actions },
+  ];
+
+  // Toggle column visibility
+  const toggleColumn = (key: string) => {
+    setColumnVisibility((prev) => ({
+      ...prev,
+      [key]: !prev[key as keyof typeof prev],
+    }));
+  };
+
+  // Prepare data for CSV export
+  const csvData = wallets.map((wallet) => ({
+    id: wallet.id,
+    user_name: wallet.user
+      ? `${wallet.user.first_name} ${wallet.user.last_name}`
+      : "Unknown User",
+    email: wallet.user?.email || "",
+    phone: wallet.user?.phone || "",
+    balance:
+      typeof wallet.balance === "string"
+        ? parseFloat(wallet.balance)
+        : wallet.balance,
+    status: wallet.status,
+    created_at: new Date(wallet.created_at || "").toLocaleDateString(),
+    updated_at: new Date(wallet.updated_at).toLocaleDateString(),
+  }));
+
+  const csvHeaders = [
+    { label: "Wallet ID", key: "id" },
+    { label: "User Name", key: "user_name" },
+    { label: "Email", key: "email" },
+    { label: "Phone", key: "phone" },
+    { label: "Balance (EGP)", key: "balance" },
+    { label: "Status", key: "status" },
+    { label: "Created Date", key: "created_at" },
+    { label: "Last Updated", key: "updated_at" },
+  ];
 
   // Load wallets on component mount
   useEffect(() => {
@@ -276,23 +334,14 @@ export default function UserWalletsPage() {
                   placeholder="Search users by name, email, or phone..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                   className="pl-8 w-[300px]"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <IconFilter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="suspended">Suspended</SelectItem>
-                  <SelectItem value="frozen">Frozen</SelectItem>
-                </SelectContent>
-              </Select>
+              <ColumnVisibilityControl
+                columns={columns}
+                onToggleColumn={toggleColumn}
+              />
               <Button onClick={handleSearch} className="gap-2">
                 <IconSearch className="h-4 w-4" />
                 Search
@@ -314,78 +363,96 @@ export default function UserWalletsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>User</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Wallet Balance</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Last Updated</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    {columnVisibility.user && <TableHead>User</TableHead>}
+                    {columnVisibility.contact && <TableHead>Contact</TableHead>}
+                    {columnVisibility.balance && (
+                      <TableHead>Wallet Balance</TableHead>
+                    )}
+                    {columnVisibility.status && <TableHead>Status</TableHead>}
+                    {columnVisibility.lastUpdated && (
+                      <TableHead>Last Updated</TableHead>
+                    )}
+                    {columnVisibility.actions && (
+                      <TableHead className="text-right">Actions</TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {wallets.map((wallet) => (
                     <TableRow key={wallet.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">
-                            {wallet.user
-                              ? `${wallet.user.first_name} ${wallet.user.last_name}`
-                              : "Unknown User"}
+                      {columnVisibility.user && (
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">
+                              {wallet.user
+                                ? `${wallet.user.first_name} ${wallet.user.last_name}`
+                                : "Unknown User"}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {wallet.user?.email}
+                            </div>
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            {wallet.user?.email}
+                        </TableCell>
+                      )}
+                      {columnVisibility.contact && (
+                        <TableCell>
+                          <div className="text-sm">{wallet.user?.phone}</div>
+                        </TableCell>
+                      )}
+                      {columnVisibility.balance && (
+                        <TableCell>
+                          <div className="font-medium text-lg">
+                            EGP {formatBalance(wallet.balance)}
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">{wallet.user?.phone}</div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium text-lg">
-                          EGP {formatBalance(wallet.balance)}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          className={getStatusBadgeColor(wallet.status)}
-                          variant="secondary"
-                        >
-                          {wallet.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          {new Date(wallet.updated_at).toLocaleDateString()}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewDetails(wallet)}
-                            className="h-8 w-8 p-0"
+                        </TableCell>
+                      )}
+                      {columnVisibility.status && (
+                        <TableCell>
+                          <Badge
+                            className={getStatusBadgeColor(wallet.status)}
+                            variant="secondary"
                           >
-                            <IconEye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleAddMoney(wallet)}
-                            className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
-                          >
-                            <IconPlus className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleUpdateStatus(wallet)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <IconEdit className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+                            {wallet.status}
+                          </Badge>
+                        </TableCell>
+                      )}
+                      {columnVisibility.lastUpdated && (
+                        <TableCell>
+                          <div className="text-sm">
+                            {new Date(wallet.updated_at).toLocaleDateString()}
+                          </div>
+                        </TableCell>
+                      )}
+                      {columnVisibility.actions && (
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewDetails(wallet)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <IconEye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleAddMoney(wallet)}
+                              className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
+                            >
+                              <IconPlus className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleUpdateStatus(wallet)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <IconEdit className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -450,6 +517,21 @@ export default function UserWalletsPage() {
           setSelectedWallet(null);
         }}
         onConfirm={handleStatusUpdate}
+      />
+
+      {/* Floating Download Button */}
+      <FloatingDownloadButton
+        data={csvData}
+        filename="user-wallets"
+        headers={csvHeaders}
+        columnVisibility={{
+          user_name: columnVisibility.user,
+          email: columnVisibility.user,
+          phone: columnVisibility.contact,
+          balance: columnVisibility.balance,
+          status: columnVisibility.status,
+          updated_at: columnVisibility.lastUpdated,
+        }}
       />
     </div>
   );

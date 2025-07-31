@@ -13,6 +13,7 @@ import {
 import { useWallets } from "@/hooks/_useWallets";
 import { useWorkshops } from "@/hooks/_useWorkshops";
 import { TransactionsHistory } from "@/components/transactions/TransactionsHistory";
+import { formatRevenue, formatTransactionCount } from "@/types/walletTypes";
 
 const Revenue: React.FC = () => {
   const { wallets, fetchAllWallets } = useWallets();
@@ -21,10 +22,8 @@ const Revenue: React.FC = () => {
   // Calculate revenue metrics
   const [revenueMetrics, setRevenueMetrics] = useState({
     totalWalletBalance: 0,
-    totalTopUps: 521300,
-    totalWorkshopPayments: 387200,
-    totalRevenue: 908500,
-    totalTransactions: 1250,
+    totalRevenue: 0,
+    totalTransactions: 0,
     activeUsers: 0,
     activeWorkshops: 0,
     averageTransactionValue: 0,
@@ -56,6 +55,8 @@ const Revenue: React.FC = () => {
       setRevenueMetrics((prev) => ({
         ...prev,
         totalWalletBalance: totalBalance,
+        totalRevenue: totalBalance, // Using wallet balance as proxy for revenue
+        totalTransactions: wallets.length, // Using wallet count as proxy for transactions
         activeUsers,
         activeWorkshops,
         averageTransactionValue:
@@ -96,7 +97,7 @@ const Revenue: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {revenueMetrics.totalRevenue.toLocaleString()} EGP
+              EGP {formatRevenue(revenueMetrics.totalRevenue)}
             </div>
             <p className="text-xs text-muted-foreground">
               <Badge variant="outline" className="text-green-600">
@@ -117,7 +118,7 @@ const Revenue: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {revenueMetrics.totalTransactions.toLocaleString()}
+              {formatTransactionCount(revenueMetrics.totalTransactions)}
             </div>
             <p className="text-xs text-muted-foreground">
               <Badge variant="outline" className="text-blue-600">

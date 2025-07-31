@@ -17,8 +17,8 @@ import { UsersCarsTableHeader } from "@/components/users/UsersCarsTableHeader";
 import { UsersCarsTable } from "@/components/users/UsersCarsTable";
 import { UsersCarsPagination } from "@/components/users/UsersCarsPagination";
 import { UsersCarsStats } from "@/components/users/UsersCarsStats";
-import { EditCarDialog } from "@/components/users/EditCarDialog";
 import { ViewCarDialog } from "@/components/users/ViewCarDialog";
+import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
 
 interface SortConfig {
   key: keyof CarWithDetails | "owner" | "brand";
@@ -43,9 +43,7 @@ const UsersCarsPage: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
 
   // Dialog states
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [editCarData, setEditCarData] = useState<CarWithDetails | null>(null);
   const [viewCarData, setViewCarData] = useState<CarWithDetails | null>(null);
 
   // Initialize data
@@ -162,47 +160,9 @@ const UsersCarsPage: React.FC = () => {
     }
   };
 
-  const handleEdit = (car: CarWithDetails) => {
-    setEditCarData(car);
-    setIsEditDialogOpen(true);
-  };
-
   const handleView = (car: CarWithDetails) => {
     setViewCarData(car);
     setIsViewDialogOpen(true);
-  };
-
-  const handleSaveEdit = async () => {
-    try {
-      // Here you would implement the actual save logic
-      toast.success("Car updated successfully");
-      setIsEditDialogOpen(false);
-      await fetchUserCars(); // Refresh data
-    } catch {
-      toast.error("Failed to update car");
-    }
-  };
-
-  const handleDelete = async () => {
-    if (selectedCars.length === 0) {
-      toast.error("No cars selected");
-      return;
-    }
-
-    if (
-      window.confirm(
-        `Are you sure you want to delete ${selectedCars.length} car(s)?`
-      )
-    ) {
-      try {
-        // Here you would implement the actual delete logic
-        toast.success("Cars deleted successfully");
-        setSelectedCars([]);
-        await fetchUserCars(); // Refresh data
-      } catch {
-        toast.error("Failed to delete cars");
-      }
-    }
   };
 
   // Loading states
@@ -271,7 +231,6 @@ const UsersCarsPage: React.FC = () => {
             setColumnVisibility={setColumnVisibility}
             refreshData={fetchUserCars}
             selectedCars={selectedCars}
-            onDelete={handleDelete}
           />
           <UsersCarsTable
             cars={usersCars as CarWithDetails[]}
@@ -279,9 +238,7 @@ const UsersCarsPage: React.FC = () => {
             onSelectCar={handleSelectCar}
             handleSelectAll={handleSelectAll}
             columnVisibility={columnVisibility}
-            handleEdit={handleEdit}
             handleView={handleView}
-            onDelete={handleDelete}
             handleSort={handleSort}
             searchQuery={searchQuery}
             loading={loading}
@@ -303,24 +260,16 @@ const UsersCarsPage: React.FC = () => {
         </Card>
       </motion.div>
 
-      <EditCarDialog
-        isOpen={isEditDialogOpen}
-        setIsOpen={setIsEditDialogOpen}
-        carData={editCarData}
-        setCarData={setEditCarData}
-        onSave={handleSaveEdit}
-      />
-
       <ViewCarDialog
         isOpen={isViewDialogOpen}
         setIsOpen={setIsViewDialogOpen}
         car={viewCarData}
-        onEdit={() => {
-          setIsViewDialogOpen(false);
-          if (viewCarData) {
-            handleEdit(viewCarData);
-          }
-        }}
+      />
+
+      <FloatingDownloadButton
+        data={usersCars}
+        filename="users-cars"
+        columnVisibility={columnVisibility}
       />
     </div>
   );

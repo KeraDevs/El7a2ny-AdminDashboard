@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -53,8 +52,9 @@ import {
   IconBuilding,
   IconCurrency,
 } from "@tabler/icons-react";
-import { useRequestsHistory } from "@/hooks/useRequestsHistory";
+import { useRequestsHistoryPaginated } from "@/hooks/useRequestsHistoryPaginated";
 import { useWorkshops } from "@/hooks/_useWorkshops";
+import { DataPagination } from "@/components/ui/DataPagination";
 import {
   ServiceRequest,
   getStatusColor,
@@ -75,14 +75,18 @@ const RequestsHistoryPage = () => {
   const {
     requests,
     loading,
-    error,
     total,
+    currentPage,
+    pageSize,
+    totalPages,
     stats,
     filters,
-    setFilters,
+    handlePageChange,
+    handlePageSizeChange,
+    updateFilters,
+    refresh,
     updateRequestDetails,
-    fetchAllRequests,
-  } = useRequestsHistory();
+  } = useRequestsHistoryPaginated();
 
   const {
     workshops,
@@ -109,7 +113,7 @@ const RequestsHistoryPage = () => {
   });
 
   const handleRefresh = () => {
-    fetchAllRequests();
+    refresh();
     fetchWorkshops(); // Also refresh workshops
   };
 
@@ -347,18 +351,14 @@ const RequestsHistoryPage = () => {
           <Input
             placeholder="Search requests..."
             value={filters.search}
-            onChange={(e) =>
-              setFilters((prev) => ({ ...prev, search: e.target.value }))
-            }
+            onChange={(e) => updateFilters({ search: e.target.value })}
             className="w-64"
           />
         </div>
 
         <Select
           value={filters.status}
-          onValueChange={(value) =>
-            setFilters((prev) => ({ ...prev, status: value }))
-          }
+          onValueChange={(value) => updateFilters({ status: value })}
         >
           <SelectTrigger className="w-32">
             <SelectValue placeholder="Status" />
@@ -375,9 +375,7 @@ const RequestsHistoryPage = () => {
 
         <Select
           value={filters.priority}
-          onValueChange={(value) =>
-            setFilters((prev) => ({ ...prev, priority: value }))
-          }
+          onValueChange={(value) => updateFilters({ priority: value })}
         >
           <SelectTrigger className="w-32">
             <SelectValue placeholder="Priority" />
@@ -394,9 +392,7 @@ const RequestsHistoryPage = () => {
           type="date"
           placeholder="From Date"
           value={filters.dateFrom}
-          onChange={(e) =>
-            setFilters((prev) => ({ ...prev, dateFrom: e.target.value }))
-          }
+          onChange={(e) => updateFilters({ dateFrom: e.target.value })}
           className="w-40"
         />
 
@@ -404,9 +400,7 @@ const RequestsHistoryPage = () => {
           type="date"
           placeholder="To Date"
           value={filters.dateTo}
-          onChange={(e) =>
-            setFilters((prev) => ({ ...prev, dateTo: e.target.value }))
-          }
+          onChange={(e) => updateFilters({ dateTo: e.target.value })}
           className="w-40"
         />
 
@@ -414,7 +408,7 @@ const RequestsHistoryPage = () => {
           variant="outline"
           size="sm"
           onClick={() =>
-            setFilters({
+            updateFilters({
               status: "all",
               priority: "all",
               serviceCategory: "all",
@@ -446,24 +440,21 @@ const RequestsHistoryPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {loading ? (
+            {loading && (
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 <span className="ml-2">Loading requests...</span>
               </div>
-            ) : error ? (
-              <div className="text-center py-8 text-red-600">
-                <p>Error: {error}</p>
-                <Button onClick={handleRefresh} className="mt-2">
-                  Try Again
-                </Button>
-              </div>
-            ) : requests.length === 0 ? (
+            )}
+
+            {!loading && requests.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 <IconClipboardList className="mx-auto h-12 w-12 mb-4" />
                 <p>No requests found</p>
               </div>
-            ) : (
+            )}
+
+            {!loading && requests.length > 0 && (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -580,6 +571,22 @@ const RequestsHistoryPage = () => {
                     ))}
                   </TableBody>
                 </Table>
+              </div>
+            )}
+
+            {/* Pagination */}
+            {total > 0 && (
+              <div className="border-t">
+                <DataPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={total}
+                  itemsPerPage={pageSize}
+                  onPageChange={handlePageChange}
+                  onItemsPerPageChange={handlePageSizeChange}
+                  itemType="requests"
+                  loading={loading}
+                />
               </div>
             )}
           </CardContent>
@@ -766,14 +773,16 @@ const RequestsHistoryPage = () => {
 
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Assign Workshop *</label>
+              <label htmlFor="workshop-select" className="text-sm font-medium">
+                Assign Workshop *
+              </label>
               <Select
                 value={editForm.workshop_id}
                 onValueChange={(value) =>
                   setEditForm((prev) => ({ ...prev, workshop_id: value }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger id="workshop-select">
                   <SelectValue placeholder="Select workshop" />
                 </SelectTrigger>
                 <SelectContent>
@@ -802,8 +811,11 @@ const RequestsHistoryPage = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium">Price (EGP)</label>
+              <label htmlFor="price-input" className="text-sm font-medium">
+                Price (EGP)
+              </label>
               <Input
+                id="price-input"
                 type="number"
                 value={editForm.price}
                 onChange={(e) =>
@@ -814,10 +826,11 @@ const RequestsHistoryPage = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium">
+              <label htmlFor="scheduled-date" className="text-sm font-medium">
                 Scheduled Date & Time
               </label>
               <Input
+                id="scheduled-date"
                 type="datetime-local"
                 value={editForm.scheduled_at}
                 onChange={(e) =>
@@ -830,8 +843,11 @@ const RequestsHistoryPage = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium">Notes</label>
+              <label htmlFor="notes-textarea" className="text-sm font-medium">
+                Notes
+              </label>
               <Textarea
+                id="notes-textarea"
                 value={editForm.notes}
                 onChange={(e) =>
                   setEditForm((prev) => ({ ...prev, notes: e.target.value }))

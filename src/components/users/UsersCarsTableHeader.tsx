@@ -20,7 +20,6 @@ export interface UsersCarsTableHeaderProps {
   setColumnVisibility: React.Dispatch<React.SetStateAction<ColumnVisibility>>;
   refreshData?: () => Promise<void>;
   selectedCars: string[];
-  onDelete: () => void;
 }
 
 export const UsersCarsTableHeader: React.FC<UsersCarsTableHeaderProps> = ({
@@ -30,7 +29,6 @@ export const UsersCarsTableHeader: React.FC<UsersCarsTableHeaderProps> = ({
   setColumnVisibility,
   refreshData,
   selectedCars,
-  onDelete,
 }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -157,16 +155,6 @@ export const UsersCarsTableHeader: React.FC<UsersCarsTableHeaderProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            {selectedCars.length > 0 && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={onDelete}
-                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
-              >
-                Delete ({selectedCars.length})
-              </Button>
-            )}
             <Button
               variant="outline"
               size="sm"

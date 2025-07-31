@@ -114,11 +114,17 @@ export const usePayouts = (limit: number = 10): UsePayoutsReturn => {
       }
 
       await processWithdrawalRequest(withdrawalId, processData, token);
-      toast.success(
-        `Withdrawal ${
-          processData.action === "approve" ? "approved" : "rejected"
-        } successfully`
-      );
+
+      let successMessage = "Withdrawal processed successfully";
+      if (processData.action === "approve") {
+        successMessage = "Withdrawal approved successfully";
+      } else if (processData.action === "reject") {
+        successMessage = "Withdrawal rejected successfully";
+      } else if (processData.action === "initiate") {
+        successMessage = "Withdrawal payment initiated successfully";
+      }
+
+      toast.success(successMessage);
       await fetchWithdrawals(); // Refresh the list
       return true;
     } catch (err) {

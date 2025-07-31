@@ -156,20 +156,24 @@ export const mapApiRequestToFrontend = (
   createdAt: new Date(apiRequest.created_at),
   updatedAt: new Date(apiRequest.updated_at),
 
-  // Related data
-  serviceName: apiRequest.service_types.name,
-  serviceNameAr: apiRequest.service_types.name_ar,
-  serviceDescription: apiRequest.service_types.description,
-  serviceCategory: apiRequest.service_types.service_category,
-  customerName: `${apiRequest.users.first_name} ${apiRequest.users.last_name}`,
-  customerEmail: apiRequest.users.email,
-  customerPhone: apiRequest.users.phone,
-  vehicleModel: apiRequest.vehicles.model,
-  vehicleYear: apiRequest.vehicles.year,
-  vehicleLicensePlate: apiRequest.vehicles.license_plate,
-  workshopName: apiRequest.workshops.name,
-  workshopAddress: apiRequest.workshops.address,
-  workshopProfilePic: apiRequest.workshops.profile_pic,
+  // Related data with null checks
+  serviceName: apiRequest.service_types?.name || "",
+  serviceNameAr: apiRequest.service_types?.name_ar || "",
+  serviceDescription: apiRequest.service_types?.description || "",
+  serviceCategory: apiRequest.service_types?.service_category || "",
+  customerName: apiRequest.users
+    ? `${apiRequest.users.first_name || ""} ${
+        apiRequest.users.last_name || ""
+      }`.trim()
+    : "",
+  customerEmail: apiRequest.users?.email || "",
+  customerPhone: apiRequest.users?.phone || "",
+  vehicleModel: apiRequest.vehicles?.model || "",
+  vehicleYear: apiRequest.vehicles?.year || 0,
+  vehicleLicensePlate: apiRequest.vehicles?.license_plate || "",
+  workshopName: apiRequest.workshops?.name || "",
+  workshopAddress: apiRequest.workshops?.address || "",
+  workshopProfilePic: apiRequest.workshops?.profile_pic || null,
 });
 
 export interface RequestDetailsDialogProps {

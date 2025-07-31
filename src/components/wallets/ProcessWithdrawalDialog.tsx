@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -30,23 +30,25 @@ import {
   IconUser,
   IconCalendar,
   IconCurrencyPound,
+  IconSend,
 } from "@tabler/icons-react";
 import {
   ManualWithdrawalRequest,
   getPayoutMethodDisplay,
   formatPayoutDetails,
   formatBalance,
+  ProcessWithdrawalRequest,
 } from "@/types/walletTypes";
-import { ProcessWithdrawalRequest } from "@/types/walletTypes";
 
 interface ProcessWithdrawalDialogProps {
-  withdrawal: ManualWithdrawalRequest;
-  isOpen: boolean;
-  onClose: () => void;
-  onProcess: (
+  readonly withdrawal: ManualWithdrawalRequest;
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly onProcess: (
     withdrawalId: string,
     processData: ProcessWithdrawalRequest
   ) => Promise<boolean>;
+  readonly presetAction?: "approve" | "reject" | "initiate" | null;
 }
 
 export default function ProcessWithdrawalDialog({
@@ -54,10 +56,18 @@ export default function ProcessWithdrawalDialog({
   isOpen,
   onClose,
   onProcess,
+  presetAction,
 }: ProcessWithdrawalDialogProps) {
-  const [action, setAction] = useState<"approve" | "reject" | "">("");
+  const [action, setAction] = useState<"approve" | "reject" | "initiate" | "">(
+    presetAction || ""
+  );
   const [notes, setNotes] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Update action when presetAction changes
+  useEffect(() => {
+    setAction(presetAction || "");
+  }, [presetAction]);
 
   const handleProcess = async () => {
     if (!action) return;
@@ -96,6 +106,59 @@ export default function ProcessWithdrawalDialog({
       default:
         return "secondary";
     }
+  };
+
+  const getButtonClassName = () => {
+    if (action === "approve") {
+      return "bg-green-600 hover:bg-green-700";
+    }
+    if (action === "initiate") {
+      return "bg-blue-600 hover:bg-blue-700";
+    }
+    if (action === "reject") {
+      return "bg-red-600 hover:bg-red-700";
+    }
+    return "";
+  };
+
+  const getButtonContent = () => {
+    if (isProcessing) {
+      return (
+        <>
+          <IconLoader className="w-4 h-4 mr-2 animate-spin" />
+          Processing...
+        </>
+      );
+    }
+
+    if (action === "approve") {
+      return (
+        <>
+          <IconCheck className="w-4 h-4 mr-2" />
+          Approve
+        </>
+      );
+    }
+
+    if (action === "initiate") {
+      return (
+        <>
+          <IconSend className="w-4 h-4 mr-2" />
+          Initiate Payment
+        </>
+      );
+    }
+
+    if (action === "reject") {
+      return (
+        <>
+          <IconX className="w-4 h-4 mr-2" />
+          Reject
+        </>
+      );
+    }
+
+    return "Process";
   };
 
   return (
@@ -217,7 +280,7 @@ export default function ProcessWithdrawalDialog({
               </Label>
               <Select
                 value={action}
-                onValueChange={(value: "approve" | "reject") =>
+                onValueChange={(value: "approve" | "reject" | "initiate") =>
                   setAction(value)
                 }
               >
@@ -229,6 +292,12 @@ export default function ProcessWithdrawalDialog({
                     <div className="flex items-center gap-2">
                       <IconCheck className="h-4 w-4 text-green-600" />
                       Approve
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="initiate">
+                    <div className="flex items-center gap-2">
+                      <IconSend className="h-4 w-4 text-blue-600" />
+                      Initiate Payment
                     </div>
                   </SelectItem>
                   <SelectItem value="reject">
@@ -263,32 +332,9 @@ export default function ProcessWithdrawalDialog({
           <Button
             onClick={handleProcess}
             disabled={!action || isProcessing}
-            className={
-              action === "approve"
-                ? "bg-green-600 hover:bg-green-700"
-                : action === "reject"
-                ? "bg-red-600 hover:bg-red-700"
-                : ""
-            }
+            className={getButtonClassName()}
           >
-            {isProcessing ? (
-              <>
-                <IconLoader className="w-4 h-4 mr-2 animate-spin" />
-                Processing...
-              </>
-            ) : action === "approve" ? (
-              <>
-                <IconCheck className="w-4 h-4 mr-2" />
-                Approve
-              </>
-            ) : action === "reject" ? (
-              <>
-                <IconX className="w-4 h-4 mr-2" />
-                Reject
-              </>
-            ) : (
-              "Process"
-            )}
+            {getButtonContent()}
           </Button>
         </DialogFooter>
       </DialogContent>

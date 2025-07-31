@@ -230,8 +230,6 @@ export interface UsersCarsTableProps {
   onSelectCar: (carId: string) => void;
   handleSelectAll: (checked: boolean) => void;
   handleSelectCar: (carId: string) => void;
-  onDelete: () => void;
-  handleEdit: (car: CarWithDetails) => void;
   handleSort: (key: keyof CarWithDetails | "owner" | "brand") => void;
   handleView: (car: CarWithDetails) => void;
 }

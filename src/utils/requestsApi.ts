@@ -30,6 +30,59 @@ interface ReviewResponse {
   updated_at: string;
 }
 
+export const getAllRequestsPaginated = async (
+  token: string,
+  page: number = 1,
+  limit: number = 10,
+  filters?: {
+    status?: string;
+    priority?: string;
+    service_type_id?: string;
+    workshop_id?: string;
+    from?: string;
+    to?: string;
+    search?: string;
+  }
+): Promise<ApiRequestsResponse> => {
+  try {
+    const queryParams = new URLSearchParams();
+
+    // Pagination parameters
+    queryParams.append("limit", limit.toString());
+    queryParams.append("offset", ((page - 1) * limit).toString());
+
+    // Filter parameters
+    if (filters?.status) queryParams.append("status", filters.status);
+    if (filters?.priority) queryParams.append("priority", filters.priority);
+    if (filters?.service_type_id)
+      queryParams.append("service_type_id", filters.service_type_id);
+    if (filters?.workshop_id)
+      queryParams.append("workshop_id", filters.workshop_id);
+    if (filters?.from) queryParams.append("from", filters.from);
+    if (filters?.to) queryParams.append("to", filters.to);
+    if (filters?.search) queryParams.append("search", filters.search);
+
+    const url = `${API_BASE_URL}/services/requests?${queryParams}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        ...defaultHeaders,
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get requests: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error getting paginated requests:", error);
+    throw error;
+  }
+};
+
 export const getAllRequests = async (
   token: string,
   params?: {

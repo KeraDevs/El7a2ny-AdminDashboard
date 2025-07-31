@@ -73,7 +73,20 @@ export interface WalletStats {
 export function formatBalance(balance: number | string): string {
   const numBalance =
     typeof balance === "string" ? parseFloat(balance) : balance;
-  return isNaN(numBalance) ? "0.00" : numBalance.toFixed(2);
+
+  if (isNaN(numBalance)) return "0.00";
+
+  // Handle large numbers properly
+  if (numBalance >= 1000000) {
+    return (numBalance / 1000000).toFixed(2) + "M";
+  } else if (numBalance >= 1000) {
+    return numBalance.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  } else {
+    return numBalance.toFixed(2);
+  }
 }
 
 // Utility function to get numeric balance
@@ -81,6 +94,25 @@ export function getNumericBalance(balance: number | string): number {
   const numBalance =
     typeof balance === "string" ? parseFloat(balance) : balance;
   return isNaN(numBalance) ? 0 : numBalance;
+}
+
+// Utility function to format large numbers for revenue display
+export function formatRevenue(amount: number): string {
+  if (isNaN(amount)) return "0";
+
+  if (amount >= 1000000) {
+    return (amount / 1000000).toFixed(1) + "M";
+  } else if (amount >= 1000) {
+    return (amount / 1000).toFixed(1) + "K";
+  } else {
+    return amount.toLocaleString("en-US");
+  }
+}
+
+// Utility function to format transaction count
+export function formatTransactionCount(count: number): string {
+  if (isNaN(count)) return "0";
+  return count.toLocaleString("en-US");
 }
 
 export interface ManualWithdrawalRequest {
@@ -118,7 +150,7 @@ export interface ManualWithdrawalListResponse {
 }
 
 export interface ProcessWithdrawalRequest {
-  action: "approve" | "reject";
+  action: "approve" | "reject" | "initiate";
   notes?: string;
 }
 

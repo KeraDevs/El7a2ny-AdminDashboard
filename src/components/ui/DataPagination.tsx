@@ -61,7 +61,7 @@ export const DataPagination: React.FC<DataPaginationProps> = ({
             <SelectValue />
           </SelectTrigger>
           <SelectContent side="top">
-            {[5, 10, 20, 30, 50].map((pageSize) => (
+            {[10, 20, 50, 100].map((pageSize) => (
               <SelectItem key={pageSize} value={pageSize.toString()}>
                 {pageSize}
               </SelectItem>

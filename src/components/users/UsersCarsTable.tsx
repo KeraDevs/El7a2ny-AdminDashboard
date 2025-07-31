@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { UsersCarsTableProps, defaultColumnVisibility } from "@/types/carTypes";
-import { LuChevronsUpDown, LuPencil, LuEye, LuTrash2 } from "react-icons/lu";
+import { LuChevronsUpDown, LuEye } from "react-icons/lu";
 import { Loader2 } from "lucide-react";
 import { CarWithDetails } from "@/types/carTypes";
 
@@ -20,9 +20,7 @@ const UsersCarsTable: React.FC<UsersCarsTableProps> = ({
   onSelectCar,
   handleSelectAll,
   columnVisibility,
-  handleEdit,
   handleView,
-  onDelete,
   handleSort,
   searchQuery,
   loading,
@@ -310,22 +308,6 @@ const UsersCarsTable: React.FC<UsersCarsTableProps> = ({
                       className="h-8 w-8 p-0"
                     >
                       <LuEye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit(car)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <LuPencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onDelete()}
-                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <LuTrash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </TableCell>

@@ -21,16 +21,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   IconWallet,
   IconSearch,
-  IconFilter,
   IconRefresh,
   IconBuilding,
   IconUser,
@@ -41,6 +33,8 @@ import {
   IconCheck,
   IconArrowLeft,
   IconArrowRight,
+  IconSend,
+  IconX,
 } from "@tabler/icons-react";
 import { usePayouts } from "@/hooks/usePayouts";
 import {
@@ -51,6 +45,8 @@ import {
 } from "@/types/walletTypes";
 import ProcessWithdrawalDialog from "@/components/wallets/ProcessWithdrawalDialog";
 import ViewWithdrawalDialog from "@/components/wallets/ViewWithdrawalDialog";
+import { ColumnVisibilityControl } from "@/components/ui/ColumnVisibilityControl";
+import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
 
 const PayoutsPage = () => {
   const {
@@ -60,9 +56,7 @@ const PayoutsPage = () => {
     currentPage,
     totalPages,
     total,
-    statusFilter,
     setCurrentPage,
-    setStatusFilter,
     processWithdrawal,
     refreshData,
   } = usePayouts();
@@ -72,6 +66,53 @@ const PayoutsPage = () => {
     useState<ManualWithdrawalRequest | null>(null);
   const [isProcessDialogOpen, setIsProcessDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [presetAction, setPresetAction] = useState<
+    "approve" | "reject" | "initiate" | null
+  >(null);
+
+  // Column visibility state
+  const [columnVisibility, setColumnVisibility] = useState({
+    workshop: true,
+    admin: true,
+    amount: true,
+    payoutMethod: true,
+    payoutDetails: true,
+    requestDate: true,
+    status: true,
+    actions: true,
+  });
+
+  // Column definitions for visibility control
+  const columns = [
+    { key: "workshop", label: "Workshop", visible: columnVisibility.workshop },
+    { key: "admin", label: "Admin", visible: columnVisibility.admin },
+    { key: "amount", label: "Amount", visible: columnVisibility.amount },
+    {
+      key: "payoutMethod",
+      label: "Payout Method",
+      visible: columnVisibility.payoutMethod,
+    },
+    {
+      key: "payoutDetails",
+      label: "Payout Details",
+      visible: columnVisibility.payoutDetails,
+    },
+    {
+      key: "requestDate",
+      label: "Request Date",
+      visible: columnVisibility.requestDate,
+    },
+    { key: "status", label: "Status", visible: columnVisibility.status },
+    { key: "actions", label: "Actions", visible: columnVisibility.actions },
+  ];
+
+  // Toggle column visibility
+  const toggleColumn = (key: string) => {
+    setColumnVisibility((prev) => ({
+      ...prev,
+      [key]: !prev[key as keyof typeof prev],
+    }));
+  };
 
   // Filter withdrawals based on search query
   const filteredWithdrawals = withdrawals.filter((withdrawal) => {
@@ -84,6 +125,47 @@ const PayoutsPage = () => {
       withdrawal.payout_details.toLowerCase().includes(searchLower)
     );
   });
+
+  // Prepare data for CSV export
+  const csvData = filteredWithdrawals.map((withdrawal) => ({
+    id: withdrawal.id,
+    workshop_name: withdrawal.workshop?.name || "",
+    admin_name: withdrawal.admin
+      ? `${withdrawal.admin.first_name} ${withdrawal.admin.last_name}`
+      : "",
+    admin_email: withdrawal.admin?.email || "",
+    admin_phone: withdrawal.admin?.phone || "",
+    amount:
+      typeof withdrawal.amount === "string"
+        ? parseFloat(withdrawal.amount)
+        : withdrawal.amount,
+    payout_method: getPayoutMethodDisplay(withdrawal.payout_method),
+    payout_details: formatPayoutDetails(
+      withdrawal.payout_method,
+      withdrawal.payout_details
+    ),
+    status: withdrawal.status,
+    request_date: new Date(withdrawal.request_date).toLocaleDateString(),
+    processed_date: withdrawal.processed_date
+      ? new Date(withdrawal.processed_date).toLocaleDateString()
+      : "",
+    notes: withdrawal.notes || "",
+  }));
+
+  const csvHeaders = [
+    { label: "Withdrawal ID", key: "id" },
+    { label: "Workshop Name", key: "workshop_name" },
+    { label: "Admin Name", key: "admin_name" },
+    { label: "Admin Email", key: "admin_email" },
+    { label: "Admin Phone", key: "admin_phone" },
+    { label: "Amount (EGP)", key: "amount" },
+    { label: "Payout Method", key: "payout_method" },
+    { label: "Payout Details", key: "payout_details" },
+    { label: "Status", key: "status" },
+    { label: "Request Date", key: "request_date" },
+    { label: "Processed Date", key: "processed_date" },
+    { label: "Notes", key: "notes" },
+  ];
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
@@ -100,8 +182,21 @@ const PayoutsPage = () => {
     }
   };
 
-  const handleProcessWithdrawal = (withdrawal: ManualWithdrawalRequest) => {
+  const handleApproveWithdrawal = (withdrawal: ManualWithdrawalRequest) => {
     setSelectedWithdrawal(withdrawal);
+    setPresetAction("approve");
+    setIsProcessDialogOpen(true);
+  };
+
+  const handleRejectWithdrawal = (withdrawal: ManualWithdrawalRequest) => {
+    setSelectedWithdrawal(withdrawal);
+    setPresetAction("reject");
+    setIsProcessDialogOpen(true);
+  };
+
+  const handleInitiateWithdrawal = (withdrawal: ManualWithdrawalRequest) => {
+    setSelectedWithdrawal(withdrawal);
+    setPresetAction("initiate");
     setIsProcessDialogOpen(true);
   };
 
@@ -112,6 +207,7 @@ const PayoutsPage = () => {
 
   const handleCloseProcessDialog = () => {
     setSelectedWithdrawal(null);
+    setPresetAction(null);
     setIsProcessDialogOpen(false);
   };
 
@@ -132,26 +228,68 @@ const PayoutsPage = () => {
     return { pending, totalAmount, approved };
   };
 
+  const getActionButtons = (withdrawal: ManualWithdrawalRequest) => {
+    if (withdrawal.status === "pending") {
+      return (
+        <>
+          <Button
+            size="sm"
+            onClick={() => handleApproveWithdrawal(withdrawal)}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <IconCheck className="w-4 h-4 mr-2" />
+            Approve
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => handleRejectWithdrawal(withdrawal)}
+            className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+          >
+            <IconX className="w-4 h-4 mr-2" />
+            Reject
+          </Button>
+        </>
+      );
+    }
+
+    if (withdrawal.status === "approved") {
+      return (
+        <Button
+          size="sm"
+          onClick={() => handleInitiateWithdrawal(withdrawal)}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          <IconSend className="w-4 h-4 mr-2" />
+          Initiate Payment
+        </Button>
+      );
+    }
+
+    return (
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => handleViewWithdrawal(withdrawal)}
+      >
+        <IconEye className="w-4 h-4 mr-2" />
+        View
+      </Button>
+    );
+  };
+
   const stats = getPayoutStats();
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full w-full flex-col gap-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Payouts Management</h1>
-          <p className="text-muted-foreground">
-            Manage workshop withdrawal requests and payouts
-          </p>
-        </div>
-        <Button onClick={refreshData} disabled={isLoading} variant="outline">
-          {isLoading ? (
-            <IconLoader className="w-4 h-4 mr-2 animate-spin" />
-          ) : (
-            <IconRefresh className="w-4 h-4 mr-2" />
-          )}
-          Refresh
-        </Button>
+      <div className="mb-4">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Payouts Management
+        </h1>
+        <p className="text-muted-foreground">
+          Manage workshop withdrawal requests and payouts
+        </p>
       </div>
 
       {/* Stats Cards */}
@@ -221,6 +359,35 @@ const PayoutsPage = () => {
       </div>
 
       {/* Filters and Search */}
+      <div className="flex flex-col md:flex-row items-center justify-between bg-muted dark:bg-background p-3 md:p-4 rounded-md gap-3">
+        {/* Search bar */}
+        <div className="relative w-full max-w-sm">
+          <IconSearch className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search admins, workshops, or payout details..."
+            className="w-full pl-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <ColumnVisibilityControl
+            columns={columns}
+            onToggleColumn={toggleColumn}
+          />
+
+          <Button onClick={refreshData} disabled={isLoading} variant="outline">
+            <IconRefresh
+              className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+            />
+            Refresh
+          </Button>
+        </div>
+      </div>
+
+      {/* Withdrawals Table */}
       <Card>
         <CardHeader>
           <CardTitle>Withdrawal Requests</CardTitle>
@@ -228,53 +395,26 @@ const PayoutsPage = () => {
             View and process withdrawal requests from workshop admins
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-1 gap-4">
-              <div className="relative flex-1 max-w-sm">
-                <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Search admins, workshops, or payout details..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <IconFilter className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                  <SelectItem value="processed">Processed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Withdrawals Table */}
-      <Card>
         <CardContent className="p-0">
-          {isLoading ? (
+          {isLoading && (
             <div className="flex items-center justify-center h-64">
               <IconLoader className="w-8 h-8 animate-spin text-muted-foreground" />
             </div>
-          ) : error ? (
+          )}
+
+          {!isLoading && error && (
             <div className="flex items-center justify-center h-64 text-destructive">
               Error loading withdrawals: {error}
             </div>
-          ) : filteredWithdrawals.length === 0 ? (
+          )}
+
+          {!isLoading && !error && filteredWithdrawals.length === 0 && (
             <div className="flex items-center justify-center h-64 text-muted-foreground">
               No withdrawal requests found
             </div>
-          ) : (
+          )}
+
+          {!isLoading && !error && filteredWithdrawals.length > 0 && (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -346,24 +486,9 @@ const PayoutsPage = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {withdrawal.status === "pending" ? (
-                        <Button
-                          size="sm"
-                          onClick={() => handleProcessWithdrawal(withdrawal)}
-                        >
-                          <IconEye className="w-4 h-4 mr-2" />
-                          Process
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleViewWithdrawal(withdrawal)}
-                        >
-                          <IconEye className="w-4 h-4 mr-2" />
-                          View
-                        </Button>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {getActionButtons(withdrawal)}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -415,6 +540,7 @@ const PayoutsPage = () => {
           isOpen={isProcessDialogOpen}
           onClose={handleCloseProcessDialog}
           onProcess={processWithdrawal}
+          presetAction={presetAction}
         />
       )}
 
@@ -426,6 +552,23 @@ const PayoutsPage = () => {
           onClose={handleCloseViewDialog}
         />
       )}
+
+      {/* Floating Download Button */}
+      <FloatingDownloadButton
+        data={csvData}
+        filename="withdrawal-requests"
+        headers={csvHeaders}
+        columnVisibility={{
+          workshop_name: columnVisibility.workshop,
+          admin_name: columnVisibility.admin,
+          admin_email: columnVisibility.admin,
+          amount: columnVisibility.amount,
+          payout_method: columnVisibility.payoutMethod,
+          payout_details: columnVisibility.payoutDetails,
+          request_date: columnVisibility.requestDate,
+          status: columnVisibility.status,
+        }}
+      />
     </div>
   );
 };

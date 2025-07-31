@@ -332,6 +332,40 @@ export const processWithdrawalRequest = async (
   }
 };
 
+// Initiate manual withdrawal (for workshop admins)
+export const initiateWithdrawalRequest = async (
+  withdrawalData: {
+    amount: number;
+    payout_method: string;
+    payout_details: string;
+    notes?: string;
+  },
+  token: string
+): Promise<{ message: string; withdrawal_id: string }> => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/payment/manual-withdrawal/initiate`,
+      {
+        method: "POST",
+        headers: {
+          ...defaultHeaders,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(withdrawalData),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to initiate withdrawal: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error initiating withdrawal:", error);
+    throw error;
+  }
+};
+
 // Get all manual withdrawal requests with filtering
 export const getAllWithdrawals = async (
   token: string,

@@ -26,8 +26,8 @@ interface RequestSearchParams {
 }
 
 interface RequestApiParams {
-  limit: number;
-  offset: number;
+  limit?: number;
+  offset?: number;
   status?: string;
   priority?: string;
   service_type_id?: string;
@@ -35,6 +35,11 @@ interface RequestApiParams {
   from?: string;
   to?: string;
   search?: string;
+}
+
+interface PaginationParams {
+  page?: number;
+  limit?: number;
 }
 
 interface UpdateRequestData {
@@ -74,7 +79,10 @@ export const useRequestsHistory = () => {
 
   // Fetch all requests (for superadmin)
   const fetchAllRequests = useCallback(
-    async (searchParams?: RequestSearchParams) => {
+    async (
+      searchParams?: RequestSearchParams,
+      pagination?: PaginationParams
+    ) => {
       if (!currentUser) {
         setError("Authentication required");
         return;
@@ -87,10 +95,13 @@ export const useRequestsHistory = () => {
         const authToken = await currentUser.getIdToken();
 
         // Build API parameters
-        const apiParams: RequestApiParams = {
-          limit: 100, // Get more records
-          offset: 0,
-        };
+        const apiParams: RequestApiParams = {};
+
+        // Add pagination parameters
+        if (pagination?.limit) apiParams.limit = pagination.limit;
+        if (pagination?.page) {
+          apiParams.offset = (pagination.page - 1) * (pagination.limit || 10);
+        }
 
         if (searchParams?.status && searchParams.status !== "all") {
           apiParams.status = searchParams.status;

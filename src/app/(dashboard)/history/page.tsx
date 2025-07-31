@@ -50,148 +50,33 @@ import {
 } from "@tabler/icons-react";
 import { FloatingDownloadButton } from "@/components/ui/FloatingDownloadButton";
 import { DataPagination } from "@/components/ui/DataPagination";
-
-interface ServiceRequest {
-  id: string;
-  service_type_id: string;
-  vehicle_id: string;
-  workshop_id: string;
-  priority: "low" | "medium" | "high" | "urgent";
-  status: "new" | "pending" | "in_progress" | "completed" | "cancelled";
-  scheduled_at: string;
-  created_at: string;
-  customer_name: string;
-  customer_phone: string;
-  service_type: string;
-  vehicle_model: string;
-  workshop_name: string;
-  estimated_cost: number;
-  actual_cost?: number;
-  description: string;
-}
-
-// Mock data for service requests
-const mockRequests: ServiceRequest[] = [
-  {
-    id: "REQ001",
-    service_type_id: "d290f1ee-6c54-4b01-90e6-d701748f0851",
-    vehicle_id: "098f6bcd-4621-3373-8ade-4e832627b4f6",
-    workshop_id: "a3dfc292-0811-4e16-b8b8-76c9a58213b4",
-    priority: "high",
-    status: "completed",
-    scheduled_at: "2025-06-05T10:00:00Z",
-    created_at: "2025-06-01T08:30:00Z",
-    customer_name: "Ahmed Hassan",
-    customer_phone: "+20 100 123 4567",
-    service_type: "Engine Repair",
-    vehicle_model: "Toyota Camry 2020",
-    workshop_name: "Auto Tech Workshop",
-    estimated_cost: 1500,
-    actual_cost: 1350,
-    description: "Engine diagnostic and repair",
-  },
-  {
-    id: "REQ002",
-    service_type_id: "b290f1ee-6c54-4b01-90e6-d701748f0852",
-    vehicle_id: "198f6bcd-4621-3373-8ade-4e832627b4f7",
-    workshop_id: "b3dfc292-0811-4e16-b8b8-76c9a58213b5",
-    priority: "medium",
-    status: "in_progress",
-    scheduled_at: "2025-06-06T14:00:00Z",
-    created_at: "2025-06-02T10:15:00Z",
-    customer_name: "Sarah Mohamed",
-    customer_phone: "+20 101 234 5678",
-    service_type: "Brake Service",
-    vehicle_model: "Honda Civic 2019",
-    workshop_name: "Speed Garage",
-    estimated_cost: 800,
-    description: "Brake pads and fluid replacement",
-  },
-  {
-    id: "REQ003",
-    service_type_id: "c290f1ee-6c54-4b01-90e6-d701748f0853",
-    vehicle_id: "298f6bcd-4621-3373-8ade-4e832627b4f8",
-    workshop_id: "c3dfc292-0811-4e16-b8b8-76c9a58213b6",
-    priority: "urgent",
-    status: "pending",
-    scheduled_at: "2025-06-07T09:00:00Z",
-    created_at: "2025-06-03T16:45:00Z",
-    customer_name: "Mohamed Ali",
-    customer_phone: "+20 102 345 6789",
-    service_type: "Transmission Repair",
-    vehicle_model: "BMW X5 2021",
-    workshop_name: "Elite Motors",
-    estimated_cost: 3500,
-    description: "Transmission overhaul and maintenance",
-  },
-  {
-    id: "REQ004",
-    service_type_id: "e290f1ee-6c54-4b01-90e6-d701748f0854",
-    vehicle_id: "398f6bcd-4621-3373-8ade-4e832627b4f9",
-    workshop_id: "d3dfc292-0811-4e16-b8b8-76c9a58213b7",
-    priority: "low",
-    status: "new",
-    scheduled_at: "2025-06-08T11:00:00Z",
-    created_at: "2025-06-04T12:20:00Z",
-    customer_name: "Fatma Ibrahim",
-    customer_phone: "+20 103 456 7890",
-    service_type: "Oil Change",
-    vehicle_model: "Nissan Altima 2018",
-    workshop_name: "Quick Fix",
-    estimated_cost: 200,
-    description: "Regular oil change and filter replacement",
-  },
-  {
-    id: "REQ005",
-    service_type_id: "f290f1ee-6c54-4b01-90e6-d701748f0855",
-    vehicle_id: "498f6bcd-4621-3373-8ade-4e832627b4fa",
-    workshop_id: "e3dfc292-0811-4e16-b8b8-76c9a58213b8",
-    priority: "high",
-    status: "cancelled",
-    scheduled_at: "2025-06-09T15:30:00Z",
-    created_at: "2025-06-05T14:10:00Z",
-    customer_name: "Omar Khaled",
-    customer_phone: "+20 104 567 8901",
-    service_type: "AC Repair",
-    vehicle_model: "Mercedes C-Class 2022",
-    workshop_name: "City Auto Care",
-    estimated_cost: 1200,
-    description: "Air conditioning system repair",
-  },
-  {
-    id: "REQ006",
-    service_type_id: "g290f1ee-6c54-4b01-90e6-d701748f0856",
-    vehicle_id: "598f6bcd-4621-3373-8ade-4e832627b4fb",
-    workshop_id: "f3dfc292-0811-4e16-b8b8-76c9a58213b9",
-    priority: "medium",
-    status: "completed",
-    scheduled_at: "2025-06-04T13:00:00Z",
-    created_at: "2025-06-01T09:30:00Z",
-    customer_name: "Nour Ahmed",
-    customer_phone: "+20 105 678 9012",
-    service_type: "Tire Replacement",
-    vehicle_model: "Hyundai Elantra 2020",
-    workshop_name: "Tire Pro",
-    estimated_cost: 600,
-    actual_cost: 580,
-    description: "Full tire set replacement",
-  },
-];
+import { useRequestsHistoryPaginated } from "@/hooks/useRequestsHistoryPaginated";
+import {
+  ServiceRequest,
+  getStatusColor,
+  getPriorityColor,
+} from "@/types/requestTypes";
 
 // History Statistics Component
-const HistoryStats = ({ requests }: { requests: ServiceRequest[] }) => {
-  const totalRequests = requests.length;
-  const completedRequests = requests.filter(
-    (r) => r.status === "completed"
-  ).length;
-  const inProgressRequests = requests.filter(
-    (r) => r.status === "in_progress"
-  ).length;
-  const totalRevenue = requests
-    .filter((r) => r.actual_cost)
-    .reduce((sum, r) => sum + (r.actual_cost || 0), 0);
+const HistoryStats = ({
+  stats,
+}: {
+  stats: {
+    total: number;
+    new: number;
+    pending: number;
+    inProgress: number;
+    completed: number;
+    cancelled: number;
+  };
+}) => {
+  const totalRequests = stats.total;
+  const completedRequests = stats.completed;
+  const inProgressRequests = stats.inProgress;
+  // Note: We'll need to calculate revenue from actual request data with prices
+  const totalRevenue = 0; // This would need to be calculated from actual requests with prices
 
-  const stats = [
+  const statsCards = [
     {
       title: "Total Requests",
       value: totalRequests.toString(),
@@ -232,7 +117,7 @@ const HistoryStats = ({ requests }: { requests: ServiceRequest[] }) => {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-      {stats.map((stat, index) => (
+      {statsCards.map((stat, index) => (
         <motion.div
           key={stat.title}
           initial={{ opacity: 0, y: 20 }}
@@ -271,122 +156,79 @@ const HistoryStats = ({ requests }: { requests: ServiceRequest[] }) => {
 };
 
 export default function HistoryPage() {
-  const [requests, setRequests] = useState<ServiceRequest[]>(mockRequests);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [priorityFilter, setPriorityFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<string>("created_at");
+  const {
+    requests,
+    loading,
+    total,
+    currentPage,
+    pageSize,
+    totalPages,
+    stats,
+    filters,
+    handlePageChange,
+    handlePageSizeChange,
+    updateFilters,
+    refresh,
+  } = useRequestsHistoryPaginated();
+
+  const [sortBy, setSortBy] = useState<string>("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Filter and sort requests
-  const filteredRequests = requests
-    .filter((request) => {
-      const matchesSearch =
-        request.customer_name
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        request.service_type
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        request.vehicle_model
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        request.workshop_name
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        request.id.toLowerCase().includes(searchQuery.toLowerCase());
+  // Sort requests (client-side sorting for current page)
+  const sortedRequests = [...requests].sort((a, b) => {
+    let valueA: string | number | Date, valueB: string | number | Date;
 
-      const matchesStatus =
-        statusFilter === "all" || request.status === statusFilter;
-      const matchesPriority =
-        priorityFilter === "all" || request.priority === priorityFilter;
-
-      return matchesSearch && matchesStatus && matchesPriority;
-    })
-    .sort((a, b) => {
-      let valueA: string | number | Date, valueB: string | number | Date;
-
-      switch (sortBy) {
-        case "created_at":
-        case "scheduled_at":
-          valueA = new Date(a[sortBy as keyof ServiceRequest] as string);
-          valueB = new Date(b[sortBy as keyof ServiceRequest] as string);
-          break;
-        case "estimated_cost":
-          valueA = a.estimated_cost;
-          valueB = b.estimated_cost;
-          break;
-        case "customer_name":
-        case "service_type":
-        case "status":
-        case "priority":
-          valueA = (a[sortBy as keyof ServiceRequest] as string).toLowerCase();
-          valueB = (b[sortBy as keyof ServiceRequest] as string).toLowerCase();
-          break;
-        default:
-          return 0;
-      }
-
-      if (sortOrder === "asc") {
-        return valueA > valueB ? 1 : -1;
-      } else {
-        return valueA < valueB ? 1 : -1;
-      }
-    });
-
-  // Add pagination
-  const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
-  const paginatedRequests = filteredRequests.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    // In a real app, you would fetch fresh data here
-    setRequests([...mockRequests]);
-    setIsRefreshing(false);
-  };
-
-  const getStatusColor = (status: ServiceRequest["status"]) => {
-    switch (status) {
-      case "new":
-        return "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md";
-      case "pending":
-        return "bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-md";
-      case "in_progress":
-        return "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-md";
-      case "completed":
-        return "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md";
-      case "cancelled":
-        return "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-md";
+    switch (sortBy) {
+      case "createdAt":
+      case "scheduledAt":
+      case "requestedAt":
+        valueA = new Date(a[sortBy as keyof ServiceRequest] as string);
+        valueB = new Date(b[sortBy as keyof ServiceRequest] as string);
+        break;
+      case "price":
+        valueA = a.price || 0;
+        valueB = b.price || 0;
+        break;
+      case "customerName":
+      case "serviceName":
+      case "status":
+      case "priority":
+        valueA = (
+          (a[sortBy as keyof ServiceRequest] as string) || ""
+        ).toLowerCase();
+        valueB = (
+          (b[sortBy as keyof ServiceRequest] as string) || ""
+        ).toLowerCase();
+        break;
       default:
-        return "bg-gradient-to-r from-gray-400 to-gray-500 text-white shadow-md";
+        return 0;
     }
+
+    if (sortOrder === "asc") {
+      return valueA > valueB ? 1 : -1;
+    } else {
+      return valueA < valueB ? 1 : -1;
+    }
+  });
+
+  const handleRefresh = () => {
+    refresh();
   };
 
-  const getPriorityColor = (priority: ServiceRequest["priority"]) => {
-    switch (priority) {
-      case "low":
-        return "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-sm";
-      case "medium":
-        return "bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-sm";
-      case "high":
-        return "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-sm";
-      case "urgent":
-        return "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-sm";
-      default:
-        return "bg-gradient-to-r from-gray-400 to-gray-500 text-white shadow-sm";
-    }
+  const handleSearchChange = (value: string) => {
+    updateFilters({ search: value });
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+  const handleStatusFilterChange = (value: string) => {
+    updateFilters({ status: value });
+  };
+
+  const handlePriorityFilterChange = (value: string) => {
+    updateFilters({ priority: value });
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -412,17 +254,17 @@ export default function HistoryPage() {
         </div>
         <Button
           onClick={handleRefresh}
-          disabled={isRefreshing}
+          disabled={loading}
           className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
         >
           <IconRefresh
-            className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+            className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
           />
           Refresh
         </Button>
       </motion.div>
 
-      <HistoryStats requests={requests} />
+      <HistoryStats stats={stats} />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -446,28 +288,31 @@ export default function HistoryPage() {
                   <IconSearch className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search requests..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    value={filters.search}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                     className="pl-10 w-64"
                   />
                 </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <Select
+                  value={filters.status}
+                  onValueChange={handleStatusFilterChange}
+                >
                   <SelectTrigger className="w-40">
                     <IconFilter className="h-4 w-4 mr-2" />
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="new">New</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="New">New</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="In Progress">In Progress</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
+                    <SelectItem value="Cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select
-                  value={priorityFilter}
-                  onValueChange={setPriorityFilter}
+                  value={filters.priority}
+                  onValueChange={handlePriorityFilterChange}
                 >
                   <SelectTrigger className="w-32">
                     <SelectValue placeholder="Priority" />
@@ -477,7 +322,6 @@ export default function HistoryPage() {
                     <SelectItem value="low">Low</SelectItem>
                     <SelectItem value="medium">Medium</SelectItem>
                     <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="urgent">Urgent</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={sortBy} onValueChange={setSortBy}>
@@ -490,13 +334,13 @@ export default function HistoryPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="created_at">Created Date</SelectItem>
-                    <SelectItem value="scheduled_at">Scheduled Date</SelectItem>
-                    <SelectItem value="customer_name">Customer</SelectItem>
-                    <SelectItem value="service_type">Service</SelectItem>
+                    <SelectItem value="createdAt">Created Date</SelectItem>
+                    <SelectItem value="scheduledAt">Scheduled Date</SelectItem>
+                    <SelectItem value="customerName">Customer</SelectItem>
+                    <SelectItem value="serviceName">Service</SelectItem>
                     <SelectItem value="status">Status</SelectItem>
                     <SelectItem value="priority">Priority</SelectItem>
-                    <SelectItem value="estimated_cost">Cost</SelectItem>
+                    <SelectItem value="price">Cost</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button
@@ -533,7 +377,7 @@ export default function HistoryPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedRequests.map((request, index) => (
+                  {sortedRequests.map((request, index) => (
                     <motion.tr
                       key={request.id}
                       initial={{ opacity: 0, x: -20 }}
@@ -544,30 +388,28 @@ export default function HistoryPage() {
                       <TableCell>
                         <div className="font-medium">{request.id}</div>
                         <div className="text-sm text-muted-foreground">
-                          Created: {formatDate(request.created_at)}
+                          Created: {formatDate(request.createdAt)}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="font-medium">
-                          {request.customer_name}
+                          {request.customerName}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {request.customer_phone}
+                          {request.customerPhone}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="font-medium">
-                          {request.service_type}
-                        </div>
+                        <div className="font-medium">{request.serviceName}</div>
                         <div className="text-sm text-muted-foreground">
-                          {request.description}
+                          {request.serviceDescription}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <IconCar className="h-4 w-4 text-muted-foreground" />
                           <span className="font-medium">
-                            {request.vehicle_model}
+                            {request.vehicleModel}
                           </span>
                         </div>
                       </TableCell>
@@ -575,13 +417,13 @@ export default function HistoryPage() {
                         <div className="flex items-center gap-2">
                           <IconBuildingStore className="h-4 w-4 text-muted-foreground" />
                           <span className="font-medium">
-                            {request.workshop_name}
+                            {request.workshopName}
                           </span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <Badge className={getStatusColor(request.status)}>
-                          {request.status.replace("_", " ")}
+                          {request.status}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -589,22 +431,24 @@ export default function HistoryPage() {
                           className={getPriorityColor(request.priority)}
                           variant="outline"
                         >
-                          {request.priority}
+                          {request.priority || "N/A"}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <IconCalendar className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm">
-                            {formatDate(request.scheduled_at)}
+                            {request.scheduledAt
+                              ? formatDate(request.scheduledAt)
+                              : "Not scheduled"}
                           </span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="font-semibold text-green-600">
-                          {request.actual_cost
-                            ? `${request.actual_cost.toLocaleString()} EGP`
-                            : `${request.estimated_cost.toLocaleString()} EGP (est.)`}
+                          {request.price
+                            ? `${request.price.toLocaleString()} EGP`
+                            : "Not set"}
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
@@ -627,27 +471,33 @@ export default function HistoryPage() {
                   ))}
                 </TableBody>
               </Table>
-              {paginatedRequests.length === 0 &&
-                filteredRequests.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <IconHistory className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No requests found matching your criteria.</p>
-                  </div>
-                )}
+              {sortedRequests.length === 0 && !loading && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <IconHistory className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No requests found matching your criteria.</p>
+                </div>
+              )}
+
+              {loading && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <IconRefresh className="h-8 w-8 mx-auto mb-4 animate-spin" />
+                  <p>Loading requests...</p>
+                </div>
+              )}
             </div>
 
             {/* Pagination */}
-            {filteredRequests.length > 0 && (
+            {total > 0 && (
               <div className="border-t">
                 <DataPagination
                   currentPage={currentPage}
                   totalPages={totalPages}
-                  totalItems={filteredRequests.length}
-                  itemsPerPage={itemsPerPage}
-                  onPageChange={setCurrentPage}
-                  onItemsPerPageChange={setItemsPerPage}
+                  totalItems={total}
+                  itemsPerPage={pageSize}
+                  onPageChange={handlePageChange}
+                  onItemsPerPageChange={handlePageSizeChange}
                   itemType="requests"
-                  loading={isRefreshing}
+                  loading={loading}
                 />
               </div>
             )}
@@ -657,19 +507,18 @@ export default function HistoryPage() {
 
       {/* Floating Download Button */}
       <FloatingDownloadButton
-        data={paginatedRequests.map((request) => ({
-          id: request.id?.toString() || "",
-          customer_name: request.customer_name || "",
-          customer_phone: request.customer_phone || "",
-          vehicle_model: request.vehicle_model || "",
-          workshop_name: request.workshop_name || "",
-          service_type: request.service_type || "",
+        data={sortedRequests.map((request) => ({
+          id: request.id,
+          customer_name: request.customerName,
+          customer_phone: request.customerPhone,
+          vehicle_model: request.vehicleModel,
+          workshop_name: request.workshopName,
+          service_type: request.serviceName,
           priority: request.priority || "",
-          status: request.status || "",
-          estimated_cost: request.estimated_cost?.toString() || "0",
-          actual_cost: request.actual_cost?.toString() || "0",
-          scheduled_at: request.scheduled_at || "",
-          created_at: request.created_at || "",
+          status: request.status,
+          price: request.price?.toString() || "0",
+          scheduled_at: request.scheduledAt?.toISOString() || "",
+          created_at: request.createdAt.toISOString(),
         }))}
         filename="service-history"
       />

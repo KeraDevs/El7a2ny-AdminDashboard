@@ -7,8 +7,11 @@ import { Button } from "./button";
 import { CSVLink } from "react-csv";
 import { toast } from "react-hot-toast";
 
+type CsvDataRow = Record<string, string | number | boolean | null | undefined>;
+type CsvValue = string | number | boolean | null | undefined;
+
 interface FloatingDownloadButtonProps {
-  data: Array<Record<string, string | number | boolean | null | undefined>>;
+  data: Array<CsvDataRow>;
   filename: string;
   headers?: Array<{ label: string; key: string }>;
   className?: string;
@@ -38,10 +41,7 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
     if (!columnVisibility) return data;
 
     return data.map((row) => {
-      const filteredRow: Record<
-        string,
-        string | number | boolean | null | undefined
-      > = {};
+      const filteredRow: Record<string, CsvValue> = {};
       Object.keys(row).forEach((key) => {
         if (columnVisibility[key] !== false) {
           filteredRow[key] = row[key];
@@ -54,9 +54,7 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
   const visibleData = getVisibleData();
 
   // Helper function to format numbers properly
-  const formatValue = (
-    value: string | number | boolean | null | undefined
-  ): string => {
+  const formatValue = (value: CsvValue): string => {
     if (value === null || value === undefined) return "";
 
     // Convert to string first
@@ -83,9 +81,7 @@ export const FloatingDownloadButton: React.FC<FloatingDownloadButtonProps> = ({
   };
 
   // Helper function to format phone numbers with + prefix
-  const formatPhoneNumber = (
-    phone: string | number | boolean | null | undefined
-  ): string => {
+  const formatPhoneNumber = (phone: CsvValue): string => {
     if (!phone) return "";
     const cleanPhone = formatValue(phone);
     // Add + prefix if it's a valid phone number (all digits and reasonable length)

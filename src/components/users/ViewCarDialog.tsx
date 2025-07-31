@@ -15,7 +15,7 @@ export interface ViewCarDialogProps {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   car: CarWithDetails | null;
-  onEdit: () => void;
+  onEdit?: () => void;
 }
 
 export const ViewCarDialog: React.FC<ViewCarDialogProps> = ({
@@ -145,10 +145,6 @@ export const ViewCarDialog: React.FC<ViewCarDialogProps> = ({
         <DialogFooter>
           <Button variant="outline" onClick={() => setIsOpen(false)}>
             Close
-          </Button>
-          <Button onClick={onEdit}>
-            <LuPencil className="mr-2 h-4 w-4" />
-            Edit Car
           </Button>
         </DialogFooter>
       </DialogContent>
