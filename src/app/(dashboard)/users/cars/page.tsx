@@ -269,7 +269,7 @@ const UsersCarsPage: React.FC = () => {
             columnVisibility={columnVisibility}
             setColumnVisibility={setColumnVisibility}
             refreshData={fetchUserCars}
-            selectedCars={selectedCars}
+            // selectedCars prop removed
           />
           <UsersCarsTable
             cars={usersCars as CarWithDetails[]}

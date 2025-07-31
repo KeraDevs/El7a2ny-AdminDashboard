@@ -9,13 +9,7 @@ import {
 import { getAllRequestsPaginated, updateRequest } from "@/utils/requestsApi";
 import toast from "react-hot-toast";
 
-interface PaginatedRequestsResponse {
-  requests: ServiceRequest[];
-  total: number;
-  page: number;
-  totalPages: number;
-  hasMore: boolean;
-}
+// Removed unused PaginatedRequestsResponse interface
 
 export const useRequestsHistoryPaginated = () => {
   const { currentUser } = useAuth();
@@ -63,7 +57,7 @@ export const useRequestsHistoryPaginated = () => {
         const authToken = await currentUser.getIdToken();
 
         // Build filter parameters
-        const filterParams: any = {};
+        const filterParams: Record<string, unknown> = {};
 
         if (filters.status !== "all") {
           filterParams.status = filters.status;
@@ -163,7 +157,7 @@ export const useRequestsHistoryPaginated = () => {
         const authToken = await currentUser.getIdToken();
 
         // Convert data for API
-        const apiData: any = {};
+        const apiData: Record<string, unknown> = {};
         if (updateData.workshop_id)
           apiData.workshop_id = updateData.workshop_id;
         if (updateData.notes !== undefined) apiData.notes = updateData.notes;

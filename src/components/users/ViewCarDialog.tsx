@@ -15,14 +15,14 @@ export interface ViewCarDialogProps {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   car: CarWithDetails | null;
-  onEdit?: () => void;
+  // ...existing code...
 }
 
 export const ViewCarDialog: React.FC<ViewCarDialogProps> = ({
   isOpen,
   setIsOpen,
   car,
-  onEdit,
+  // ...existing code...
 }) => {
   if (!car) return null;
 
